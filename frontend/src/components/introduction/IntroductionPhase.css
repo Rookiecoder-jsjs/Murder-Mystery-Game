@@ -1,0 +1,159 @@
+/* Introduction Phase Styles */
+
+.introduction-phase {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  animation: fadeIn 0.5s ease;
+}
+
+.introduction-header {
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.introduction-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+  color: var(--text);
+  margin-bottom: var(--space-xl);
+  box-shadow: 0 0 40px rgba(139, 21, 56, 0.5);
+}
+
+.introduction-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: var(--space-md);
+}
+
+.introduction-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+}
+
+.introduction-player-card {
+  padding: var(--space-xxl);
+}
+
+.introduction-player {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxl);
+}
+
+.introduction-player-details {
+  flex: 1;
+}
+
+.introduction-player-name {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--accent);
+  margin-bottom: var(--space-sm);
+}
+
+.introduction-player-identity {
+  font-size: 1.25rem;
+  color: var(--text);
+  margin-bottom: var(--space-md);
+}
+
+.introduction-player-appearance {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.introduction-input-card {
+  padding: var(--space-xxl);
+}
+
+.introduction-input-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text);
+  margin-bottom: var(--space-sm);
+}
+
+.introduction-input-hint {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: var(--space-lg);
+}
+
+.introduction-textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  margin-bottom: var(--space-xl);
+}
+
+.introduction-submit {
+  width: 100%;
+}
+
+.introduction-other-chars {
+  margin-top: var(--space-lg);
+}
+
+.introduction-other-title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.introduction-other-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-lg);
+}
+
+.introduction-other-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+}
+
+.introduction-other-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.introduction-other-name {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.introduction-other-identity {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .introduction-player {
+    flex-direction: column;
+    text-align: center;
+  }
+}

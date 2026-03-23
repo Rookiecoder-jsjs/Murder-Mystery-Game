@@ -1,0 +1,23 @@
+# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
+# Licensed under the Apache License, Version 2.0 (the "License");
+# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
+
+# Core dependencies
+fastapi>=0.100
+uvicorn>=0.20
+pydantic>=2.0
+python-dotenv>=1.0
+
+# OpenAI compatible clients
+openai>=1.0
+
+# CAMEL framework
+camel-ai>=0.2.19
+
+# Utilities
+numpy>=1.20
+colorama>=0.4
+
+# Testing
+pytest>=7.0
+pytest-asyncio>=0.21

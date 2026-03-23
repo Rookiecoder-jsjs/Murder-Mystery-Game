@@ -1,0 +1,83 @@
+/* Clue Card Styles */
+
+.clue-card {
+  background: var(--surface-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.clue-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  transition: width var(--transition-fast);
+}
+
+.clue-card-physical::before {
+  background: var(--clue-physical);
+}
+
+.clue-card-testimony::before {
+  background: var(--clue-testimony);
+}
+
+.clue-card-document::before {
+  background: var(--clue-document);
+}
+
+.clue-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+
+.clue-card:hover::before {
+  width: 8px;
+}
+
+.clue-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.clue-card-type {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.clue-card-content {
+  font-size: 1rem;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: var(--space-md);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.clue-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clue-card-holder {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}

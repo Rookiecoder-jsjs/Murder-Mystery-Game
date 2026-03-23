@@ -1,0 +1,159 @@
+/* Reveal Phase Styles */
+
+.reveal-phase {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  animation: fadeIn 0.5s ease;
+}
+
+.reveal-header {
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.reveal-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: var(--primary-dark);
+  margin-bottom: var(--space-xl);
+  box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.reveal-icon.reveal-icon-win {
+  background: linear-gradient(135deg, var(--accent) 0%, #FFD700 100%);
+  box-shadow: 0 0 60px rgba(212, 175, 55, 0.6);
+}
+
+.reveal-icon.reveal-icon-lose {
+  background: linear-gradient(135deg, var(--danger) 0%, #8B0000 100%);
+  box-shadow: 0 0 60px rgba(196, 30, 58, 0.6);
+}
+
+.reveal-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: var(--space-md);
+  text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+}
+
+.reveal-result-badge {
+  font-size: 1.25rem;
+  padding: var(--space-md) var(--space-xl);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.reveal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.reveal-story-card {
+  padding: var(--space-xxl);
+}
+
+.reveal-section {
+  margin-bottom: var(--space-lg);
+}
+
+.reveal-section:last-child {
+  margin-bottom: 0;
+}
+
+.reveal-section-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--accent);
+  margin-bottom: var(--space-lg);
+}
+
+.reveal-section-bg {
+  font-size: 1.25rem;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.reveal-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  margin: var(--space-xxl) 0;
+}
+
+.reveal-label {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-md);
+}
+
+.reveal-truth {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-lg);
+}
+
+.reveal-truth-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  background: var(--surface-light);
+  border-radius: var(--radius-lg);
+  border-left: 4px solid var(--accent);
+}
+
+.reveal-truth-label {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reveal-truth-value {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
+.reveal-truth-value.reveal-killer {
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+.reveal-story-text {
+  font-size: 1.125rem;
+  color: var(--text);
+  line-height: 1.8;
+  padding: var(--space-xl);
+  background: var(--surface-light);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.reveal-actions {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-xl);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .reveal-truth {
+    grid-template-columns: 1fr;
+  }
+}

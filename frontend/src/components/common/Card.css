@@ -1,0 +1,74 @@
+/* Card Component Styles - Art Deco */
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.card-default {
+  border: 1px solid var(--border);
+}
+
+.card-gold-border {
+  border: 1px solid var(--accent);
+  position: relative;
+}
+
+.card-gold-border::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  opacity: 0;
+  animation: borderGlow 3s ease-in-out infinite;
+}
+
+.card-glow {
+  border: 1px solid var(--accent);
+  box-shadow: var(--shadow-glow);
+}
+
+.card-hoverable {
+  cursor: pointer;
+}
+
+.card-hoverable:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent);
+}
+
+.card-header {
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.05) 0%, transparent 100%);
+}
+
+.card-content {
+  padding: var(--space-lg);
+}
+
+.card-footer {
+  padding: var(--space-md) var(--space-lg);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* Art Deco corner decoration */
+.card-gold-border::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 2px;
+  pointer-events: none;
+}

@@ -1,0 +1,449 @@
+# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
+# Licensed under the Apache License, Version 2.0 (the "License");
+# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
+
+"""Story generation and storage service - matching original Script_kill project."""
+
+import os
+import json
+import re
+from typing import Optional, List, Dict, Any
+
+from openai import OpenAI
+
+from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
+
+
+# ============ Prompt Template (from original project) ============
+
+CASE_PROMPT_TEMPLATE = """创建一个复杂的剧本杀案件，满足以下要求：
+
+## 1. 案件背景（沉浸式设定）
+- 时间地点：具体且有画面感
+- 社会环境：涉及至少2个社会阶层或利益集团的冲突
+- 历史背景：与时代背景紧密关联，有时代特色
+- 营造强烈的氛围感和沉浸感
+
+## 2. 受害者设定（立体鲜活的角色）
+- 姓名、身份、社会地位、外貌特征
+- 与每个嫌疑人的具体关系（不能用"与嫌疑人有矛盾"这种模糊描述）
+- 死亡方式和时间（含具体细节）
+- 一个隐藏的秘密（死后才被发现）
+
+## 3. 嫌疑人设定（每个角色都是主角）
+每个嫌疑人需要包含：
+- 姓名、身份、年龄、外貌特征
+- 与受害者的具体关系（亲情/爱情/友情/利益）
+- 作案动机（深层心理动机，不只是表面理由）
+- 隐藏的秘密（与案件相关但玩家不知道）
+- 不在场证明（含真假两条，需要推理）
+- 人物背景故事（至少3句话的家庭/成长经历）
+- 说话风格和性格特点
+- 持有或知道的线索
+- 所有角色都要有完整的设定，即使不是凶手也要有丰富的故事
+
+## 4. 角色关系网络
+- 构建复杂的人物关系图
+- 至少3条独立但交叉的故事线
+- 角色之间的秘密互相交织
+- 表面关系 vs 真实关系的对比
+- 包含至少一个双重身份或隐藏身份
+
+## 5. 线索设计（10-15条）
+物证类：直接指向凶手但可被栽赃
+人证类：证人可能有偏见、说谎或记忆错误
+旁证类：需要逻辑推理串联
+每条线索都要有完整的故事背景和时间线
+
+
+## 6. 结局设计
+- 凶手必须能够被推理出（非随机）
+- 所有线索在游戏结束时都能串联
+- 提供完整的真相叙述（时间线、动机、手法）
+- 真相要令人信服，有多重反转
+
+## 7. 核心诡计与推理闭环
+- 案件必须包含至少一个本格推理的核心诡计（密室/时间差/身份替换/毒药延时/误导性现场等）
+- 诡计需有完整的物理或心理逻辑支撑，且能被证据链证实
+- 真凶的作案过程必须与所有证据完美吻合，而其他嫌疑人只能解释部分证据
+- 真相部分需逐一说明每条关键线索如何指向真凶，并解释其他嫌疑人为何不成立
+
+## 8. 时代特色植入
+- 案件的核心元素（手法、工具、动机、关键地点）必须与设定年代（1930年代）紧密绑定
+- 例如：使用当时特有的物品（煤气灯、留声机、老式电话）、社会制度（租界管辖权、帮派势力）、文化习俗等
+- 禁止出现任何明显超越时代的技术或物品
+
+## 9. 输出格式
+请以JSON格式输出，包含以下结构：
+{{
+    "title": "案件名称",
+    "background": "详细的故事背景（200字以上）",
+    "location": "具体地点",
+    "time": "具体时间",
+    "victim": {{
+        "name": "受害者姓名",
+        "identity": "受害者身份",
+        "appearance": "外貌特征",
+        "relationship_with_suspects": "与每个嫌疑人的关系描述"
+    }},
+    "true_killer_id": "凶手ID",
+    "characters": [
+        {{
+            "id": "char_1",
+            "name": "角色姓名",
+            "public_identity": "公开身份",
+            "age": "年龄",
+            "appearance": "外貌特征",
+            "secret": "隐藏秘密（玩家不知道）",
+            "backstory": "背景故事（至少3句话）",
+            "relationship_with_victim": "与受害者关系",
+            "motive": "作案动机（仅凶手有）",
+            "alibi": "不在场证明（包含真假两条）",
+            "dialogue_style": "说话风格",
+            "clue_ids": ["拥有的线索ID"],
+            "is_killer": false
+        }}
+    ],
+    "clues": [
+        {{
+            "id": "clue_1",
+            "content": "线索内容",
+            "type": "physical/testimony/document",
+            "holder_id": "持有者ID（角色或scene）",
+            "reveal_to_all": false,
+            "required_clue_id": null
+        }}
+    ],
+    "truth": "完整的真相叙述，包括时间线、动机、手法（300字以上）"
+}}
+
+请生成JSON格式，只输出JSON，不要其他内容。用中文回复。"""
+
+
+# ============ Model Factory Functions ============
+
+def create_deepseek_client() -> OpenAI:
+    """Create DeepSeek client for Reasoner model."""
+    return OpenAI(
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+        base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+    )
+
+
+def create_m2_client() -> OpenAI:
+    """Create M2-her client."""
+    return OpenAI(
+        api_key=os.getenv("MINIMAX_API_KEY"),
+        base_url="https://api.minimaxi.com/v1"
+    )
+
+
+# ============ DeepSeek Reasoner Generation ============
+
+def deepseek_reasoner_generate(
+    prompt: str,
+    client: OpenAI,
+    show_reasoning: bool = False
+) -> str:
+    """Generate content using DeepSeek Reasoner.
+
+    Args:
+        prompt: The prompt text.
+        client: DeepSeek client.
+        show_reasoning: Whether to show the reasoning process.
+
+    Returns:
+        The generated content.
+    """
+    messages = [{"role": "user", "content": prompt}]
+
+    response = client.chat.completions.create(
+        model="deepseek-reasoner",
+        messages=messages,
+        max_tokens=56 * 1024,
+    )
+
+    reasoning = response.choices[0].message.reasoning_content or ""
+    content = response.choices[0].message.content or ""
+
+    if show_reasoning and reasoning:
+        print(f"\n[思考过程]\n{reasoning[:800]}...")
+
+    return content
+
+
+# ============ Story Generation ============
+
+def generate_story(
+    topic: str,
+    client: OpenAI,
+    show_reasoning: bool = False
+) -> Optional[Dict[str, Any]]:
+    """Generate a murder case story.
+
+    Args:
+        topic: The story topic.
+        client: DeepSeek client.
+        show_reasoning: Whether to show reasoning.
+
+    Returns:
+        The generated case data as dict, or None on failure.
+    """
+    prompt = f"用户想要创建一个以「{topic}」为主题的剧本杀案件。\n\n{CASE_PROMPT_TEMPLATE}"
+
+    print("\n正在构思复杂案件...")
+    content = deepseek_reasoner_generate(prompt, client, show_reasoning=show_reasoning)
+
+    json_match = re.search(r'\{.*\}', content, re.DOTALL)
+    if json_match:
+        try:
+            data = json.loads(json_match.group())
+            return data
+        except json.JSONDecodeError as e:
+            print(f"JSON解析失败: {e}")
+            return None
+
+    return None
+
+
+def parse_case_to_archive(
+    case_data: Dict[str, Any],
+    topic: str
+) -> StoryArchive:
+    """Convert generated case data to StoryArchive.
+
+    Args:
+        case_data: The generated case dictionary.
+        topic: The original topic.
+
+    Returns:
+        StoryArchive instance.
+    """
+    # Convert characters
+    characters = []
+    for char_dict in case_data.get("characters", []):
+        character = ScriptCharacter(
+            id=char_dict["id"],
+            name=char_dict["name"],
+            public_identity=char_dict.get("public_identity", ""),
+            secret=char_dict.get("secret", ""),
+            is_killer=char_dict.get("is_killer", False),
+            clues=char_dict.get("clue_ids", []),
+            alibi=char_dict.get("alibi", ""),
+            dialogue_style=char_dict.get("dialogue_style", ""),
+            backstory=char_dict.get("backstory", ""),
+            relationship_with_victim=char_dict.get("relationship_with_victim", ""),
+            motive=char_dict.get("motive", ""),
+            appearance=char_dict.get("appearance", "")
+        )
+        characters.append(character)
+
+    # Convert clues
+    clues = []
+    for clue_dict in case_data.get("clues", []):
+        raw_content = clue_dict["content"]
+        clean_content = raw_content.strip().rstrip("...").rstrip("。").rstrip("，").strip()
+
+        clue = ClueData(
+            id=clue_dict["id"],
+            content=clean_content,
+            type=clue_dict.get("type", "physical"),
+            holder_id=clue_dict.get("holder_id", "scene"),
+            reveal_to_all=clue_dict.get("reveal_to_all", False),
+            required_clue_id=clue_dict.get("required_clue_id")
+        )
+        clues.append(clue)
+
+    # Convert case
+    victim_data = case_data.get("victim", {})
+    case = CaseData(
+        title=case_data.get("title", "未命名案件"),
+        background=case_data.get("background", ""),
+        victim=victim_data.get("name", "未知"),
+        crime=f"{victim_data.get('name', '受害者')}被害",
+        true_killer=case_data.get("true_killer_id", ""),
+        motive="详见真相",
+        location=case_data.get("location", ""),
+        time=case_data.get("time", "")
+    )
+
+    archive = StoryArchive(
+        id=StoryArchive.generate_id(),
+        created_at=StoryArchive.generate_timestamp(),
+        topic=topic,
+        title=case_data.get("title", "未命名案件"),
+        case=case,
+        characters=characters,
+        clues=clues,
+        story_content=case_data.get("truth", "")
+    )
+
+    return archive
+
+
+# ============ Storage Management ============
+
+STORIES_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "stories")
+
+
+def ensure_stories_dir() -> None:
+    """Ensure stories directory exists."""
+    if not os.path.exists(STORIES_DIR):
+        os.makedirs(STORIES_DIR)
+
+
+def save_story(archive: StoryArchive) -> str:
+    """Save story to JSON file.
+
+    Args:
+        archive: StoryArchive to save.
+
+    Returns:
+        Path to the saved file.
+    """
+    ensure_stories_dir()
+    file_path = os.path.join(STORIES_DIR, f"{archive.id}.json")
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(archive.to_dict(), f, ensure_ascii=False, indent=2)
+
+    print(f"故事已保存: {file_path}")
+    return file_path
+
+
+def load_story(story_id: str) -> Optional[StoryArchive]:
+    """Load story from file.
+
+    Args:
+        story_id: The story ID.
+
+    Returns:
+        StoryArchive or None if not found.
+    """
+    file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
+
+    if not os.path.exists(file_path):
+        print(f"存档不存在: {story_id}")
+        return None
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return StoryArchive.from_dict(data)
+    except Exception as e:
+        print(f"加载存档失败: {e}")
+        return None
+
+
+def list_stories() -> List[Dict[str, Any]]:
+    """List all saved stories.
+
+    Returns:
+        List of story info dictionaries.
+    """
+    ensure_stories_dir()
+    stories = []
+
+    for filename in os.listdir(STORIES_DIR):
+        if filename.endswith(".json"):
+            story_id = filename[:-5]
+            archive = load_story(story_id)
+            if archive:
+                stories.append({
+                    "id": archive.id,
+                    "title": archive.title,
+                    "topic": archive.topic,
+                    "created_at": archive.created_at,
+                    "num_characters": len(archive.characters)
+                })
+
+    return sorted(stories, key=lambda x: x["created_at"], reverse=True)
+
+
+def delete_story(story_id: str) -> bool:
+    """Delete a story.
+
+    Args:
+        story_id: The story ID.
+
+    Returns:
+        True if deleted.
+    """
+    file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
+
+    if not os.path.exists(file_path):
+        print(f"存档不存在: {story_id}")
+        return False
+
+    try:
+        os.remove(file_path)
+        print(f"已删除存档: {story_id}")
+        return True
+    except Exception as e:
+        print(f"删除失败: {e}")
+        return False
+
+
+# ============ High-level Service ============
+
+class StoryService:
+    """Story generation and management service."""
+
+    def __init__(self):
+        """Initialize the service."""
+        ensure_stories_dir()
+
+    def create_story(
+        self,
+        topic: str,
+        show_reasoning: bool = False
+    ) -> Optional[StoryArchive]:
+        """Generate and save a new story.
+
+        Args:
+            topic: The story topic.
+            show_reasoning: Whether to show DeepSeek reasoning.
+
+        Returns:
+            StoryArchive or None on failure.
+        """
+        client = create_deepseek_client()
+        case_data = generate_story(topic, client, show_reasoning)
+
+        if not case_data:
+            return None
+
+        archive = parse_case_to_archive(case_data, topic)
+        save_story(archive)
+
+        return archive
+
+    def get_story(self, story_id: str) -> Optional[StoryArchive]:
+        """Load a story by ID.
+
+        Args:
+            story_id: The story ID.
+
+        Returns:
+            StoryArchive or None.
+        """
+        return load_story(story_id)
+
+    def get_all_stories(self) -> List[Dict[str, Any]]:
+        """Get all saved stories.
+
+        Returns:
+            List of story info.
+        """
+        return list_stories()
+
+    def remove_story(self, story_id: str) -> bool:
+        """Delete a story.
+
+        Args:
+            story_id: The story ID.
+
+        Returns:
+            True if deleted.
+        """
+        return delete_story(story_id)

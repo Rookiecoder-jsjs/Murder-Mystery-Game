@@ -1,0 +1,292 @@
+/* Investigation Phase Styles */
+
+.investigation-phase {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  animation: fadeIn 0.5s ease;
+}
+
+.investigation-header {
+  text-align: center;
+  padding: var(--space-xl) 0;
+}
+
+.investigation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  color: var(--primary-dark);
+  margin-bottom: var(--space-xl);
+  box-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
+}
+
+.investigation-title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  color: var(--accent);
+  margin-bottom: var(--space-md);
+}
+
+.investigation-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+}
+
+.investigation-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-lg) 0;
+}
+
+.investigation-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.investigation-clues-card,
+.investigation-scene-card {
+  padding: var(--space-xl);
+}
+
+.investigation-clues-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-lg);
+}
+
+.investigation-clues-header h3 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.investigation-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.investigation-empty svg {
+  opacity: 0.3;
+  margin-bottom: var(--space-lg);
+}
+
+.investigation-empty p {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-md);
+}
+
+.investigation-empty span {
+  font-size: 1.125rem;
+}
+
+.investigation-clues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-lg);
+}
+
+.investigation-categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-lg);
+}
+
+.investigation-category {
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.investigation-category-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.investigation-category-count {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+}
+
+.investigation-category-desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+}
+
+/* Clue Detail Modal */
+.investigation-clue-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.investigation-clue-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.investigation-clue-detail-holder {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.investigation-clue-detail-content {
+  font-size: 1.125rem;
+  color: var(--text);
+  line-height: 1.7;
+  padding: var(--space-lg);
+  background: var(--surface-light);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--accent);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .investigation-categories {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Accuse Modal */
+.accuse-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.accuse-warning {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: rgba(196, 30, 58, 0.1);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+}
+
+.accuse-warning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.accuse-warning p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.accuse-warning strong {
+  color: var(--accent);
+}
+
+.accuse-suspects h4 {
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+.accuse-suspect-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+}
+
+.accuse-suspect-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-lg);
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.accuse-suspect-card.selected {
+  transform: scale(1.02);
+}
+
+.accuse-player-badge {
+  position: absolute;
+  top: var(--space-sm);
+  left: var(--space-sm);
+  font-size: 0.625rem;
+  background: var(--accent);
+  color: var(--primary-dark);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 1;
+}
+
+.accuse-suspect-card.is-player-character {
+  opacity: 0.85;
+}
+
+.accuse-suspect-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-md);
+}
+
+.accuse-suspect-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.accuse-suspect-identity {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.accuse-selected-badge {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.accuse-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+}

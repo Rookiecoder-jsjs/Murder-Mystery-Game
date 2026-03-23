@@ -1,0 +1,13 @@
+/* Game Page Styles */
+
+.game-page {
+  animation: fadeIn 0.3s ease;
+}
+
+.game-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--primary);
+}

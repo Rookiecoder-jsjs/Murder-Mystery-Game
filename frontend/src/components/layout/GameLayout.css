@@ -1,0 +1,49 @@
+/* Game Layout Styles */
+
+.game-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--primary);
+}
+
+.game-layout-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.game-layout-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xxl) var(--space-xxl);
+  scroll-behavior: smooth;
+}
+
+/* Decorative top border */
+.game-layout::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--secondary-dark),
+    var(--accent),
+    var(--secondary-dark)
+  );
+  z-index: 100;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .game-layout-body {
+    flex-direction: column;
+  }
+
+  .game-layout-main {
+    padding: var(--space-lg);
+  }
+}
