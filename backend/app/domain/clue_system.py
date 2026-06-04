@@ -114,7 +114,7 @@ class ClueSystem:
         """
         available = []
         for clue in self._clues.values():
-            if clue_id in player_known_clues:
+            if clue.id in player_known_clues:
                 continue
             if holder_id and clue.holder_id != holder_id:
                 continue

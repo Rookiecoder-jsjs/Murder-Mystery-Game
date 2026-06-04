@@ -5,7 +5,7 @@
 """Configuration management for the murder mystery game."""
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 from dotenv import load_dotenv
 
@@ -20,6 +20,37 @@ class ModelConfig:
     api_key: str
     base_url: str
     model_name: str
+
+
+@dataclass
+class GenerationParams:
+    """LLM generation parameters."""
+
+    temperature: float = 1.0
+    top_p: float = 0.95
+    max_completion_tokens: int = 2048
+
+
+def _env_float(name: str, default: float) -> float:
+    """Read a float from env, falling back to default on parse error."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+def _env_int(name: str, default: int) -> int:
+    """Read an int from env, falling back to default on parse error."""
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
 
 
 @dataclass
@@ -47,6 +78,7 @@ class MiniMaxConfig:
     api_key: str
     base_url: str
     model_name: str = "M2-her"
+    generation: GenerationParams = field(default_factory=GenerationParams)
 
     @classmethod
     def from_env(cls) -> "MiniMaxConfig":
@@ -55,6 +87,11 @@ class MiniMaxConfig:
             api_key=os.getenv("MINIMAX_API_KEY", ""),
             base_url=os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1"),
             model_name=os.getenv("MINIMAX_MODEL", "M2-her"),
+            generation=GenerationParams(
+                temperature=_env_float("M2_TEMPERATURE", 1.0),
+                top_p=_env_float("M2_TOP_P", 0.95),
+                max_completion_tokens=_env_int("M2_MAX_TOKENS", 2048),
+            ),
         )
 
 

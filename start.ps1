@@ -30,8 +30,8 @@ if (-not $SkipInstall) {
 
 # 启动后端
 Write-Host ""
-Write-Host "[1/2] 启动后端服务 (http://localhost:8000)..." -ForegroundColor Yellow
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD\backend'; python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000" -WindowStyle Normal
+Write-Host "[1/2] 启动后端服务（自动探测端口）..." -ForegroundColor Yellow
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$PWD\backend'; python -m app.main" -WindowStyle Normal
 
 Start-Sleep -Seconds 2
 

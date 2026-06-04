@@ -6,8 +6,8 @@ echo.
 
 cd /d "%~dp0"
 
-echo [1/2] 启动后端服务 (端口 8000)...
-start "Backend" cmd /k "cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+echo [1/2] 启动后端服务（自动探测端口）...
+start "Backend" cmd /k "cd backend && python -m app.main"
 
 echo [2/2] 启动前端服务 (端口 5173)...
 cd frontend

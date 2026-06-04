@@ -47,3 +47,8 @@ logs/
 # Backend specific
 backend/stories/*.json
 !backend/stories/*.json
+backend/.port.json
+backend/sessions/
+
+# Personal notes
+*面试*.md

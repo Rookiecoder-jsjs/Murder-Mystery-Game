@@ -242,6 +242,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const nextPhase = useCallback(async () => {
     if (!state.gameId) return;
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
     try {
       const result = await api.nextPhase(state.gameId);
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
@@ -250,11 +252,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to advance phase' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.gameId]);
 
   const startVoting = useCallback(async () => {
     if (!state.gameId) return;
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
     try {
       const result = await api.startVoting(state.gameId);
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
@@ -263,34 +269,60 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to start voting' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.gameId]);
 
   const returnToInvestigation = useCallback(async () => {
     if (!state.gameId) return;
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
     try {
       const result = await api.returnToInvestigation(state.gameId);
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
       dispatch({ type: 'SET_ROUND', payload: result.round || 1 });
       dispatch({ type: 'CLEAR_DISCUSSION_MESSAGES' });
-      // 刷新线索
       await refreshClues();
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to return to investigation' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.gameId, refreshClues]);
 
   const speak = useCallback(async (message: string) => {
     if (!state.gameId) return;
-    dispatch({ type: 'SET_LOADING', payload: true });
-    try {
-      const result = await api.speak(state.gameId, message);
-      dispatch({ type: 'ADD_DISCUSSION_MESSAGES', payload: result.messages });
-      dispatch({ type: 'SET_LOADING', payload: false });
-    } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to speak' });
+    // Optimistic echo so the UI is responsive while the SSE stream opens.
+    dispatch({ type: 'CLEAR_DISCUSSION_MESSAGES' });
+    if (state.player) {
+      dispatch({
+        type: 'ADD_DISCUSSION_MESSAGES',
+        payload: [{ speaker: state.player.name, message }],
+      });
     }
-  }, [state.gameId]);
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    try {
+      try {
+        for await (const msg of api.speakStream(state.gameId, message)) {
+          dispatch({ type: 'ADD_DISCUSSION_MESSAGES', payload: [msg] });
+        }
+        return;
+      } catch (streamErr) {
+        // Fallback to batch endpoint when streaming is unavailable
+        const result = await api.speak(state.gameId, message);
+        dispatch({ type: 'ADD_DISCUSSION_MESSAGES', payload: result.messages });
+      }
+    } catch (error) {
+      dispatch({
+        type: 'SET_ERROR',
+        payload: error instanceof Error ? error.message : 'Failed to speak',
+      });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [state.gameId, state.player]);
 
   const vote = useCallback(async (characterName: string) => {
     if (!state.gameId) return;

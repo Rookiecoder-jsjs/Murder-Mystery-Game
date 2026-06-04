@@ -1,0 +1,13 @@
+{
+  "name": "murder-mystery",
+  "private": true,
+  "version": "1.0.0",
+  "description": "AI-powered murder mystery game — root launcher",
+  "scripts": {
+    "dev": "node scripts/dev.js",
+    "dev:backend": "node scripts/dev-backend.js",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "npm install && cd frontend && npm install",
+    "test:backend": "cd backend && python -m pytest"
+  }
+}

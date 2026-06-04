@@ -13,7 +13,6 @@ from app.services.story_service import (
     list_stories,
     delete_story,
 )
-from app.services.game_service import GameService, GameSession
 
 __all__ = [
     "StoryService",
@@ -23,6 +22,4 @@ __all__ = [
     "load_story",
     "list_stories",
     "delete_story",
-    "GameService",
-    "GameSession",
 ]

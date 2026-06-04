@@ -11,12 +11,16 @@ from typing import Any, Optional
 from camel.agents import ChatAgent
 from camel.messages import BaseMessage
 
+from app.core.logging import get_logger
 from app.domain.models import (
     StoryArchive,
     CaseData,
     ScriptCharacter,
     ClueData,
 )
+
+
+logger = get_logger(__name__)
 
 
 class StoryGeneratorAgent:
@@ -74,7 +78,7 @@ class StoryGeneratorAgent:
             if show_reasoning:
                 reasoning = getattr(response, 'reasoning_content', '')
                 if reasoning:
-                    print(f"\n[思考过程]\n{reasoning[:500]}...")
+                    logger.info("[思考过程] %s...", reasoning[:500])
 
             return self._parse_story(content, topic)
 

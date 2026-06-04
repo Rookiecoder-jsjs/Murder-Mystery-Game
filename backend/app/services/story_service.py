@@ -11,7 +11,11 @@ from typing import Optional, List, Dict, Any
 
 from openai import OpenAI
 
+from app.core.logging import get_logger
 from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
+
+
+logger = get_logger(__name__)
 
 
 # ============ Prompt Template (from original project) ============
@@ -167,7 +171,7 @@ def deepseek_reasoner_generate(
     content = response.choices[0].message.content or ""
 
     if show_reasoning and reasoning:
-        print(f"\n[思考过程]\n{reasoning[:800]}...")
+        logger.info("[思考过程] %s...", reasoning[:800])
 
     return content
 
@@ -191,7 +195,7 @@ def generate_story(
     """
     prompt = f"用户想要创建一个以「{topic}」为主题的剧本杀案件。\n\n{CASE_PROMPT_TEMPLATE}"
 
-    print("\n正在构思复杂案件...")
+    logger.info("正在构思复杂案件...")
     content = deepseek_reasoner_generate(prompt, client, show_reasoning=show_reasoning)
 
     json_match = re.search(r'\{.*\}', content, re.DOTALL)
@@ -200,7 +204,7 @@ def generate_story(
             data = json.loads(json_match.group())
             return data
         except json.JSONDecodeError as e:
-            print(f"JSON解析失败: {e}")
+            logger.error("JSON解析失败: %s", e)
             return None
 
     return None
@@ -307,7 +311,7 @@ def save_story(archive: StoryArchive) -> str:
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(archive.to_dict(), f, ensure_ascii=False, indent=2)
 
-    print(f"故事已保存: {file_path}")
+    logger.info("故事已保存: %s", file_path)
     return file_path
 
 
@@ -323,7 +327,7 @@ def load_story(story_id: str) -> Optional[StoryArchive]:
     file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
 
     if not os.path.exists(file_path):
-        print(f"存档不存在: {story_id}")
+        logger.warning("存档不存在: %s", story_id)
         return None
 
     try:
@@ -331,7 +335,7 @@ def load_story(story_id: str) -> Optional[StoryArchive]:
             data = json.load(f)
         return StoryArchive.from_dict(data)
     except Exception as e:
-        print(f"加载存档失败: {e}")
+        logger.error("加载存档失败: %s", e)
         return None
 
 
@@ -372,15 +376,15 @@ def delete_story(story_id: str) -> bool:
     file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
 
     if not os.path.exists(file_path):
-        print(f"存档不存在: {story_id}")
+        logger.warning("存档不存在: %s", story_id)
         return False
 
     try:
         os.remove(file_path)
-        print(f"已删除存档: {story_id}")
+        logger.info("已删除存档: %s", story_id)
         return True
     except Exception as e:
-        print(f"删除失败: {e}")
+        logger.error("删除失败: %s", e)
         return False
 
 

@@ -9,9 +9,14 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 if TYPE_CHECKING:
     from openai import OpenAI
 
+from app.core.config import MiniMaxConfig, get_config
 from app.core.phases import GamePhase
 from app.core.prompts import PhasePromptTemplates
+from app.core.logging import get_logger
 from app.domain.models import ScriptCharacter, ClueData, GameState
+
+
+logger = get_logger(__name__)
 
 
 class M2Character:
@@ -26,6 +31,7 @@ class M2Character:
         character: ScriptCharacter,
         client: "OpenAI",
         user_persona: str = "一个普通用户",
+        config: Optional[MiniMaxConfig] = None,
     ):
         """Initialize the M2 character.
 
@@ -33,10 +39,13 @@ class M2Character:
             character: The script character to represent.
             client: OpenAI client configured for M2-her.
             user_persona: Description of the user's role.
+            config: MiniMax config (model name + generation params).
+                Falls back to ``get_config().minimax`` when not provided.
         """
         self.character = character
         self.client = client
         self.user_persona = user_persona
+        self.config = config or get_config().minimax
         self.conversation_history: List[Dict[str, str]] = []
 
     @property
@@ -178,23 +187,20 @@ class M2Character:
 
         try:
             response = self.client.chat.completions.create(
-                model="M2-her",
+                model=self.config.model_name,
                 messages=messages,
-                temperature=1.0,
-                top_p=0.95,
-                max_completion_tokens=2048,
+                temperature=self.config.generation.temperature,
+                top_p=self.config.generation.top_p,
+                max_completion_tokens=self.config.generation.max_completion_tokens,
             )
             content = response.choices[0].message.content
             if content is None:
                 content = "[无回复]"
         except Exception as e:
-            print(f"[M2-her Error] {self.name}: {e}")
+            logger.error("[M2-her Error] %s: %s", self.name, e)
             content = "[回复失败]"
 
-        clean_content = content
-        prefix = f"{self.name}说："
-        if clean_content.startswith(prefix):
-            clean_content = clean_content[len(prefix):]
+        clean_content = self._strip_self_prefix(content)
 
         if user_input:
             self.conversation_history.append({
@@ -209,6 +215,28 @@ class M2Character:
             "message": clean_content,
         })
 
+        return content
+
+    def _strip_self_prefix(self, content: str) -> str:
+        """Remove a self-introduction prefix if the model emitted one.
+
+        Models occasionally prefix replies with their own name (e.g.
+        "Alice说：..."). Strip the first line if it matches, so the
+        client doesn't render the name twice. Also handles the bare-name
+        variant "Alice:" used by some models.
+        """
+        for prefix in (
+            f"{self.name}说：",
+            f"{self.name}说:",
+            f"{self.name}:",
+            f"{self.name}：",
+        ):
+            if content.startswith(prefix):
+                return content[len(prefix):].lstrip()
+        # Multi-line: drop the first line if it's only a name+colon
+        first, _, rest = content.partition("\n")
+        if first.rstrip(":：").strip() == self.name:
+            return rest.lstrip()
         return content
 
     def respond_introduction(self) -> str:

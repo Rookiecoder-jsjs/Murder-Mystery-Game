@@ -1,6 +1,6 @@
 // API client for the murder mystery game
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = '';
 
 async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -89,6 +89,53 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ message }),
     }),
+
+  speakStream: async function* (
+    gameId: string,
+    message: string,
+    signal?: AbortSignal,
+  ): AsyncGenerator<{ speaker: string; message: string }, string, void> {
+    const response = await fetch(`${API_BASE}/games/${gameId}/speak/stream`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+      signal,
+    });
+    if (!response.ok || !response.body) {
+      throw new Error(`Stream error: ${response.status}`);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalPhase = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      let sep;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const rawEvent = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        const lines = rawEvent.split('\n');
+        let event = 'message';
+        let data = '';
+        for (const line of lines) {
+          if (line.startsWith('event:')) event = line.slice(6).trim();
+          else if (line.startsWith('data:')) data += line.slice(5).trim();
+        }
+        if (!data) continue;
+        if (event === 'error') {
+          throw new Error(JSON.parse(data).detail ?? 'stream error');
+        }
+        if (event === 'done') {
+          finalPhase = JSON.parse(data).phase ?? '';
+          continue;
+        }
+        yield JSON.parse(data);
+      }
+    }
+    return finalPhase;
+  },
 
   vote: (gameId: string, characterName: string) =>
     fetchApi<any>(`/games/${gameId}/vote`, {

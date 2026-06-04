@@ -10,8 +10,8 @@ echo ""
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "[1/2] 启动后端服务 (http://localhost:8000)..."
-(cd backend && python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000) &
+echo "[1/2] 启动后端服务（自动探测端口）..."
+(cd backend && python -m app.main) &
 BACKEND_PID=$!
 
 echo "[2/2] 启动前端服务 (http://localhost:5173)..."
@@ -20,8 +20,8 @@ FRONTEND_PID=$!
 
 echo ""
 echo "服务已启动:"
-echo "  - 后端: http://localhost:8000"
-echo "  - 前端: http://localhost:5173"
+echo "  - 后端: 见 backend/.port.json 中的端口"
+echo "  - 前端: http://localhost:5173（如被占用会自动递增）"
 echo ""
 echo "按 Ctrl+C 停止所有服务"
 
