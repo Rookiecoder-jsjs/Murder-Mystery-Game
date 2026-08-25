@@ -13,12 +13,14 @@ Business logic lives in ``app.services.*``; HTTP shapes in
 
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router
+from app.core.config import ENV_FILE, validate_secrets
 from app.core.logging import configure_logging
 from app.services.session_service import (
     InMemorySessionStore,
@@ -33,7 +35,11 @@ from app.services.story_service import (
 )
 
 
-load_dotenv()
+load_dotenv(ENV_FILE)
+
+# backend/ 目录的绝对路径（config.py 从 app/core/config.py 向上三级解析
+# 得到 backend/，这里用同一方式取 backend/，供相对 SESSIONS_DIR 解析）。
+_BACKEND_DIR = Path(__file__).resolve().parent.parent
 
 
 def _cors_origins() -> list[str]:
@@ -56,18 +62,23 @@ def _cors_origins() -> list[str]:
 def _build_session_store() -> SessionStore:
     """Pick persistence backend.
 
-    Set SESSIONS_DIR to enable JSON file persistence (e.g.
-    ``SESSIONS_DIR=backend/sessions``); default is in-memory only.
+    Set SESSIONS_DIR to enable JSON file persistence (e.g. ``sessions``);
+    default is in-memory only. A relative path is resolved against the
+    backend/ directory so it works regardless of the process CWD.
     """
     sessions_dir = os.getenv("SESSIONS_DIR")
-    if sessions_dir:
-        return JsonFileSessionStore(sessions_dir)
-    return InMemorySessionStore()
+    if not sessions_dir:
+        return InMemorySessionStore()
+    path = Path(sessions_dir)
+    if not path.is_absolute():
+        path = _BACKEND_DIR / path
+    return JsonFileSessionStore(str(path))
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging()
+    validate_secrets()  # 密钥缺失时快速失败，给出可读错误而非冷门 401
     ensure_stories_dir()
 
     story_service = StoryService()

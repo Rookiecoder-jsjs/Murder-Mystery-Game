@@ -6,11 +6,33 @@
 
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
+
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# 环境变量文件固定锚定在 backend/.env（相对此文件解析，不依赖进程 CWD）。
+# 真实密钥只存这里（已被 .gitignore 忽略）；模板与注释见 backend/.env.simple。
+ENV_FILE: Path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(ENV_FILE)
+
+# 启动必需的环境变量 —— 缺失时直接拒绝启动（见 validate_secrets）
+REQUIRED_SECRETS: tuple[str, ...] = ("DEEPSEEK_API_KEY",)
+
+
+def validate_secrets() -> None:
+    """Fail fast when required secrets are missing at startup.
+
+    Called by ``main.py`` lifespan so a misconfigured deployment fails
+    with a clear message instead of an obscure 401 from the LLM provider.
+    """
+    missing = [name for name in REQUIRED_SECRETS if not os.getenv(name, "").strip()]
+    if missing:
+        raise RuntimeError(
+            "缺少必需的环境变量："
+            + "、".join(missing)
+            + "。请在 backend/.env 中配置（可从 backend/.env.simple 复制模板）。"
+        )
 
 
 @dataclass

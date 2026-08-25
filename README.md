@@ -172,11 +172,13 @@ cd Murder-Mystery-Game
 
 使用 **DeepSeek V4 Pro**（故事生成，思考模式）+ **DeepSeek V4 Flash**（角色扮演，低延迟），单一供应商、一个 API key 即可。
 
+密钥存放在 **`backend/.env`**（相对路径以 `backend/` 为基准解析，与启动目录无关）；该文件已被根目录 `.gitignore` 忽略，**绝不会被提交**。
+
 ```bash
 # 进入后端目录
 cd backend
 
-# 复制环境变量模板
+# 复制环境变量模板（模板含全部变量与注释）
 cp .env.simple .env
 
 # 编辑 .env，填入你的密钥
@@ -199,6 +201,8 @@ ROLEPLAY_MODEL=deepseek-v4-flash
 ```
 
 > 💡 **获取 API 密钥**: DeepSeek: https://platform.deepseek.com/
+>
+> ⚠️ **快速失败**：启动时若 `DEEPSEEK_API_KEY` 缺失，后端会直接报错退出（fail fast），而不是在游戏中途抛出晦涩的 401。检查 `.env` 环境变量是否配置正确即可。
 
 ### 3. 安装依赖 + 启动
 
@@ -262,7 +266,7 @@ powershell start.ps1   # Windows PowerShell
 | `ROLEPLAY_THINKING_ENABLED` | `false` | 角色扮演是否开思考模式 |
 | `CORS_ALLOWED_ORIGINS` | localhost dev | 逗号分隔；不设则只允许本地 |
 | `LOG_LEVEL` | `INFO` | DEBUG/INFO/WARNING/ERROR |
-| `SESSIONS_DIR` | — | 不设则内存存储；设了启用 JSON 持久化 |
+| `SESSIONS_DIR` | — | 不设则内存存储；设了启用 JSON 持久化。相对路径以 `backend/` 为基准（如 `sessions`） |
 
 ## 📚 API 文档
 
