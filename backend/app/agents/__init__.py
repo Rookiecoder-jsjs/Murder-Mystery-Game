@@ -4,14 +4,8 @@
 
 """Agents module for the murder mystery game."""
 
-from app.agents.base import BaseCharacterAgent
-from app.agents.character_agent import MurderMysteryCharacterAgent
-from app.agents.generator_agent import StoryGeneratorAgent
-from app.agents.m2_character import M2Character
+from app.agents.roleplay_character import RoleplayCharacter
 
 __all__ = [
-    "BaseCharacterAgent",
-    "MurderMysteryCharacterAgent",
-    "StoryGeneratorAgent",
-    "M2Character",
+    "RoleplayCharacter",
 ]

@@ -18,13 +18,13 @@ from app.core.phases import GamePhase
 from app.services.story_service import (
     StoryService,
     create_deepseek_client,
-    create_m2_client,
+    create_roleplay_client,
     save_story,
     list_stories,
     ensure_stories_dir,
 )
 from app.domain.game_manager import GameManager
-from app.agents.m2_character import M2Character
+from app.agents.roleplay_character import RoleplayCharacter
 
 load_dotenv()
 init(autoreset=True)
@@ -37,10 +37,10 @@ class MurderMysteryCLI:
         self.story_service = StoryService()
         self.archive = None
         self.session = None
-        self.m2_client = None
+        self.roleplay_client = None
 
     def _setup_clients(self):
-        self.m2_client = create_m2_client()
+        self.roleplay_client = create_roleplay_client()
 
     def _print_header(self):
         print(Fore.CYAN + "=" * 50)
@@ -179,9 +179,9 @@ class MurderMysteryCLI:
         self.session.ai_characters = {}
         for char in self.archive.characters:
             if char.id != char_id:
-                self.session.ai_characters[char.id] = M2Character(
+                self.session.ai_characters[char.id] = RoleplayCharacter(
                     character=char,
-                    client=self.m2_client,
+                    client=self.roleplay_client,
                 )
 
         # 分配初始线索

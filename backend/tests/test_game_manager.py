@@ -31,6 +31,11 @@ class TestMajorityVote:
         winner, _ = majority_vote(["a", "b", "a", "b"])
         assert winner in ("a", "b")
 
+    def test_tie_winner_is_among_tied(self):
+        for _ in range(20):
+            winner, _ = majority_vote(["x", "y", "z"])
+            assert winner in ("x", "y", "z")
+
 
 # ---------- Initialization ----------
 
@@ -142,11 +147,21 @@ class TestClueBoard:
         gm = GameManager(sample_archive)
         board = gm.get_clue_board("char_2")
         assert len(board.owned) == 0
-        # 5 available (4 char clues + 1 locked clue) + 1 scene_public
-        assert len(board.available) == 5
+        # 4 available (4 char clues) + 1 scene_public;
+        # clue_locked is hidden — its prerequisite (clue_a) is unknown
+        assert len(board.available) == 4
         assert len(board.scene_public) == 1
         assert board.scene_public[0].clue.id == "clue_scene"
         assert board.scene_public[0].status == ClueStatus.SCENE_PUBLIC.value
+
+    def test_locked_clue_hidden_until_prerequisite_found(self, sample_archive):
+        gm = GameManager(sample_archive)
+        board = gm.get_clue_board("char_2")
+        assert "clue_locked" not in [e.clue.id for e in board.available]
+
+        gm.state.player_states["char_2"].known_clues.append("clue_a")
+        board = gm.get_clue_board("char_2")
+        assert "clue_locked" in [e.clue.id for e in board.available]
 
     def test_distribute_random_clues_marks_owned(self, sample_archive):
         gm = GameManager(sample_archive)
@@ -154,7 +169,11 @@ class TestClueBoard:
         assert len(distributed) == 2
         board = gm.get_clue_board("char_2")
         assert len(board.owned) == 2
-        assert len(board.available) == 3  # 5 - 2
+        # 4 initially-available minus the 2 drawn; drawing clue_a unlocks
+        # clue_locked back into available.
+        drawn_ids = {c.id for c in distributed}
+        expected = 3 if "clue_a" in drawn_ids else 2
+        assert len(board.available) == expected
 
     def test_distribute_scene_clue_marks_revealed(self, sample_archive):
         """When the only available clue is held by the scene, distributing
@@ -224,6 +243,22 @@ class TestAccuse:
         assert gm.current_phase == GamePhase.REVEAL
         assert "Alice" in msg
 
+    def test_cannot_accuse_self(self, sample_archive):
+        gm = GameManager(sample_archive)
+        correct, msg = gm.accuse("char_2", "char_2")
+        assert correct is False
+        assert gm.state.game_ended is False
+        # accusation point NOT consumed on invalid target
+        assert gm.can_accuse("char_2") is True
+
+    def test_cannot_accuse_eliminated(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.eliminate_player("char_3")
+        correct, msg = gm.accuse("char_2", "char_3")
+        assert correct is False
+        assert gm.state.game_ended is False
+        assert gm.can_accuse("char_2") is True
+
 
 # ---------- Voting ----------
 
@@ -245,6 +280,31 @@ class TestVoting:
         gm.set_phase(GamePhase.VOTING)
         gm.eliminate_player("char_1")
         assert gm.submit_vote("char_1", "char_2") is False
+
+    def test_revote_replaces_previous_vote(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        gm.submit_vote("char_1", "char_2")
+        gm.submit_vote("char_1", "char_3")
+        assert len(gm.state.votes_record) == 1
+        assert gm.state.votes_record[0]["target_id"] == "char_3"
+
+    def test_reset_votes_clears_all(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        for src in ("char_1", "char_2"):
+            gm.submit_vote(src, "char_3")
+        gm.reset_votes()
+        assert gm.state.votes_record == []
+        assert all(ps.vote is None for ps in gm.state.player_states.values())
+
+    def test_can_vote_only_in_voting_phase(self, sample_archive):
+        gm = GameManager(sample_archive)
+        assert gm.can_vote("char_1") is False
+        gm.set_phase(GamePhase.VOTING)
+        assert gm.can_vote("char_1") is True
+        gm.eliminate_player("char_1")
+        assert gm.can_vote("char_1") is False
 
     def test_tally_votes_empty(self, sample_archive):
         gm = GameManager(sample_archive)
@@ -296,6 +356,8 @@ class TestVoting:
         assert gm.state.winner == "good"
         assert "Alice" in msg
         assert gm.state.player_states["char_1"].is_alive is False
+        # 投死凶手同样要进入揭晓阶段（与误杀分支一致），否则前端卡在投票页
+        assert gm.current_phase == GamePhase.REVEAL
 
     def test_check_voting_result_wrong_target(self, sample_archive):
         gm = GameManager(sample_archive)

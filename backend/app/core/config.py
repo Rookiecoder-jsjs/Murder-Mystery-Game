@@ -53,13 +53,21 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    """Read a bool from env ("1"/"true"/"yes" are truthy, case-insensitive)."""
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    return raw.strip().lower() in ("1", "true", "yes", "on")
+
+
 @dataclass
 class DeepSeekConfig:
-    """DeepSeek model configuration for story generation."""
+    """DeepSeek model configuration for story generation (thinking mode on)."""
 
     api_key: str
     base_url: str
-    model_name: str = "deepseek-reasoner"
+    model_name: str = "deepseek-v4-pro"
 
     @classmethod
     def from_env(cls) -> "DeepSeekConfig":
@@ -67,31 +75,43 @@ class DeepSeekConfig:
         return cls(
             api_key=os.getenv("DEEPSEEK_API_KEY", ""),
             base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1"),
-            model_name=os.getenv("DEEPSEEK_MODEL", "deepseek-reasoner"),
+            model_name=os.getenv("DEEPSEEK_MODEL", "deepseek-v4-pro"),
         )
 
 
 @dataclass
-class MiniMaxConfig:
-    """MiniMax M2-her model configuration for role-playing."""
+class RoleplayConfig:
+    """Roleplay (character) model configuration.
+
+    Defaults to the fast DeepSeek variant with thinking mode disabled —
+    chat-style roleplay wants low latency, not deep reasoning.
+    """
 
     api_key: str
     base_url: str
-    model_name: str = "M2-her"
+    model_name: str = "deepseek-v4-flash"
     generation: GenerationParams = field(default_factory=GenerationParams)
+    thinking_enabled: bool = False
 
     @classmethod
-    def from_env(cls) -> "MiniMaxConfig":
-        """Create config from environment variables."""
+    def from_env(cls) -> "RoleplayConfig":
+        """Create config from environment variables.
+
+        Falls back to DEEPSEEK_API_KEY when no separate roleplay key is set —
+        both roles usually share the same DeepSeek account.
+        """
         return cls(
-            api_key=os.getenv("MINIMAX_API_KEY", ""),
-            base_url=os.getenv("MINIMAX_BASE_URL", "https://api.minimaxi.com/v1"),
-            model_name=os.getenv("MINIMAX_MODEL", "M2-her"),
-            generation=GenerationParams(
-                temperature=_env_float("M2_TEMPERATURE", 1.0),
-                top_p=_env_float("M2_TOP_P", 0.95),
-                max_completion_tokens=_env_int("M2_MAX_TOKENS", 2048),
+            api_key=os.getenv("ROLEPLAY_API_KEY", "") or os.getenv("DEEPSEEK_API_KEY", ""),
+            base_url=os.getenv(
+                "ROLEPLAY_BASE_URL", os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
             ),
+            model_name=os.getenv("ROLEPLAY_MODEL", "deepseek-v4-flash"),
+            generation=GenerationParams(
+                temperature=_env_float("ROLEPLAY_TEMPERATURE", 1.0),
+                top_p=_env_float("ROLEPLAY_TOP_P", 0.95),
+                max_completion_tokens=_env_int("ROLEPLAY_MAX_TOKENS", 2048),
+            ),
+            thinking_enabled=_env_bool("ROLEPLAY_THINKING_ENABLED", False),
         )
 
 
@@ -100,14 +120,14 @@ class AppConfig:
     """Application configuration."""
 
     deepseek: DeepSeekConfig
-    minimax: MiniMaxConfig
+    roleplay: RoleplayConfig
 
     @classmethod
     def from_env(cls) -> "AppConfig":
         """Create config from environment variables."""
         return cls(
             deepseek=DeepSeekConfig.from_env(),
-            minimax=MiniMaxConfig.from_env(),
+            roleplay=RoleplayConfig.from_env(),
         )
 
 

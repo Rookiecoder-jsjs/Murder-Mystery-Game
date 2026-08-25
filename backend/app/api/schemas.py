@@ -14,8 +14,8 @@ from pydantic import BaseModel, Field
 
 
 class CreateGameRequest(BaseModel):
-    topic: str = Field(..., description="剧本主题")
-    player_name: Optional[str] = Field(None, description="玩家名字")
+    topic: str = Field(..., min_length=1, max_length=200, description="剧本主题")
+    player_name: Optional[str] = Field(None, max_length=50, description="玩家名字")
 
 
 class LoadGameRequest(BaseModel):
@@ -23,12 +23,16 @@ class LoadGameRequest(BaseModel):
 
 
 class AccuseRequest(BaseModel):
-    character_name: str = Field(..., description="被指控的角色名字")
+    character_name: str = Field(..., max_length=100, description="被指控的角色名字")
+
+
+class IntroduceRequest(BaseModel):
+    message: Optional[str] = Field("", max_length=500, description="玩家自我介绍")
 
 
 class SpeakRequest(BaseModel):
-    message: str = Field(..., description="玩家发言内容")
+    message: str = Field(..., min_length=1, max_length=500, description="玩家发言内容")
 
 
 class VoteRequest(BaseModel):
-    character_name: str = Field(..., description="投票的角色名字")
+    character_name: str = Field(..., max_length=100, description="投票的角色名字")

@@ -10,29 +10,31 @@ Owns:
   persistence (``InMemorySessionStore`` default; ``JsonFileSessionStore``
   restores games after process restart)
 
-The HTTP layer (``app.api.endpoints.*``) is a thin shell that maps
-requests to methods on these classes — no game logic should live in
-endpoint handlers.
+All LLM calls are async (thread-pool offload) so the FastAPI event loop
+is never blocked. The HTTP layer (``app.api.endpoints.*``) is a thin
+shell that maps requests to methods on these classes — no game logic
+should live in endpoint handlers.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import random
 import uuid
 from dataclasses import asdict
-from typing import Any, AsyncIterable, Dict, Optional, Protocol
+from typing import Any, AsyncIterable, Dict, List, Optional, Protocol
 
 from fastapi import HTTPException
 from openai import OpenAI
 
-from app.agents.m2_character import M2Character
+from app.agents.roleplay_character import RoleplayCharacter
 from app.core.config import get_config
 from app.core.logging import get_logger
 from app.core.phases import GamePhase
 from app.domain.game_manager import GameManager
-from app.domain.models import GameState, StoryArchive
+from app.domain.models import GameState, PlayerState, StoryArchive
 
 
 logger = get_logger(__name__)
@@ -100,6 +102,43 @@ class JsonFileSessionStore:
             os.remove(path)
 
 
+def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
+    """Rebuild a typed ``GameState`` from a JSON snapshot.
+
+    ``asdict`` flattens nested dataclasses to dicts; restore them here so
+    callers can rely on real ``PlayerState`` objects after a restart.
+    """
+    state = GameState(
+        story_id=raw["story_id"],
+        phase=raw.get("phase", "introduction"),
+        turn=raw.get("turn", 0),
+        round=raw.get("round", 1),
+        max_rounds=raw.get("max_rounds", 5),
+        investigation_count=raw.get("investigation_count", 0),
+        min_investigation_rounds=raw.get("min_investigation_rounds", 2),
+        eliminated_id=raw.get("eliminated_id"),
+        votes_record=list(raw.get("votes_record", [])),
+        discussion_history=list(raw.get("discussion_history", [])),
+        game_ended=raw.get("game_ended", False),
+        winner=raw.get("winner"),
+        reveal_triggered=raw.get("reveal_triggered", False),
+    )
+    for char in archive.characters:
+        ps_raw = raw.get("player_states", {}).get(char.id)
+        if isinstance(ps_raw, dict):
+            state.player_states[char.id] = PlayerState(
+                character_id=char.id,
+                is_alive=ps_raw.get("is_alive", True),
+                accusation_points=ps_raw.get("accusation_points", 1),
+                known_clues=list(ps_raw.get("known_clues", [])),
+                has_accused=ps_raw.get("has_accused", False),
+                vote=ps_raw.get("vote"),
+            )
+        else:
+            state.player_states[char.id] = PlayerState(character_id=char.id)
+    return state
+
+
 # ---------------------------------------------------------------------------
 # GameSession — single game's runtime
 # ---------------------------------------------------------------------------
@@ -112,21 +151,28 @@ class GameSession:
         self,
         archive: StoryArchive,
         human_player_id: str,
-        m2_client: OpenAI,
+        roleplay_client: OpenAI,
     ) -> None:
         self.archive = archive
         self.game = GameManager(archive)
         self.human_player_id = human_player_id
-        self.m2_client = m2_client
-        self.m2_config = get_config().minimax
+        self.roleplay_client = roleplay_client
+        self.roleplay_config = get_config().roleplay
 
-        self.ai_characters: Dict[str, M2Character] = {}
+        human_char = self.game.get_character(human_player_id)
+        persona = (
+            f"{human_char.name}（{human_char.public_identity}）"
+            if human_char else ""
+        )
+
+        self.ai_characters: Dict[str, RoleplayCharacter] = {}
         for char in archive.characters:
             if char.id != human_player_id:
-                self.ai_characters[char.id] = M2Character(
+                self.ai_characters[char.id] = RoleplayCharacter(
                     character=char,
-                    client=m2_client,
-                    config=self.m2_config,
+                    client=roleplay_client,
+                    user_persona=persona,
+                    config=self.roleplay_config,
                 )
 
         self._distribute_initial_clues()
@@ -138,17 +184,22 @@ class GameSession:
             if board.available:
                 self.game.distribute_random_clues(char_id, 1)
 
+    # -- persistence ---------------------------------------------------------
+
     def to_snapshot(self, game_id: str) -> Dict[str, Any]:
         """Return a JSON-serializable snapshot of mutable state.
 
-        AI conversation history is NOT persisted — the next request will
-        rebuild it from the discussion log on demand.
+        Includes scene-clue reveal flags (they mutate the archive at
+        runtime) so a restored game sees the same clue board.
         """
         return {
             "game_id": game_id,
             "story_id": self.archive.id,
             "human_player_id": self.human_player_id,
             "state": asdict(self.game.state),
+            "revealed_clue_ids": [
+                c.id for c in self.archive.clues if c.reveal_to_all
+            ],
         }
 
     @classmethod
@@ -156,29 +207,45 @@ class GameSession:
         cls,
         snapshot: Dict[str, Any],
         archive: StoryArchive,
-        m2_client: OpenAI,
+        roleplay_client: OpenAI,
     ) -> "GameSession":
         """Reconstruct a session from a snapshot and its archive."""
         session = cls.__new__(cls)
         session.archive = archive
         session.game = GameManager(archive)
         session.human_player_id = snapshot["human_player_id"]
-        session.m2_client = m2_client
-        session.m2_config = get_config().minimax
+        session.roleplay_client = roleplay_client
+        session.roleplay_config = get_config().roleplay
 
-        session.game.state = GameState(**snapshot["state"])
+        revealed_ids = set(snapshot.get("revealed_clue_ids", []))
+        for clue in archive.clues:
+            clue.reveal_to_all = clue.id in revealed_ids or clue.reveal_to_all
+
+        session.game.state = _restore_state(snapshot["state"], archive)
+
+        human_char = session.game.get_character(session.human_player_id)
+        persona = (
+            f"{human_char.name}（{human_char.public_identity}）"
+            if human_char else ""
+        )
 
         session.ai_characters = {}
         for char in archive.characters:
             if char.id != session.human_player_id:
-                session.ai_characters[char.id] = M2Character(
+                session.ai_characters[char.id] = RoleplayCharacter(
                     character=char,
-                    client=m2_client,
-                    config=session.m2_config,
+                    client=roleplay_client,
+                    user_persona=persona,
+                    config=session.roleplay_config,
                 )
         return session
 
     # -- read-only views -----------------------------------------------------
+
+    def _char_name(self, char_id: str) -> str:
+        """Resolve a character ID to its name (falls back to the ID)."""
+        char = self.game.get_character(char_id)
+        return char.name if char else char_id
 
     def get_player_info(self) -> Dict[str, Any]:
         char = self.game.get_character(self.human_player_id)
@@ -189,16 +256,30 @@ class GameSession:
             "appearance": char.appearance,
         }
 
-    def get_all_characters(self) -> list[Dict[str, Any]]:
-        return [
-            {
+    def get_all_characters(self, include_private: bool = False) -> List[Dict[str, Any]]:
+        """List characters.
+
+        Args:
+            include_private: Include killer/motive fields. Only safe in
+                the reveal payload — never expose during play.
+        """
+        result = []
+        for c in self.archive.characters:
+            info = {
                 "id": c.id,
                 "name": c.name,
                 "public_identity": c.public_identity,
                 "appearance": c.appearance,
             }
-            for c in self.archive.characters
-        ]
+            if include_private:
+                info.update({
+                    "is_killer": c.is_killer,
+                    "motive": c.motive,
+                    "backstory": c.backstory,
+                    "relationship_with_victim": c.relationship_with_victim,
+                })
+            result.append(info)
+        return result
 
     def get_clue_board(self) -> Dict[str, Any]:
         board = self.game.get_clue_board(self.human_player_id)
@@ -232,9 +313,9 @@ class GameSession:
         if phase == "introduction":
             actions = ["introduce"]
         elif phase == "investigation":
-            actions = ["view_clues", "discuss", "accuse"]
+            actions = ["view_clues", "investigate", "discuss", "accuse"]
         elif phase == "discussion":
-            actions = ["speak", "view_clues", "accuse", "vote", "return_investigation"]
+            actions = ["speak", "view_clues", "investigate", "accuse", "vote", "return_investigation"]
         elif phase == "voting":
             actions = ["vote"]
         elif phase == "reveal":
@@ -247,6 +328,7 @@ class GameSession:
             "player": self.get_player_info(),
             "characters": self.get_all_characters(),
             "available_actions": actions,
+            "investigation_count": self.game.state.investigation_count,
         }
 
     def get_reveal_info(self) -> Dict[str, Any]:
@@ -260,31 +342,97 @@ class GameSession:
                 "crime": self.archive.case.crime,
                 "motive": self.archive.case.motive,
                 "true_killer": self.game.killer_id,
+                "true_killer_name": self._char_name(self.game.killer_id),
             },
+            "characters": self.get_all_characters(include_private=True),
+        }
+
+    def get_discussion_history(self) -> List[Dict[str, str]]:
+        """Parse the shared discussion log into speaker/message pairs."""
+        messages = []
+        for line in self.game.state.discussion_history:
+            speaker, _, message = line.partition(": ")
+            messages.append({"speaker": speaker, "message": message})
+        return messages
+
+    # -- context assembly ----------------------------------------------------
+
+    def _ai_context(self, char_id: str) -> Dict[str, Any]:
+        """Assemble the live game context for one AI character."""
+        return {
+            "known_clues": self.game.get_player_clues(char_id),
+            "revealed_clues": self.game.get_revealed_clues(),
+            "other_chars": list(self.archive.characters),
+            "discussion_history": self.game.state.discussion_history,
         }
 
     # -- actions -------------------------------------------------------------
 
-    def player_introduce(self, message: str = "") -> Dict[str, Any]:
+    async def player_introduce_async(self, message: str = "") -> Dict[str, Any]:
+        """Collect introductions: all AI characters respond concurrently."""
         human_char = self.game.get_character(self.human_player_id)
+        player_intro = message or (
+            f"大家好，我是{human_char.name}，{human_char.public_identity}。"
+        )
+
+        loop = asyncio.get_running_loop()
+
+        async def _intro(ai: RoleplayCharacter):
+            return await loop.run_in_executor(None, ai.respond_introduction)
+
+        responses = await asyncio.gather(*(
+            _intro(ai) for ai in self.ai_characters.values()
+        ))
+
         ai_introductions = []
-        for ai in self.ai_characters.values():
-            response = ai.respond_introduction()
+        for ai, response in zip(self.ai_characters.values(), responses):
             ai_introductions.append({"speaker": ai.name, "message": response})
-        self.game.next_phase()
+            self.game.add_discussion(ai.character_id, response)
+        self.game.add_discussion(self.human_player_id, player_intro)
+
+        # Do NOT auto-advance the phase — the frontend shows the
+        # introductions and explicitly moves to investigation.
         return {
-            "player_introduction": message or f"大家好，我是{human_char.name}，{human_char.public_identity}。",
+            "player_introduction": player_intro,
             "ai_introductions": ai_introductions,
             "new_phase": self.game.state.phase,
+        }
+
+    def investigate(self) -> Dict[str, Any]:
+        """Active investigation: draw one new clue for the player.
+
+        Usable in the investigation phase and mid-discussion; errors out
+        when nothing remains to find.
+        """
+        if self.game.current_phase not in (
+            GamePhase.INVESTIGATION, GamePhase.DISCUSSION,
+        ):
+            raise HTTPException(status_code=400, detail="当前阶段不能搜证")
+
+        found = self.game.distribute_random_clues(self.human_player_id, 1)
+        if not found:
+            raise HTTPException(status_code=400, detail="已经没有更多线索了")
+        return {
+            "found": [
+                {
+                    "id": c.id,
+                    "content": c.content,
+                    "type": c.type,
+                    "holder_name": self._char_name(c.holder_id),
+                }
+                for c in found
+            ],
+            "clue_board": self.get_clue_board(),
         }
 
     def accuse(self, character_name: str) -> Dict[str, Any]:
         target_id = self.game.get_character_id_by_name(character_name)
         if not target_id:
             raise HTTPException(status_code=400, detail=f"找不到角色: {character_name}")
-        if not self.game.can_accuse(self.human_player_id):
-            raise HTTPException(status_code=400, detail="已经没有指认次数了")
         correct, message = self.game.accuse(self.human_player_id, target_id)
+        if not correct and "不能" in message:
+            # domain rejected the target itself (self/dead) — surface as 400
+            raise HTTPException(status_code=400, detail=message)
         return {
             "correct": correct,
             "message": message,
@@ -295,41 +443,31 @@ class GameSession:
     async def player_speak_async(
         self, message: str
     ) -> AsyncIterable[Dict[str, Any]]:
-        """Async variant of ``player_speak`` that yields each response as
-        soon as that AI character finishes — multiple AIs run concurrently.
+        """Yield each AI response as soon as that character finishes —
+        multiple AIs run concurrently via thread-pool offload.
 
-        Yields dicts in the same shape as ``player_speak``'s return list:
-        ``{"speaker": <name>, "message": <text>}``. The first yielded item
-        is always the human player's message; AI responses follow in
-        completion order, not character order.
+        Yields dicts shaped ``{"speaker": <name>, "message": <text>}``.
+        The caller is responsible for echoing the human player's own
+        message (the frontend already shows it optimistically).
         """
-        import asyncio
-
-        human_char = self.game.get_character(self.human_player_id)
         self.game.add_discussion(self.human_player_id, message)
-        yield {"speaker": human_char.name, "message": message}
 
         loop = asyncio.get_running_loop()
 
-        async def _respond(char_id: str, ai: "M2Character"):
+        async def _respond(char_id: str, ai: RoleplayCharacter):
             ai_state = self.game.state.player_states.get(char_id)
             if not ai_state or not ai_state.is_alive:
                 return None
-            known = self.game.get_player_clues(char_id)
+            ctx = self._ai_context(char_id)
             response = await loop.run_in_executor(
                 None,
                 lambda: ai.respond(
                     user_input=message,
-                    phase=GamePhase.DISCUSSION,
-                    known_clues=known,
-                    revealed_clues=self.game.get_revealed_clues(),
-                    other_chars=[
-                        c for c in self.archive.characters if c.id != char_id
-                    ],
-                    discussion_history=self.game.state.discussion_history,
+                    phase=self.game.current_phase,
+                    **ctx,
                 ),
             )
-            return (ai.name, response)
+            return (char_id, ai.name, response)
 
         tasks = [
             asyncio.create_task(_respond(cid, ai))
@@ -339,49 +477,62 @@ class GameSession:
             result = await coro
             if result is None:
                 continue
-            name, response = result
-            self.game.add_discussion(self._char_id_for(name), response)
+            char_id, name, response = result
+            self.game.add_discussion(char_id, response)
             yield {"speaker": name, "message": response}
 
-    def _char_id_for(self, name: str) -> str:
-        """Resolve a character name to id (helper)."""
-        for c in self.archive.characters:
-            if c.name == name:
-                return c.id
-        return name
+    async def player_speak_collect(self, message: str) -> List[Dict[str, Any]]:
+        """Batch variant of ``player_speak_async`` for non-streaming
+        endpoints — awaits every AI response into one list."""
+        return [m async for m in self.player_speak_async(message)]
 
-    def player_speak(self, message: str) -> list[Dict[str, Any]]:
-        """Sync wrapper — runs all AI responses in parallel threads.
+    async def vote_async(self, character_name: str) -> Dict[str, Any]:
+        """Submit the player's vote and collect AI votes concurrently.
 
-        The blocking OpenAI calls are dispatched to a thread pool so
-        multiple characters' responses overlap. Result is a flat list
-        in the same shape as the original sequential implementation.
+        Votes are cleared at round start, each player's vote replaces
+        their previous one, and AI replies are parsed by name or ID.
         """
-        import asyncio
-
-        async def _collect():
-            return [m async for m in self.player_speak_async(message)]
-
-        return asyncio.run(_collect())
-
-    def vote(self, character_name: str) -> Dict[str, Any]:
         target_id = self.game.get_character_id_by_name(character_name)
         if not target_id:
             raise HTTPException(status_code=400, detail=f"找不到角色: {character_name}")
+        if not target_id or not self.game.can_vote(self.human_player_id):
+            raise HTTPException(status_code=400, detail="当前无法投票")
+
         self.game.submit_vote(self.human_player_id, target_id)
-        for char_id, ai in self.ai_characters.items():
-            ai_state = self.game.state.player_states.get(char_id)
-            if not ai_state or not ai_state.is_alive:
-                continue
-            ai_vote = ai.get_vote()
-            if ai_vote in self.game.alive_players:
-                self.game.submit_vote(char_id, ai_vote)
-        _, result = self.game.check_voting_result()
+
+        loop = asyncio.get_running_loop()
+        alive_ai_ids = [
+            cid for cid in self.ai_characters
+            if (self.game.state.player_states.get(cid) or PlayerState("")).is_alive
+        ]
+
+        async def _vote(char_id: str, ai: RoleplayCharacter):
+            ctx = self._ai_context(char_id)
+            raw = await loop.run_in_executor(
+                None, lambda: ai.get_vote(**ctx),
+            )
+            return (char_id, ai.name, raw)
+
+        results = await asyncio.gather(*(
+            _vote(cid, ai) for cid, ai in self.ai_characters.items() if cid in alive_ai_ids
+        ))
+
+        votes_view: Dict[str, str] = {}
+        for char_id, name, raw in results:
+            parsed = RoleplayCharacter.parse_vote_target(raw, list(self.archive.characters))
+            if parsed in self.game.alive_players and parsed != char_id:
+                self.game.submit_vote(char_id, parsed)
+            if parsed:
+                votes_view[name] = self._char_name(parsed)
+
+        ended, result_msg = self.game.check_voting_result()
         return {
-            "votes": {},
-            "result": result,
+            "votes": votes_view,
+            "result": result_msg,
             "game_ended": self.game.state.game_ended,
             "winner": self.game.state.winner,
+            "phase": self.game.state.phase,
+            "all_submitted": len(self.game.get_votes()) >= len(self.game.alive_players),
         }
 
 
@@ -395,11 +546,11 @@ class SessionManager:
 
     def __init__(
         self,
-        m2_client: OpenAI,
+        roleplay_client: OpenAI,
         story_service,
         store: Optional[SessionStore] = None,
     ) -> None:
-        self._m2_client = m2_client
+        self._roleplay_client = roleplay_client
         self._story_service = story_service
         self._store = store or InMemorySessionStore()
         self._sessions: Dict[str, GameSession] = {}
@@ -422,7 +573,7 @@ class SessionManager:
 
         char_ids = [c.id for c in archive.characters]
         human_id = random.choice(char_ids)
-        session = GameSession(archive, human_id, self._m2_client)
+        session = GameSession(archive, human_id, self._roleplay_client)
         game_id = str(uuid.uuid4())
         self._sessions[game_id] = session
         self._store.save(session.to_snapshot(game_id))
@@ -458,9 +609,13 @@ class SessionManager:
                     game_id, snap["story_id"],
                 )
                 continue
-            self._sessions[game_id] = GameSession.from_snapshot(
-                snap, archive, self._m2_client,
-            )
+            try:
+                self._sessions[game_id] = GameSession.from_snapshot(
+                    snap, archive, self._roleplay_client,
+                )
+            except Exception as e:
+                logger.warning("Skipping corrupt session %s: %s", game_id, e)
+                continue
             count += 1
         if count:
             logger.info("Restored %d session(s) from disk", count)

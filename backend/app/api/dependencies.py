@@ -42,6 +42,7 @@ def get_session(
 
 
 def persist_session(
+    game_id: str,
     session: GameSession = Depends(get_session),
     manager: SessionManager = Depends(get_session_manager),
 ) -> Iterator[GameSession]:
@@ -53,4 +54,5 @@ def persist_session(
     try:
         yield session
     finally:
-        manager.save(session.archive.id)
+        # Persist under the registry key (game_id), not the story id.
+        manager.save(game_id)

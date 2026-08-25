@@ -28,7 +28,7 @@ from app.services.session_service import (
 )
 from app.services.story_service import (
     StoryService,
-    create_m2_client,
+    create_roleplay_client,
     ensure_stories_dir,
 )
 
@@ -71,9 +71,9 @@ async def lifespan(app: FastAPI):
     ensure_stories_dir()
 
     story_service = StoryService()
-    m2_client = create_m2_client()
+    roleplay_client = create_roleplay_client()
     manager = SessionManager(
-        m2_client=m2_client,
+        roleplay_client=roleplay_client,
         story_service=story_service,
         store=_build_session_store(),
     )

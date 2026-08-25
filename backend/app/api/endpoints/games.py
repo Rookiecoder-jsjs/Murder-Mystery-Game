@@ -2,9 +2,16 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
 
-"""Game lifecycle endpoints — create, load, play actions."""
+"""Game lifecycle endpoints — create, load, play actions.
+
+All handlers are ``async`` and every LLM call goes through the session's
+async methods (thread-pool offload), so the event loop is never blocked
+by a slow model.
+"""
 
 from __future__ import annotations
+
+import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -17,6 +24,7 @@ from app.api.dependencies import (
 from app.api.schemas import (
     AccuseRequest,
     CreateGameRequest,
+    IntroduceRequest,
     LoadGameRequest,
     SpeakRequest,
     VoteRequest,
@@ -46,7 +54,7 @@ async def create_game(
 ) -> dict:
     """创建新游戏"""
     try:
-        game_id, session = manager.create_session(topic=request.topic)
+        game_id, session = await _create_in_thread(manager, request.topic)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
@@ -60,6 +68,17 @@ async def create_game(
         "player": session.get_player_info(),
         "characters": session.get_all_characters(),
     }
+
+
+async def _create_in_thread(
+    manager: SessionManager, topic: str
+):
+    """Run the blocking story generation in a worker thread."""
+    import asyncio
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(
+        None, lambda: manager.create_session(topic=topic),
+    )
 
 
 @router.post("/load")
@@ -114,7 +133,7 @@ async def reveal(
 async def get_discussion_history(
     session: GameSession = Depends(get_session),
 ) -> dict:
-    return {"history": session.game.state.discussion_history}
+    return {"history": session.get_discussion_history()}
 
 
 # ---------------------------------------------------------------------------
@@ -124,13 +143,12 @@ async def get_discussion_history(
 
 @router.post("/{game_id}/introduce")
 async def player_introduce(
-    game_id: str,
-    message: str = "",
+    request: IntroduceRequest,
     session: GameSession = Depends(persist_session),
 ) -> dict:
     if session.game.state.phase != GamePhase.INTRODUCTION.value:
         raise HTTPException(status_code=400, detail="当前不是自我介绍阶段")
-    return session.player_introduce(message)
+    return await session.player_introduce_async(request.message or "")
 
 
 @router.post("/{game_id}/next-phase")
@@ -160,8 +178,16 @@ async def return_to_investigation(
     ]:
         raise HTTPException(status_code=400, detail="只能在讨论或投票阶段返回搜证")
 
+    was_revote = (
+        session.game.state.phase == GamePhase.VOTING.value
+        and bool(session.game.get_votes())
+    )
+
     session.game.set_phase(GamePhase.INVESTIGATION)
-    session.game.state.discussion_history = []
+    # Discussion history survives — it is each side's memory of the case.
+    # A fresh voting round after this needs clean ballots.
+    if was_revote:
+        session.game.reset_votes()
     session.game.distribute_random_clues(session.human_player_id, 1)
     for char_id in session.ai_characters:
         session.game.distribute_random_clues(char_id, 1)
@@ -178,7 +204,7 @@ async def start_voting(
     if session.game.state.phase != GamePhase.DISCUSSION.value:
         raise HTTPException(status_code=400, detail="当前不是讨论阶段")
     session.game.set_phase(GamePhase.VOTING)
-    session.game.state.turn = 0
+    session.game.reset_votes()
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
@@ -190,6 +216,14 @@ async def start_voting(
 # ---------------------------------------------------------------------------
 
 
+@router.post("/{game_id}/investigate")
+async def investigate(
+    session: GameSession = Depends(persist_session),
+) -> dict:
+    """主动搜证：随机获得一条新线索"""
+    return session.investigate()
+
+
 @router.post("/{game_id}/speak")
 async def speak(
     request: SpeakRequest,
@@ -197,8 +231,9 @@ async def speak(
 ) -> dict:
     if session.game.state.phase != GamePhase.DISCUSSION.value:
         raise HTTPException(status_code=400, detail="当前不是讨论阶段")
+    messages = await session.player_speak_collect(request.message)
     return {
-        "messages": session.player_speak(request.message),
+        "messages": messages,
         "phase": session.game.state.phase,
     }
 
@@ -210,15 +245,13 @@ async def speak_stream(
 ) -> StreamingResponse:
     """SSE variant of ``/speak``.
 
-    Emits one ``message`` event per AI response as it completes (the
-    human player's message is the first event). The final ``done`` event
-    carries the current phase. A failed response is emitted as an
-    ``error`` event instead of being swallowed.
+    Emits one ``message`` event per AI response as it completes. The
+    human player's own message is NOT re-emitted — the frontend echoes
+    it optimistically. The final ``done`` event carries the current
+    phase; a failure mid-stream is emitted as an ``error`` event.
     """
     if session.game.state.phase != GamePhase.DISCUSSION.value:
         raise HTTPException(status_code=400, detail="当前不是讨论阶段")
-
-    import json
 
     async def event_source():
         try:
@@ -262,13 +295,7 @@ async def vote(
 ) -> dict:
     if session.game.state.phase != GamePhase.VOTING.value:
         raise HTTPException(status_code=400, detail="当前不是投票阶段")
-    result = session.vote(request.character_name)
+    result = await session.vote_async(request.character_name)
     if result["game_ended"]:
         return {**result, "reveal": session.get_reveal_info()}
-    return {
-        "votes": result.get("votes", {}),
-        "result": result.get("result", ""),
-        "game_ended": False,
-        "winner": None,
-        "phase": session.game.state.phase,
-    }
+    return result

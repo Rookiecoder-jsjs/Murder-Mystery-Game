@@ -3,7 +3,7 @@
 ![Art Deco Noir Style](https://img.shields.io/badge/Style-Art%20Deco%20Noir-gold?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-64%20passed-brightgreen?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-62%20passed-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)
 
 一个基于 CAMEL-AI 框架的 AI 剧本杀游戏。玩家可以与 AI 角色进行实时对话、调查线索、讨论案情、指认凶手，体验完整的剧本杀游戏流程。
@@ -11,22 +11,24 @@
 ## ✨ 功能特点
 
 ### 🎯 核心功能
-- **AI 角色扮演** - 使用 CAMEL-AI 框架实现智能 NPC，每个角色都有独特的对话风格和性格
+- **AI 角色扮演** - 每个角色都有独特的对话风格、隐藏秘密与凶手伪装策略
 - **AI 剧本生成** - 输入任意主题，AI 自动生成完整剧本（人物、线索、真相）
 - **完整游戏流程** - 自我介绍 → 搜证 → 讨论 → 投票 → 真相揭晓
 - **⚡ 实时流式对话** - SSE 流式输出，AI 角色边生成边显示
+- **上下文感知** - AI 角色能看到自己的线索、公开线索、其他角色身份与完整讨论历史
 
 ### 🔍 搜证系统
 - **三类线索** - 物证（Physical）、证词（Testimony）、文书（Document）
-- **线索分配** - 初始线索随机分配，可返回搜证获取更多
+- **主动搜证** - 搜证阶段点击「搜证」按钮随机获得新线索
+- **线索解锁链** - 部分线索需先获得前置线索才会出现
 - **线索详情** - 点击查看完整线索内容
 
 ### 💬 讨论系统
 - **实时对话** - 与 AI 角色进行自然语言交流
 - **⚡ 并发响应** - 多个 AI 角色并行生成，玩家无需串行等待
 - **SSE 流式输出** - 每个角色的回复独立推送，边生成边渲染
-- **多轮讨论** - 支持多个讨论回合
-- **返回搜证** - 讨论中途可返回搜证获取新线索
+- **多轮讨论** - 支持多个讨论回合，完整历史跨阶段保留
+- **返回搜证** - 讨论中途可返回搜证获取新线索（讨论记录保留）
 
 ### ⚖️ 指认与投票
 - **指认凶手** - 随时可以指认凶手（每局只有一次机会）
@@ -87,15 +89,15 @@
 │                         │                                     │
 │  ┌──────────────────────▼───────────────────────────────┐   │
 │  │   app/agents/  — AI 角色                              │   │
-│  │  m2_character.py     M2-her 角色扮演                   │   │
-│  │  generator_agent.py  DeepSeek 故事生成                 │   │
+│  │  roleplay_character.py  V4-Flash 角色扮演             │   │
+│  │  generator_agent.py     DeepSeek 故事生成             │   │
 │  └──────────────────────┬───────────────────────────────┘   │
 └────────────────────────────┼────────────────────────────────┘
                              │
                              ▼
                 ┌────────────────────────┐
                 │   LLM API              │
-                │   DeepSeek + M2-her    │
+                │   DeepSeek V4 Pro/Flash │
                 └────────────────────────┘
 ```
 
@@ -168,7 +170,7 @@ cd Murder-Mystery-Game
 
 本项目需要 LLM API 密钥来驱动 AI 角色。
 
-推荐使用 **DeepSeek**（故事生成） + **MiniMax M2-her**（角色扮演）。
+使用 **DeepSeek V4 Pro**（故事生成，思考模式）+ **DeepSeek V4 Flash**（角色扮演，低延迟），单一供应商、一个 API key 即可。
 
 ```bash
 # 进入后端目录
@@ -187,20 +189,16 @@ notepad .env
 `.env` 文件关键配置（完整列表见 `.env.simple`）：
 
 ```env
-# 故事生成
+# 故事生成（V4 Pro，思考模式默认开启）
 DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxx
 DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-reasoner
+DEEPSEEK_MODEL=deepseek-v4-pro
 
-# 角色扮演
-MINIMAX_API_KEY=sk-api-xxxxxxxxxxxxxxxx
-MINIMAX_BASE_URL=https://api.minimax.com/v1
-MINIMAX_MODEL=M2-her
+# 角色扮演（V4 Flash，思考模式默认关闭以保证低延迟；不设 key 时自动复用 DEEPSEEK_API_KEY）
+ROLEPLAY_MODEL=deepseek-v4-flash
 ```
 
-> 💡 **获取 API 密钥**:
-> - DeepSeek: https://platform.deepseek.com/
-> - MiniMax: https://www.minimax.io/
+> 💡 **获取 API 密钥**: DeepSeek: https://platform.deepseek.com/
 
 ### 3. 安装依赖 + 启动
 
@@ -252,15 +250,16 @@ powershell start.ps1   # Windows PowerShell
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `DEEPSEEK_API_KEY` | — | 故事生成必需 |
+| `DEEPSEEK_API_KEY` | — | 故事生成 + 角色扮演必需 |
 | `DEEPSEEK_BASE_URL` | `https://api.deepseek.com/v1` | DeepSeek 端点 |
-| `DEEPSEEK_MODEL` | `deepseek-reasoner` | 故事生成模型 |
-| `MINIMAX_API_KEY` | — | 角色扮演必需 |
-| `MINIMAX_BASE_URL` | `https://api.minimax.com/v1` | MiniMax 端点 |
-| `MINIMAX_MODEL` | `M2-her` | 角色扮演模型 |
-| `M2_TEMPERATURE` | `1.0` | 角色生成温度 |
-| `M2_TOP_P` | `0.95` | 角色生成 top_p |
-| `M2_MAX_TOKENS` | `2048` | 角色生成最大 token |
+| `DEEPSEEK_MODEL` | `deepseek-v4-pro` | 故事生成模型（思考模式开启） |
+| `ROLEPLAY_API_KEY` | 复用 `DEEPSEEK_API_KEY` | 角色扮演密钥（可选，通常不设） |
+| `ROLEPLAY_BASE_URL` | 复用 `DEEPSEEK_BASE_URL` | 角色扮演端点（可选） |
+| `ROLEPLAY_MODEL` | `deepseek-v4-flash` | 角色扮演模型（思考模式关闭） |
+| `ROLEPLAY_TEMPERATURE` | `1.0` | 角色生成温度（思考模式下无效） |
+| `ROLEPLAY_TOP_P` | `0.95` | 角色生成 top_p（思考模式下无效） |
+| `ROLEPLAY_MAX_TOKENS` | `2048` | 角色生成最大 token |
+| `ROLEPLAY_THINKING_ENABLED` | `false` | 角色扮演是否开思考模式 |
 | `CORS_ALLOWED_ORIGINS` | localhost dev | 逗号分隔；不设则只允许本地 |
 | `LOG_LEVEL` | `INFO` | DEBUG/INFO/WARNING/ERROR |
 | `SESSIONS_DIR` | — | 不设则内存存储；设了启用 JSON 持久化 |
@@ -278,7 +277,8 @@ powershell start.ps1   # Windows PowerShell
 | `POST` | `/games/load` | 从已有故事加载游戏 |
 | `GET` | `/games/{id}` | 获取游戏状态 |
 | `GET` | `/games/{id}/clues` | 获取线索列表 |
-| `POST` | `/games/{id}/introduce` | 提交自我介绍 |
+| `POST` | `/games/{id}/introduce` | 提交自我介绍（body 传 `message`，返回全部 AI 介绍） |
+| `POST` | `/games/{id}/investigate` | **主动搜证**（随机获得一条新线索） |
 | `POST` | `/games/{id}/speak` | 发送发言（批式，所有 AI 回复一次返回） |
 | `POST` | `/games/{id}/speak/stream` | **发送发言（SSE 流式，AI 完成一个推送一个）** |
 | `POST` | `/games/{id}/accuse` | 指认凶手 |
@@ -296,12 +296,9 @@ curl -N -X POST http://localhost:8000/games/{id}/speak/stream \
   -d '{"message": "我觉得 Alice 很可疑"}'
 ```
 
-事件流（每行 SSE event）：
+事件流（每行 SSE event；玩家自己的消息由前端乐观回显，服务端只推送 AI 回复）：
 
 ```
-event: message
-data: {"speaker": "玩家", "message": "我觉得 Alice 很可疑"}
-
 event: message
 data: {"speaker": "Bob", "message": "..."}
 
@@ -320,7 +317,7 @@ data: {"phase": "discussion"}
 | [FastAPI](https://fastapi.tiangolo.com/) | Web 框架（薄路由层） |
 | [Pydantic](https://docs.pydantic.dev/) | 数据验证 / 配置 |
 | [CAMEL-AI](https://www.camel-ai.org/) | AI Agent 框架 |
-| [OpenAI SDK](https://github.com/openai/openai-python) | M2-her / DeepSeek 客户端 |
+| [OpenAI SDK](https://github.com/openai/openai-python) | V4-Pro / V4-Flash 客户端（OpenAI 兼容） |
 | [pytest](https://docs.pytest.org/) | 单元测试 |
 | [uvicorn](https://www.uvicorn.org/) | ASGI 服务器 |
 
@@ -347,8 +344,7 @@ MurderMystery/
 ├── backend/
 │   ├── app/
 │   │   ├── agents/           AI 角色代理
-│   │   │   ├── m2_character.py    M2-her 角色扮演
-│   │   │   └── generator_agent.py DeepSeek 剧本生成
+│   │   │   └── roleplay_character.py  V4-Flash 角色扮演（含上下文组装）
 │   │   ├── api/              HTTP 层（薄）
 │   │   │   ├── dependencies.py   FastAPI Depends 注入
 │   │   │   ├── endpoints/
@@ -361,21 +357,20 @@ MurderMystery/
 │   │   │   ├── logging.py        logging 配置
 │   │   │   ├── phases.py         阶段枚举
 │   │   │   ├── port.py           端口探测
-│   │   │   └── prompts.py        Prompt 模板
+│   │   │   └── prompts.py        Prompt 模板（含凶手策略）
 │   │   ├── domain/           纯领域逻辑
-│   │   │   ├── game_manager.py   阶段/投票/指认
-│   │   │   ├── clue_system.py    线索分配
+│   │   │   ├── game_manager.py   阶段/投票/指认/线索解锁
 │   │   │   └── models.py         数据模型
 │   │   ├── services/         业务服务
-│   │   │   ├── session_service.py  GameSession + SessionManager
+│   │   │   ├── session_service.py  GameSession + SessionManager（全异步）
 │   │   │   └── story_service.py    剧本生成与存档
-│   │   ├── main.py           FastAPI 入口（75 行）
+│   │   ├── main.py           FastAPI 入口
 │   │   └── cli.py            CLI 工具
 │   ├── stories/              剧本存档
 │   ├── tests/                pytest 单元测试
 │   │   ├── conftest.py
-│   │   ├── test_game_manager.py   46 个测试
-│   │   └── test_clue_system.py    18 个测试
+│   │   ├── test_game_manager.py      53 个测试
+│   │   └── test_session_service.py   9 个测试
 │   ├── pytest.ini
 │   └── requirements.txt
 ├── frontend/
@@ -393,7 +388,7 @@ MurderMystery/
 ### 运行测试
 
 ```bash
-# 后端：64 个单元测试（< 1 秒）
+# 后端：62 个单元测试（< 1 秒）
 npm run test:backend
 # 或
 cd backend && python -m pytest
@@ -405,7 +400,7 @@ cd frontend && npx tsc --noEmit
 cd backend && python -m pytest tests/test_game_manager.py -v
 ```
 
-测试覆盖：阶段转换、投票（多数/平局）、指认（对/错/限额）、线索分配与解锁、淘汰、讨论历史、游戏摘要等。
+测试覆盖：阶段转换、投票（多数/平局/重投清票）、指认（对/错/限额/自我/淘汰目标）、线索分配与解锁链、淘汰、讨论历史、会话快照往返、JSON 持久化恢复等。
 
 ## ❓ 常见问题
 
@@ -415,11 +410,11 @@ A: 已修复。当前脚本用 `node node_modules/vite/bin/vite.js` 直接调用
 
 **Q: 申请 API 密钥需要付费吗？**
 
-A: DeepSeek 和 MiniMax 都提供免费额度。推荐使用 MiniMax M2-her 模型，它是专门的角色扮演优化模型，角色对话效果更好。
+A: DeepSeek 提供免费注册和低成本按量计费，还有错峰半价。故事生成用 V4 Pro（质量优先），角色对话用 V4 Flash（速度优先、更便宜）。
 
 **Q: 游戏过程中 AI 响应很慢怎么办？**
 
-A: 1) 首次生成剧本需要 1-2 分钟（DeepSeek Reasoner 思考时间）；2) 讨论阶段已用 thread pool 并发触发所有 AI 角色；3) SSE 流式让前端在第一个角色完成时就开始渲染。如仍慢，可调低 `M2_MAX_TOKENS`。
+A: 1) 首次生成剧本需要一些时间（V4 Pro 思考模式推理时间）；2) 讨论阶段已用 thread pool 并发触发所有 AI 角色；3) SSE 流式让前端在第一个角色完成时就开始渲染。如仍慢，可调低 `ROLEPLAY_MAX_TOKENS`。
 
 **Q: 重启后游戏状态会丢吗？**
 
@@ -456,8 +451,7 @@ Copyright 2023-2026 CAMEL-AI.org. All Rights Reserved.
 ## 🙏 致谢
 
 - [CAMEL-AI](https://www.camel-ai.org/) - 提供了强大的 AI Agent 框架
-- [DeepSeek](https://platform.deepseek.com/) - 提供高性能 LLM API
-- [MiniMax](https://www.minimax.io/) - 提供 M2-her 角色扮演专用模型
+- [DeepSeek](https://platform.deepseek.com/) - 提供 V4 Pro / V4 Flash LLM API
 - 所有开源贡献者
 
 ---

@@ -18,7 +18,7 @@ from colorama import Fore, init
 
 from app.domain.models import StoryArchive
 from app.services.story_service import (
-    create_m2_client,
+    create_roleplay_client,
     load_story,
     list_stories,
     ensure_stories_dir,
@@ -35,10 +35,10 @@ class MurderMysteryCLI:
     def __init__(self):
         self.archive = None
         self.session = None
-        self.m2_client = None
+        self.roleplay_client = None
 
     def _setup_clients(self):
-        self.m2_client = create_m2_client()
+        self.roleplay_client = create_roleplay_client()
 
     def _print_header(self):
         print(Fore.CYAN + "=" * 50)
@@ -149,7 +149,7 @@ class MurderMysteryCLI:
 
         # 初始化游戏会话
         from app.domain.game_manager import GameManager
-        from app.agents.m2_character import M2Character
+        from app.agents.roleplay_character import RoleplayCharacter
 
         self.session = type('Session', (), {})()
         self.session.archive = self.archive
@@ -160,9 +160,9 @@ class MurderMysteryCLI:
         self.session.ai_characters = {}
         for char in self.archive.characters:
             if char.id != char_id:
-                self.session.ai_characters[char.id] = M2Character(
+                self.session.ai_characters[char.id] = RoleplayCharacter(
                     character=char,
-                    client=self.m2_client,
+                    client=self.roleplay_client,
                 )
 
         # 分配初始线索

@@ -7,7 +7,7 @@
 from app.services.story_service import (
     StoryService,
     create_deepseek_client,
-    create_m2_client,
+    create_roleplay_client,
     save_story,
     load_story,
     list_stories,
@@ -17,7 +17,7 @@ from app.services.story_service import (
 __all__ = [
     "StoryService",
     "create_deepseek_client",
-    "create_m2_client",
+    "create_roleplay_client",
     "save_story",
     "load_story",
     "list_stories",

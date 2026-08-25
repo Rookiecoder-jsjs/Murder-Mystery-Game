@@ -11,11 +11,7 @@ python-dotenv>=1.0
 # OpenAI compatible clients
 openai>=1.0
 
-# CAMEL framework
-camel-ai>=0.2.19
-
 # Utilities
-numpy>=1.20
 colorama>=0.4
 
 # Testing

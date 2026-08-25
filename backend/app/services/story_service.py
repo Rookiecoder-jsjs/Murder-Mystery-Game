@@ -11,6 +11,7 @@ from typing import Optional, List, Dict, Any
 
 from openai import OpenAI
 
+from app.core.config import get_config
 from app.core.logging import get_logger
 from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
 
@@ -127,47 +128,50 @@ CASE_PROMPT_TEMPLATE = """创建一个复杂的剧本杀案件，满足以下要
 # ============ Model Factory Functions ============
 
 def create_deepseek_client() -> OpenAI:
-    """Create DeepSeek client for Reasoner model."""
-    return OpenAI(
-        api_key=os.getenv("DEEPSEEK_API_KEY"),
-        base_url=os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
-    )
+    """Create DeepSeek client for story generation (v4-pro, thinking mode)."""
+    config = get_config().deepseek
+    return OpenAI(api_key=config.api_key, base_url=config.base_url)
 
 
-def create_m2_client() -> OpenAI:
-    """Create M2-her client."""
-    return OpenAI(
-        api_key=os.getenv("MINIMAX_API_KEY"),
-        base_url="https://api.minimaxi.com/v1"
-    )
+def create_roleplay_client() -> OpenAI:
+    """Create client for AI character roleplay (v4-flash by default)."""
+    config = get_config().roleplay
+    return OpenAI(api_key=config.api_key, base_url=config.base_url)
 
 
-# ============ DeepSeek Reasoner Generation ============
+# ============ Story Generation ============
 
-def deepseek_reasoner_generate(
+def generate_story_text(
     prompt: str,
     client: OpenAI,
     show_reasoning: bool = False
 ) -> str:
-    """Generate content using DeepSeek Reasoner.
+    """Generate content with the story-generation model (thinking mode on).
 
     Args:
         prompt: The prompt text.
         client: DeepSeek client.
-        show_reasoning: Whether to show the reasoning process.
+        show_reasoning: Whether to log the reasoning process.
 
     Returns:
         The generated content.
     """
+    from openai import APIError
+
+    config = get_config().deepseek
     messages = [{"role": "user", "content": prompt}]
 
-    response = client.chat.completions.create(
-        model="deepseek-reasoner",
-        messages=messages,
-        max_tokens=56 * 1024,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=config.model_name,
+            messages=messages,
+            max_tokens=56 * 1024,
+            extra_body={"thinking": {"type": "enabled"}},
+        )
+    except APIError as e:
+        raise RuntimeError(f"Story generation failed ({config.model_name}): {e}") from e
 
-    reasoning = response.choices[0].message.reasoning_content or ""
+    reasoning = getattr(response.choices[0].message, "reasoning_content", None) or ""
     content = response.choices[0].message.content or ""
 
     if show_reasoning and reasoning:
@@ -196,7 +200,7 @@ def generate_story(
     prompt = f"用户想要创建一个以「{topic}」为主题的剧本杀案件。\n\n{CASE_PROMPT_TEMPLATE}"
 
     logger.info("正在构思复杂案件...")
-    content = deepseek_reasoner_generate(prompt, client, show_reasoning=show_reasoning)
+    content = generate_story_text(prompt, client, show_reasoning=show_reasoning)
 
     json_match = re.search(r'\{.*\}', content, re.DOTALL)
     if json_match:

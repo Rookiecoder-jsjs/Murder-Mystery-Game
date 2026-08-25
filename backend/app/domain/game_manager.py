@@ -4,8 +4,8 @@
 
 """Game manager - controls game flow and voting logic."""
 
+from collections import Counter
 from typing import Optional
-import numpy as np
 import random
 
 from app.core.phases import GamePhase
@@ -24,6 +24,9 @@ from app.domain.models import (
 def majority_vote(votes: list[str]) -> tuple[str, str]:
     """Count votes and return the player with most votes.
 
+    On a tie the winner is chosen uniformly at random among the tied
+    candidates — never by ID ordering.
+
     Args:
         votes: List of voted character IDs.
 
@@ -33,16 +36,12 @@ def majority_vote(votes: list[str]) -> tuple[str, str]:
     if not votes:
         return "", "无投票"
 
-    names, counts = np.unique(votes, return_counts=True)
-    conditions = ", ".join([f"{name}: {count}" for name, count in zip(names, counts)])
+    counts = Counter(votes)
+    conditions = ", ".join(f"{name}: {count}" for name, count in counts.items())
 
-    max_count = max(counts)
-    max_indices = np.where(counts == max_count)[0]
-
-    if len(max_indices) > 1:
-        winner = names[max_indices[0]]
-    else:
-        winner = names[np.argmax(counts)]
+    max_count = max(counts.values())
+    tied = [name for name, count in counts.items() if count == max_count]
+    winner = random.choice(tied)
 
     return winner, conditions
 
@@ -163,6 +162,10 @@ class GameManager:
     def get_clue_board(self, player_id: str) -> ClueBoard:
         """Get the complete clue board for a player.
 
+        Clues whose ``required_clue_id`` prerequisite the player has not
+        obtained are excluded entirely — they are hidden, not merely
+        marked unavailable.
+
         Args:
             player_id: The player's character ID.
 
@@ -177,6 +180,7 @@ class GameManager:
         available_entries = []
         scene_public_entries = []
 
+        known = set(state.known_clues)
         for clue in self.archive.clues:
             if clue.reveal_to_all and clue.holder_id == "scene":
                 entry = ClueBoardEntry(
@@ -186,13 +190,16 @@ class GameManager:
                 scene_public_entries.append(entry)
                 continue
 
-            if clue.id in state.known_clues:
+            if clue.id in known:
                 entry = ClueBoardEntry(
                     clue=clue,
                     status=ClueStatus.OWNED.value,
                 )
                 owned_entries.append(entry)
                 continue
+
+            if clue.required_clue_id and clue.required_clue_id not in known:
+                continue  # locked — hidden from this player's board
 
             entry = ClueBoardEntry(
                 clue=clue,
@@ -212,6 +219,10 @@ class GameManager:
         count: int = 1,
     ) -> list[ClueData]:
         """Randomly distribute clues to a player.
+
+        Locked clues (unmet ``required_clue_id``) are never distributed;
+        obtaining a prerequisite unlocks the dependent clue for later
+        draws. Scene-held clues become publicly revealed once found.
 
         Args:
             player_id: The player's character ID.
@@ -280,6 +291,13 @@ class GameManager:
         if not self.can_accuse(player_id):
             return False, "无法指认"
 
+        if target_id == player_id:
+            return False, "不能指认自己"
+
+        target_state = self.state.player_states.get(target_id)
+        if not target_state or not target_state.is_alive:
+            return False, "不能指认已出局的角色"
+
         state.accusation_points -= 1
         state.has_accused = True
 
@@ -307,12 +325,15 @@ class GameManager:
     def submit_vote(self, player_id: str, target_id: str) -> bool:
         """Submit a vote for a player.
 
+        A vote replaces any earlier vote by the same player (revote
+        support) and never duplicates.
+
         Args:
             player_id: The voting player's character ID.
             target_id: The voted character's ID.
 
         Returns:
-            True if vote was recorded.
+            True if the vote was recorded.
         """
         state = self.state.player_states.get(player_id)
         if not state or not state.is_alive:
@@ -320,12 +341,30 @@ class GameManager:
         if self.current_phase != GamePhase.VOTING:
             return False
 
+        self.state.votes_record = [
+            v for v in self.state.votes_record
+            if v["player_id"] != player_id
+        ]
         state.vote = target_id
         self.state.votes_record.append({
             "player_id": player_id,
             "target_id": target_id,
         })
         return True
+
+    def reset_votes(self) -> None:
+        """Clear all recorded votes (start of a fresh voting round)."""
+        self.state.votes_record = []
+        for state in self.state.player_states.values():
+            state.vote = None
+
+    def can_vote(self, player_id: str) -> bool:
+        """Check whether a player may vote in the current phase."""
+        state = self.state.player_states.get(player_id)
+        return bool(
+            state and state.is_alive
+            and self.current_phase == GamePhase.VOTING
+        )
 
     def get_votes(self) -> list[str]:
         """Get all votes.
@@ -377,6 +416,9 @@ class GameManager:
     def check_voting_result(self) -> tuple[bool, str]:
         """Check the voting result.
 
+        Only votes from currently-alive players are counted; a vote from
+        an already-eliminated player is ignored.
+
         Returns:
             (game_ended, result_description)
         """
@@ -384,7 +426,7 @@ class GameManager:
             return False, ""
 
         alive_votes = [
-            v for v in self.state.votes_record
+            v["target_id"] for v in self.state.votes_record
             if self.state.player_states.get(
                 v["player_id"], PlayerState("")
             ).is_alive
@@ -398,7 +440,7 @@ class GameManager:
         total_alive = len(self.alive_players)
         required_votes = (total_alive * 2) // 3 + 1
 
-        votes_for_winner = sum(1 for v in self.get_votes() if v == winner)
+        votes_for_winner = sum(1 for v in alive_votes if v == winner)
 
         if is_tied:
             return False, f"投票平局: {conditions}"
@@ -408,6 +450,7 @@ class GameManager:
             char = self.get_character(winner)
 
             if winner == self.killer_id:
+                self.state.phase = GamePhase.REVEAL.value
                 self.state.game_ended = True
                 self.state.winner = "good"
                 return True, (
