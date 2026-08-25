@@ -8,6 +8,7 @@ export { Modal } from './Modal';
 export { AccuseModal } from './AccuseModal';
 export { LoadingSpinner } from './LoadingSpinner';
 export { ToastProvider, useToast } from './Toast';
+export { ErrorBoundary } from './ErrorBoundary';
 export type { ToastKind } from './Toast';
 export { TypingIndicator } from './TypingIndicator';
 export { ConnectionBanner } from './ConnectionBanner';
