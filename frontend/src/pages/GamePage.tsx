@@ -1,46 +1,113 @@
-// Game Page - Main game interface
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+// Game Page — 从 /game/:gameId 续局 + 单一轮询持有者
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
+import { apiErrorStatus } from '../api/client';
 import { GameLayout } from '../components/layout';
 import { IntroductionPhase } from '../components/introduction';
 import { InvestigationPhase } from '../components/investigation';
 import { DiscussionPhase } from '../components/discussion';
 import { VotingPhase } from '../components/voting';
 import { RevealPhase } from '../components/reveal';
-import { LoadingSpinner } from '../components/common';
+import { Button, LoadingSpinner, useToast } from '../components/common';
 import './GamePage.css';
+
+const POLL_FAST_MS = 3000; // 讨论阶段
+const POLL_SLOW_MS = 5000;
+const FAILURES_BEFORE_BANNER = 3;
 
 export function GamePage() {
   const navigate = useNavigate();
-  const { state, refreshStatus, refreshClues } = useGame();
+  const { gameId: routeGameId } = useParams<{ gameId: string }>();
+  const { notify } = useToast();
+  const {
+    state,
+    resumeGame,
+    refreshStatus,
+    refreshClues,
+    setConnectionLost,
+  } = useGame();
 
+  const failuresRef = useRef(0);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [retryTick, setRetryTick] = useState(0);
+  const isSameGame = Boolean(routeGameId) && state.gameId === routeGameId;
+
+  // 进入页面时若 URL 的 id 与内存不一致则续局（刷新/分享链接）
   useEffect(() => {
-    if (!state.gameId) {
-      navigate('/');
+    if (!routeGameId) {
+      navigate('/', { replace: true });
       return;
     }
-
-    // Initial data load
-    refreshStatus();
-    refreshClues();
-
-    // Set up polling based on phase
-    const pollingInterval = state.phase === 'discussion' ? 3000 : 5000;
-    const intervalId = setInterval(() => {
-      refreshStatus();
-      if (state.phase === 'investigation') {
-        refreshClues();
+    if (state.gameId === routeGameId) return; // 已在本局
+    let cancelled = false;
+    setResumeError(null);
+    resumeGame(routeGameId).catch((err: unknown) => {
+      if (cancelled) return;
+      if (apiErrorStatus(err) === 404) {
+        notify('找不到这局游戏，可能已随后端重启丢失', 'error');
+        navigate('/', { replace: true });
+      } else {
+        setResumeError(err instanceof Error ? err.message : '加载失败');
       }
-    }, pollingInterval);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [routeGameId, state.gameId, resumeGame, navigate, notify, retryTick]);
 
-    return () => clearInterval(intervalId);
-  }, [state.gameId, state.phase, navigate, refreshStatus, refreshClues]);
+  // 单一轮询：揭晓/结束后停止；连续失败达到阈值提示断连
+  useEffect(() => {
+    if (!isSameGame || state.gameEnded || state.phase === 'reveal') {
+      return;
+    }
+    const intervalId = window.setInterval(async () => {
+      const ok = await refreshStatus();
+      if (ok) {
+        failuresRef.current = 0;
+        setConnectionLost(false);
+        if (state.phase === 'investigation') {
+          refreshClues();
+        }
+      } else {
+        failuresRef.current += 1;
+        if (failuresRef.current >= FAILURES_BEFORE_BANNER) {
+          setConnectionLost(true);
+        }
+      }
+    }, state.phase === 'discussion' ? POLL_FAST_MS : POLL_SLOW_MS);
 
-  if (!state.gameId) {
+    return () => window.clearInterval(intervalId);
+  }, [
+    isSameGame,
+    state.gameEnded,
+    state.phase,
+    refreshStatus,
+    refreshClues,
+    setConnectionLost,
+  ]);
+
+  if (!isSameGame) {
+    if (resumeError) {
+      return (
+        <div className="game-loading">
+          <div className="game-resume-error" role="alert">
+            <p>{resumeError}</p>
+            <div className="game-resume-error-actions">
+              <Button variant="primary" onClick={() => setRetryTick((t) => t + 1)}>
+                重试
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/', { replace: true })}>
+                返回首页
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="game-loading">
-        <LoadingSpinner text="加载游戏中..." />
+        <LoadingSpinner size="lg" text="加载游戏中…" />
       </div>
     );
   }
@@ -64,9 +131,7 @@ export function GamePage() {
 
   return (
     <GameLayout>
-      <div className="game-page">
-        {renderPhase()}
-      </div>
+      <div className="game-page">{renderPhase()}</div>
     </GameLayout>
   );
 }

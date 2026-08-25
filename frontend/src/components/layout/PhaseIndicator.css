@@ -1,108 +1,81 @@
-/* Phase Indicator Styles */
+/* PhaseIndicator — 紧凑步骤条 */
 
 .phase-indicator {
   display: flex;
   align-items: center;
-  gap: 0;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--surface-light);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  gap: var(--space-2);
 }
 
 .phase-step {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-sm);
-  transition: all var(--transition-fast);
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  white-space: nowrap;
+  transition: color var(--transition-normal),
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
 }
 
 .phase-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--border);
-  color: var(--text-muted);
-  transition: all var(--transition-fast);
 }
 
-.phase-label {
-  font-family: var(--font-display);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all var(--transition-fast);
+.phase-step.past {
+  color: var(--color-text-muted);
 }
 
-.phase-step.active .phase-icon {
-  background: var(--accent);
-  color: var(--primary-dark);
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
-}
-
-.phase-step.active .phase-label {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.phase-step.past .phase-icon {
-  background: var(--secondary);
-  color: var(--text);
-}
-
-.phase-step.past .phase-label {
-  color: var(--text-secondary);
+.phase-step.active {
+  color: var(--color-accent-bright);
+  border-color: rgba(176, 141, 74, 0.4);
+  background: rgba(176, 141, 74, 0.08);
 }
 
 .phase-connector {
-  width: 20px;
-  height: 2px;
-  background: var(--border);
-  transition: background var(--transition-fast);
+  width: 16px;
+  height: 1px;
+  background: var(--color-border-strong);
+  flex-shrink: 0;
+  transition: background-color var(--transition-normal);
 }
 
 .phase-connector.past {
-  background: var(--secondary);
+  background: var(--color-accent);
 }
 
 .phase-round {
+  margin-left: var(--space-2);
+  padding: 3px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-left: var(--space-md);
-  padding-left: var(--space-md);
-  border-left: 1px solid var(--border);
-}
-
-.phase-round-label {
-  font-size: 0.625rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  gap: 4px;
 }
 
 .phase-round-value {
-  font-family: var(--font-display);
-  font-size: 0.875rem;
+  color: var(--color-accent-bright);
   font-weight: 600;
-  color: var(--accent);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .phase-indicator {
-    flex-wrap: wrap;
-    justify-content: center;
+    gap: var(--space-1);
+  }
+
+  .phase-step {
+    padding: 3px 8px;
   }
 
   .phase-connector {
-    width: 10px;
+    width: 8px;
   }
 }

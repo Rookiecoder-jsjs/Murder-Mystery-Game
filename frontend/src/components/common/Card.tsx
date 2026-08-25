@@ -1,12 +1,11 @@
-// Card Component - Art Deco style
-
+// Card — 基础卡片（金边变体用于高亮，无发光动画）
 import React from 'react';
 import './Card.css';
 
 interface CardProps {
   children: React.ReactNode;
   className?: string;
-  variant?: 'default' | 'gold-border' | 'glow';
+  variant?: 'default' | 'gold-border';
   onClick?: () => void;
   hoverable?: boolean;
 }
@@ -24,35 +23,18 @@ export function Card({
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
     >
       {children}
     </div>
   );
-}
-
-interface CardHeaderProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`card-header ${className}`}>{children}</div>;
-}
-
-interface CardContentProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={`card-content ${className}`}>{children}</div>;
-}
-
-interface CardFooterProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-export function CardFooter({ children, className = '' }: CardFooterProps) {
-  return <div className={`card-footer ${className}`}>{children}</div>;
 }

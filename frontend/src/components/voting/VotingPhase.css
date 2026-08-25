@@ -1,263 +1,250 @@
-/* Voting Phase Styles */
+/* Voting Phase */
 
 .voting-phase {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: min(100%, 900px);
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  animation: fadeIn 0.5s ease;
+  gap: var(--space-4);
+  overflow-y: auto;
 }
 
 .voting-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: var(--space-xl) 0;
+  gap: var(--space-2);
 }
 
 .voting-icon {
-  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: var(--primary-dark);
-  margin-bottom: var(--space-xl);
-  box-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-accent);
 }
 
 .voting-title {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  color: var(--accent);
-  margin-bottom: var(--space-md);
+  font-size: var(--text-2xl);
 }
 
 .voting-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.25rem;
-}
-
-.voting-instructions {
-  padding: var(--space-xl);
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, transparent 100%);
-  border-color: var(--accent);
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
 }
 
 .voting-instructions-content {
   display: flex;
-  gap: var(--space-lg);
   align-items: flex-start;
+  gap: var(--space-3);
 }
 
 .voting-warning-icon {
-  color: var(--danger);
+  color: var(--color-accent);
   flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .voting-instructions-content h4 {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: var(--text);
-  margin-bottom: var(--space-sm);
+  font-size: var(--text-base);
+  color: var(--color-accent-bright);
+  margin-bottom: 4px;
 }
 
 .voting-instructions-content p {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}
+
+/* 计票等待 */
+.voting-waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.voting-waiting-spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border-strong);
+  border-top-color: var(--color-accent);
+  animation: voting-spin 0.9s linear infinite;
+}
+
+.voting-waiting-title {
+  color: var(--color-accent-bright);
+  font-size: var(--text-lg);
+}
+
+.voting-waiting-hint {
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+}
+
+@keyframes voting-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.voting-characters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .voting-section-title {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: var(--space-lg);
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
 }
 
 .voting-character-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-lg);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-3);
 }
 
 .voting-character-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--space-xxl);
+  gap: var(--space-2);
   text-align: center;
   position: relative;
-  transition: all var(--transition-normal);
+  padding: var(--space-4);
 }
 
 .voting-character-card.selected {
-  transform: scale(1.02);
+  background: rgba(176, 141, 74, 0.08);
 }
 
 .voting-character-info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  gap: 2px;
+  min-width: 0;
 }
 
 .voting-character-name {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--text);
 }
 
 .voting-character-identity {
-  font-size: 1rem;
-  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
 }
 
 .voting-selected-badge {
   position: absolute;
-  top: var(--space-lg);
-  right: var(--space-lg);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--primary-dark);
-  display: flex;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.2s ease;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 
 .voting-actions {
   display: flex;
   justify-content: center;
-  padding-top: var(--space-xl);
 }
 
-/* Confirm Modal */
+/* 结果展示 */
+.voting-result-card h3 {
+  font-size: var(--text-xl);
+  margin-bottom: var(--space-3);
+}
+
+.voting-result-card.result-tie h3 {
+  color: var(--color-text-muted);
+}
+
+.voting-result-message {
+  white-space: pre-wrap;
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}
+
+.voting-result-detail {
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+.voting-result-detail h4 {
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-2);
+}
+
+.voting-result-detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: var(--text-sm);
+}
+
+.voting-result-voter {
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 6em;
+}
+
+.voting-result-arrow {
+  color: var(--color-accent);
+}
+
+.voting-result-target {
+  color: var(--color-text-muted);
+}
+
+.voting-tie-actions {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.voting-tie-hint {
+  color: var(--color-text-faint);
+  font-size: var(--text-sm);
+}
+
+/* 确认弹窗内容 */
 .voting-confirm-content {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .voting-confirm-content p {
-  margin-bottom: var(--space-lg);
-  color: var(--text);
-  font-size: 1.125rem;
-}
-
-.voting-confirm-content strong {
-  color: var(--accent);
+  line-height: 1.7;
 }
 
 .voting-confirm-hint {
-  font-size: 1.125rem;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
 }
 
 .voting-confirm-actions {
   display: flex;
-  justify-content: center;
-  gap: var(--space-lg);
-  margin-top: var(--space-xl);
-}
-
-/* Error display */
-.voting-error {
-  display: flex;
-  align-items: center;
-  gap: var(--space-lg);
-  padding: var(--space-lg);
-  background: rgba(196, 30, 58, 0.1);
-  border: 1px solid var(--danger);
-  color: var(--danger);
-  border-radius: var(--radius-lg);
-}
-
-.voting-error svg {
-  flex-shrink: 0;
-}
-
-.voting-error span {
-  flex: 1;
-  font-size: 1.125rem;
-}
-
-.voting-error button {
-  background: none;
-  border: none;
-  color: var(--danger);
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-/* Vote Result Card */
-.voting-result-card {
-  padding: var(--space-xxl);
-  text-align: center;
-  animation: fadeIn 0.5s ease;
-}
-
-.voting-result-card h3 {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  margin-bottom: var(--space-lg);
-}
-
-.voting-result-message {
-  font-size: 1.125rem;
-  color: var(--text);
-  line-height: 1.6;
-  white-space: pre-line;
-}
-
-/* 游戏结束（正确/错误凶手） */
-.voting-result-card.result-ended {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(79, 70, 229, 0.05) 100%);
-  border: 2px solid var(--accent);
-}
-
-.voting-result-card.result-ended h3 {
-  color: var(--accent);
-}
-
-.voting-result-next {
-  margin-top: var(--space-lg);
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-  animation: pulse 2s infinite;
-}
-
-/* 平票情况 */
-.voting-result-card.result-tie {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
-  border: 2px solid var(--warning);
-}
-
-.voting-result-card.result-tie h3 {
-  color: var(--warning);
-}
-
-.voting-tie-actions {
-  margin-top: var(--space-xl);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.voting-tie-hint {
-  font-size: 1.125rem;
-  color: var(--text-secondary);
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  justify-content: flex-end;
+  gap: var(--space-3);
 }

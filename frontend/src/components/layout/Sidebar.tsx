@@ -1,62 +1,75 @@
-// Sidebar Component
+// Sidebar — 桌面端固定栏；≤768px 由 GameLayout 变为抽屉（不再整体消失）
 
-import { Users, MessageSquare, Lightbulb } from 'lucide-react';
+import { Users, MessageSquare, Lightbulb, X } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
-import { Avatar } from '../common';
+import { Avatar, Badge } from '../common';
 import './Sidebar.css';
 
-export function Sidebar() {
+interface SidebarProps {
+  drawerOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ drawerOpen, onClose }: SidebarProps) {
   const { state } = useGame();
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${drawerOpen ? 'sidebar-open' : ''}`}>
+      <div className="sidebar-drawer-header">
+        <span className="sidebar-drawer-title">案件信息</span>
+        <button className="sidebar-close" onClick={onClose} aria-label="关闭侧边栏">
+          <X size={16} />
+        </button>
+      </div>
+
       <div className="sidebar-section">
         <h3 className="sidebar-section-title">
           <Users size={14} />
-          Characters
+          出场角色
         </h3>
         <div className="sidebar-character-list">
-          {state.characters.map((char) => (
-            <div
-              key={char.id}
-              className={`sidebar-character ${
-                state.player?.id === char.id ? 'is-player' : ''
-              }`}
-            >
-              <Avatar name={char.name} size="md" />
-              <div className="sidebar-character-info">
-                <span className="sidebar-character-name">{char.name}</span>
-                <span className="sidebar-character-identity">{char.public_identity}</span>
+          {state.characters.map((char) => {
+            const isPlayer = state.player?.id === char.id;
+            return (
+              <div
+                key={char.id}
+                className={`sidebar-character ${isPlayer ? 'is-player' : ''}`}
+              >
+                <Avatar name={char.name} size="sm" />
+                <div className="sidebar-character-info">
+                  <span className="sidebar-character-name">{char.name}</span>
+                  <span className="sidebar-character-identity">
+                    {char.public_identity}
+                  </span>
+                </div>
+                {isPlayer && <Badge variant="gold" size="sm">你</Badge>}
               </div>
-              {state.player?.id === char.id && (
-                <span className="sidebar-character-badge">You</span>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {state.accusationPoints > 0 && (
-        <div className="sidebar-section">
-          <h3 className="sidebar-section-title">
-            <Lightbulb size={14} />
-            Accusations
-          </h3>
-          <div className="sidebar-stat">
-            <span className="sidebar-stat-value">{state.accusationPoints}</span>
-            <span className="sidebar-stat-label">remaining</span>
-          </div>
+      <div className="sidebar-section">
+        <h3 className="sidebar-section-title">
+          <Lightbulb size={14} />
+          指控机会
+        </h3>
+        <div className="sidebar-stat">
+          <span className="sidebar-stat-value">{state.accusationPoints}</span>
+          <span className="sidebar-stat-label">剩余次数</span>
         </div>
-      )}
+      </div>
 
       <div className="sidebar-section">
         <h3 className="sidebar-section-title">
           <MessageSquare size={14} />
-          Discussion
+          讨论
         </h3>
         <div className="sidebar-stat">
-          <span className="sidebar-stat-value">{state.currentDiscussionMessages.length}</span>
-          <span className="sidebar-stat-label">messages</span>
+          <span className="sidebar-stat-value">
+            {state.currentDiscussionMessages.length}
+          </span>
+          <span className="sidebar-stat-label">条发言</span>
         </div>
       </div>
     </aside>

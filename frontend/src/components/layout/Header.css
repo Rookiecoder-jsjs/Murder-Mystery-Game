@@ -1,84 +1,123 @@
-/* Header Styles */
+/* Header — 64px 品牌 + 阶段 + 玩家身份 */
 
 .header {
+  height: var(--header-h);
+  flex-shrink: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: var(--space-md) var(--space-xl);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  min-height: 80px;
+  gap: var(--space-4);
+  padding: 0 var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(13, 11, 9, 0.92);
+  position: relative;
+  z-index: var(--z-header);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.header-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.header-menu-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface-raised);
 }
 
 .header-brand {
   display: flex;
-  flex-direction: column;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .header-title {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 0.08em;
-  line-height: 1;
+  font-size: var(--text-xl);
+  color: var(--color-accent-bright);
+  white-space: nowrap;
 }
 
-.header-title-accent {
-  color: var(--accent);
-}
-
-.header-subtitle {
-  font-family: var(--font-body);
-  font-size: 1rem;
-  color: var(--text-muted);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  margin-top: 4px;
+.header-topic {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22ch;
 }
 
 .header-center {
   flex: 1;
   display: flex;
   justify-content: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.header-center::-webkit-scrollbar {
+  display: none;
 }
 
 .header-info {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xl);
+  flex-shrink: 0;
 }
 
 .header-player {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  line-height: 1.3;
 }
 
 .header-player-label {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
 }
 
 .header-player-name {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: var(--accent);
+  font-size: var(--text-sm);
   font-weight: 600;
+  color: var(--color-text);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .header {
+    height: auto;
+    min-height: var(--header-h);
     flex-wrap: wrap;
-    gap: var(--space-sm);
+    row-gap: var(--space-1);
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .header-menu-btn {
+    display: inline-flex;
   }
 
   .header-center {
     order: 3;
-    width: 100%;
+    flex-basis: 100%;
     justify-content: flex-start;
+    padding-bottom: var(--space-1);
+  }
+
+  .header-info {
+    margin-left: auto;
+  }
+
+  .header-topic {
+    max-width: 14ch;
   }
 }

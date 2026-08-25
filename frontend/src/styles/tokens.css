@@ -1,0 +1,92 @@
+/* ==========================================================================
+   设计令牌 — 全站唯一来源
+   Refined 暗黑推理：深黑暖底、暗金仅做点缀、酒红用于危险/凶手
+   ========================================================================== */
+
+:root {
+  /* ===== 颜色 ===== */
+  --color-bg: #0d0b09;              /* 页面底色（暖深黑） */
+  --color-surface: #16130f;         /* 卡片、面板 */
+  --color-surface-raised: #1d1913;  /* 悬停、输入框、抽屉 */
+  --color-border: #2b251c;          /* 细边框 */
+  --color-border-strong: #3a3327;   /* 激活行、分区线 */
+
+  --color-text: #f2ede4;            /* 暖白正文 */
+  --color-text-muted: #b4a893;      /* 次要文字 */
+  --color-text-faint: #7a7263;      /* 时间戳、占位符 */
+
+  --color-accent: #b08d4a;          /* 暗金：标题、激活态、细边框（克制使用） */
+  --color-accent-bright: #c9a75d;   /* 悬停高亮、焦点环 */
+  --color-accent-ink: #241d10;      /* 金底上的文字 */
+
+  --color-danger: #a3293f;          /* 酒红：凶手、危险、错误 */
+  --color-danger-bright: #c23a52;
+  --color-success: #5f7d5c;
+  --color-info: #6d9ec9;
+
+  --color-scrim: rgba(10, 8, 6, 0.72); /* 抽屉/弹窗遮罩 */
+
+  /* 线索类型三色（低饱和） */
+  --clue-physical: #c9a227;
+  --clue-testimony: #6d9ec9;
+  --clue-document: #9d7bd8;
+
+  /* 头像六色（低饱和、暗底可辨） */
+  --avatar-c-1: #6b5b3f;
+  --avatar-c-2: #5d6b7e;
+  --avatar-c-3: #6e5f7e;
+  --avatar-c-4: #7e5f5f;
+  --avatar-c-5: #557a6a;
+  --avatar-c-6: #7a7a5a;
+
+  /* ===== 字体 ===== */
+  /* display：书法体，仅用于大标题（只有 400 字重，禁止加粗请求） */
+  --font-display: 'Ma Shan Zheng', 'Noto Serif SC', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  --font-body: 'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+  /* ===== 流式字号 ===== */
+  --text-xs: clamp(0.72rem, 0.66rem + 0.28vw, 0.82rem);
+  --text-sm: clamp(0.82rem, 0.78rem + 0.24vw, 0.88rem);
+  --text-base: clamp(0.95rem, 0.91rem + 0.2vw, 1rem);
+  --text-lg: clamp(1.05rem, 0.98rem + 0.36vw, 1.18rem);
+  --text-xl: clamp(1.2rem, 1.05rem + 0.75vw, 1.42rem);
+  --text-2xl: clamp(1.5rem, 1.2rem + 1.5vw, 1.95rem);
+  --text-display: clamp(1.85rem, 1.2rem + 4.5vw, 3.25rem);
+
+  /* ===== 间距 ===== */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* ===== 圆角 ===== */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* ===== 阴影（只用黑色系，禁止发光） ===== */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+
+  /* ===== 过渡（曾被 15+ 文件引用但从未定义，现补齐） ===== */
+  --transition-fast: 120ms ease;
+  --transition-normal: 240ms ease;
+  --transition-slow: 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* ===== 布局 ===== */
+  --header-h: 64px;
+  --sidebar-w: 288px;
+  --container-game: min(100% - 2 * var(--space-4), 1000px);
+
+  /* ===== 层级 ===== */
+  --z-header: 50;
+  --z-drawer: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+}

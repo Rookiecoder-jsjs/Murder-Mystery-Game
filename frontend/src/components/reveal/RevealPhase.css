@@ -1,159 +1,125 @@
-/* Reveal Phase Styles */
+/* Reveal Phase */
 
 .reveal-phase {
-  max-width: 900px;
-  margin: 0 auto;
+  width: min(100%, 800px);
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  animation: fadeIn 0.5s ease;
+  gap: var(--space-4);
+  overflow-y: auto;
+}
+
+.reveal-loading {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-12) 0;
 }
 
 .reveal-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
   text-align: center;
-  padding: var(--space-xl) 0;
 }
 
 .reveal-icon {
-  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: var(--primary-dark);
-  margin-bottom: var(--space-xl);
-  box-shadow: 0 0 50px rgba(212, 175, 55, 0.5);
-  animation: pulse 2s ease-in-out infinite;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  color: var(--color-accent);
 }
 
-.reveal-icon.reveal-icon-win {
-  background: linear-gradient(135deg, var(--accent) 0%, #FFD700 100%);
-  box-shadow: 0 0 60px rgba(212, 175, 55, 0.6);
+.reveal-icon-win {
+  color: var(--color-accent-bright);
+  border-color: rgba(176, 141, 74, 0.5);
 }
 
-.reveal-icon.reveal-icon-lose {
-  background: linear-gradient(135deg, var(--danger) 0%, #8B0000 100%);
-  box-shadow: 0 0 60px rgba(196, 30, 58, 0.6);
+.reveal-icon-lose {
+  color: var(--color-danger-bright);
+  border-color: rgba(163, 41, 63, 0.5);
 }
 
 .reveal-title {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  color: var(--accent);
-  margin-bottom: var(--space-md);
-  text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
-}
-
-.reveal-result-badge {
-  font-size: 1.25rem;
-  padding: var(--space-md) var(--space-xl);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-.reveal-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xl);
+  font-size: var(--text-2xl);
 }
 
 .reveal-story-card {
-  padding: var(--space-xxl);
-}
-
-.reveal-section {
-  margin-bottom: var(--space-lg);
-}
-
-.reveal-section:last-child {
-  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .reveal-section-title {
-  font-family: var(--font-display);
-  font-size: 2rem;
-  color: var(--accent);
-  margin-bottom: var(--space-lg);
+  font-size: var(--text-xl);
+  color: var(--color-accent-bright);
+  margin-bottom: var(--space-2);
 }
 
 .reveal-section-bg {
-  font-size: 1.25rem;
-  color: var(--text);
-  line-height: 1.6;
+  color: var(--color-text-muted);
+  line-height: 1.9;
 }
 
 .reveal-divider {
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  margin: var(--space-xxl) 0;
+  height: 1px;
+  background: var(--color-border);
 }
 
 .reveal-label {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: var(--space-md);
+  font-size: var(--text-sm);
+  color: var(--color-text-faint);
+  letter-spacing: 0.12em;
+  margin-bottom: var(--space-3);
 }
 
 .reveal-truth {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .reveal-truth-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  padding: var(--space-lg);
-  background: var(--surface-light);
-  border-radius: var(--radius-lg);
-  border-left: 4px solid var(--accent);
+  display: grid;
+  grid-template-columns: 5em 1fr;
+  gap: var(--space-3);
+  font-size: var(--text-base);
+  line-height: 1.7;
 }
 
 .reveal-truth-label {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
 }
 
 .reveal-truth-value {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: var(--text);
+  color: var(--color-text);
 }
 
-.reveal-truth-value.reveal-killer {
-  color: var(--danger);
+.reveal-killer {
+  color: var(--color-danger-bright);
   font-weight: 700;
-  font-size: 1.5rem;
 }
 
 .reveal-story-text {
-  font-size: 1.125rem;
-  color: var(--text);
-  line-height: 1.8;
-  padding: var(--space-xl);
-  background: var(--surface-light);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  color: var(--color-text-muted);
+  line-height: 1.9;
+  white-space: pre-wrap;
 }
 
 .reveal-actions {
   display: flex;
   justify-content: center;
-  padding-top: var(--space-xl);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
-  .reveal-truth {
+@media (max-width: 639.98px) {
+  .reveal-truth-item {
     grid-template-columns: 1fr;
+    gap: 2px;
   }
 }

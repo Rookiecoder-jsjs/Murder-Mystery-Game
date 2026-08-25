@@ -1,18 +1,34 @@
-// Header Component
+// Header — 64px：品牌 + 阶段指示 + 玩家身份
+import { Menu } from 'lucide-react';
 import { useGame } from '../../context/GameContext';
 import { PhaseIndicator } from './PhaseIndicator';
 import './Header.css';
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const { state } = useGame();
 
   return (
     <header className="header">
-      <div className="header-brand">
-        <h1 className="header-title">
-          <span className="header-title-accent">剧本</span>杀
-        </h1>
-        <span className="header-subtitle">Murder Mystery</span>
+      <div className="header-left">
+        <button
+          className="header-menu-btn"
+          onClick={onMenuClick}
+          aria-label="打开角色列表"
+        >
+          <Menu size={18} />
+        </button>
+        <div className="header-brand">
+          <h1 className="header-title font-display">剧本杀</h1>
+          {state.topic && (
+            <span className="header-topic" title={state.topic}>
+              {state.topic}
+            </span>
+          )}
+        </div>
       </div>
 
       {state.gameId && (
@@ -28,7 +44,7 @@ export function Header() {
       <div className="header-info">
         {state.player && (
           <div className="header-player">
-            <span className="header-player-label">Your Role</span>
+            <span className="header-player-label">你的角色</span>
             <span className="header-player-name">{state.player.name}</span>
           </div>
         )}

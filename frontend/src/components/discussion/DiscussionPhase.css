@@ -1,252 +1,125 @@
-/* Discussion Phase Styles */
+/* Discussion Phase — 外壳决定高度，消息列表内部滚动 */
 
 .discussion-phase {
-  max-width: 1200px;
-  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
-  height: calc(100vh - 150px);
-  animation: fadeIn 0.5s ease;
 }
 
-.discussion-header {
-  text-align: center;
-  padding: var(--space-xl) 0;
-}
-
-.discussion-icon {
-  display: inline-flex;
+.discussion-topbar {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
-  color: var(--text);
-  margin-bottom: var(--space-xl);
-  box-shadow: 0 0 40px rgba(139, 21, 56, 0.5);
-}
-
-.discussion-title {
-  font-family: var(--font-display);
-  font-size: 2.5rem;
-  color: var(--accent);
-  margin-bottom: var(--space-md);
-}
-
-.discussion-subtitle {
-  color: var(--text-secondary);
-  font-size: 1.25rem;
-}
-
-.discussion-chat-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0;
-}
-
-.discussion-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--space-xl);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-}
-
-.discussion-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--text-muted);
-  text-align: center;
-}
-
-.discussion-empty svg {
-  opacity: 0.3;
-  margin-bottom: var(--space-lg);
-}
-
-.discussion-empty p {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  margin-bottom: var(--space-md);
-}
-
-.discussion-empty span {
-  font-size: 1.125rem;
-}
-
-.discussion-input-area {
-  padding: var(--space-xl);
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
-
-.discussion-input-wrapper {
-  display: flex;
-  gap: var(--space-md);
-  align-items: flex-end;
-}
-
-.discussion-input {
-  flex: 1;
-  resize: none;
-  min-height: 80px;
-  font-size: 1.125rem;
-}
-
-.discussion-send-btn {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.discussion-hint {
-  font-size: 1rem;
-  color: var(--text-muted);
-  margin-top: var(--space-md);
-  text-align: center;
+.discussion-topbar-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-accent-bright);
+}
+
+.discussion-topbar-title h2 {
+  font-size: var(--text-lg);
+}
+
+.discussion-round {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin-left: var(--space-2);
 }
 
 .discussion-actions {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: var(--space-lg);
-  padding: var(--space-lg) 0;
+  gap: var(--space-2);
 }
 
-.discussion-action {
-  display: flex;
-  align-items: center;
-  gap: var(--space-md);
-}
-
-/* Accuse Modal */
-.accuse-modal {
+.discussion-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-6);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xl);
+  gap: var(--space-3);
 }
 
-.accuse-warning {
+.discussion-empty {
+  margin: auto;
   display: flex;
-  gap: var(--space-lg);
-  padding: var(--space-lg);
-  background: rgba(196, 30, 58, 0.1);
-  border: 1px solid var(--danger);
-  border-radius: var(--radius-lg);
-  color: var(--danger);
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-faint);
+  text-align: center;
 }
 
-.accuse-warning svg {
+.discussion-empty svg {
+  opacity: 0.4;
+}
+
+.discussion-empty p {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+}
+
+.discussion-input-area {
   flex-shrink: 0;
-  margin-top: 4px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  padding: var(--space-3) var(--space-6);
+  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
 }
 
-.accuse-warning p {
-  font-size: 1.125rem;
+.discussion-input-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  width: min(100%, 900px);
+  margin-inline: auto;
+}
+
+.discussion-input {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  min-height: 52px;
+  max-height: 160px;
   line-height: 1.6;
 }
 
-.accuse-warning strong {
-  color: var(--accent);
+.discussion-send-btn {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  flex-shrink: 0;
 }
 
-.accuse-suspects h4 {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-lg);
-}
-
-.accuse-suspect-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-lg);
-}
-
-.accuse-suspect-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--space-xl);
+.discussion-hint {
   text-align: center;
-  position: relative;
-  cursor: pointer;
-  transition: all var(--transition-normal);
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  margin-top: var(--space-2);
 }
 
-.accuse-suspect-card.selected {
-  transform: scale(1.02);
-}
+@media (max-width: 767.98px) {
+  .discussion-topbar {
+    padding: var(--space-2) var(--space-4);
+  }
 
-.accuse-player-badge {
-  position: absolute;
-  top: var(--space-sm);
-  left: var(--space-sm);
-  font-size: 0.625rem;
-  background: var(--accent);
-  color: var(--primary-dark);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  z-index: 1;
-}
+  .discussion-messages {
+    padding: var(--space-3) var(--space-4);
+  }
 
-.accuse-suspect-card.is-player-character {
-  opacity: 0.85;
-}
-
-.accuse-suspect-info {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
-}
-
-.accuse-suspect-name {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.accuse-suspect-identity {
-  font-size: 1rem;
-  color: var(--text-secondary);
-}
-
-.accuse-selected-badge {
-  position: absolute;
-  top: var(--space-md);
-  right: var(--space-md);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--primary-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: fadeIn 0.2s ease;
-}
-
-.accuse-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-lg);
-  padding-top: var(--space-lg);
-  border-top: 1px solid var(--border);
+  .discussion-input-area {
+    padding-left: var(--space-4);
+    padding-right: var(--space-4);
+  }
 }

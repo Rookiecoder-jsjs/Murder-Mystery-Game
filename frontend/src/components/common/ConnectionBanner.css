@@ -1,0 +1,13 @@
+/* ConnectionBanner — 断连常驻提示条 */
+
+.connection-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(163, 41, 63, 0.16);
+  border-bottom: 1px solid rgba(163, 41, 63, 0.4);
+  color: var(--color-danger-bright);
+  font-size: var(--text-sm);
+}

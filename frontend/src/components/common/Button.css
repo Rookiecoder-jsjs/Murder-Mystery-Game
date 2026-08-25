@@ -1,138 +1,95 @@
-/* Button Component Styles - Art Deco */
+/* Button — 克制、无发光 */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
-  font-family: var(--font-display);
+  gap: var(--space-2);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border: 1px solid transparent;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
   border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-normal);
-  position: relative;
-  overflow: hidden;
+  padding: 0.6em 1.3em;
+  transition: background-color var(--transition-normal),
+    color var(--transition-normal), border-color var(--transition-normal),
+    transform var(--transition-fast), opacity var(--transition-normal);
+  white-space: nowrap;
 }
 
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-  transition: left 0.5s ease;
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
-.btn:hover::before {
-  left: 100%;
-}
-
-/* Sizes */
-.btn-sm {
-  padding: var(--space-sm) var(--space-md);
-  font-size: 0.875rem;
-}
-
-.btn-md {
-  padding: var(--space-md) var(--space-xl);
-  font-size: 1rem;
-}
-
-.btn-lg {
-  padding: var(--space-lg) var(--space-xxl);
-  font-size: 1.25rem;
-}
-
-/* Primary - Gold accent */
+/* 主按钮：暗金底 */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: var(--primary-dark);
-  border-color: var(--accent);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--accent-light) 0%, var(--accent) 100%);
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-1px);
+  background: var(--color-accent-bright);
 }
 
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-/* Secondary - Burgundy */
+/* 危险/关键行动：酒红底 */
+.btn-danger,
 .btn-secondary {
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
-  color: var(--text);
-  border-color: var(--secondary);
+  background: var(--color-danger);
+  color: var(--color-text);
 }
 
+.btn-danger:hover:not(:disabled),
 .btn-secondary:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--secondary-light) 0%, var(--secondary) 100%);
-  box-shadow: 0 0 15px rgba(139, 21, 56, 0.4);
-  transform: translateY(-1px);
+  background: var(--color-danger-bright);
 }
 
-/* Ghost - Transparent with border */
+/* 幽灵按钮：描边 */
 .btn-ghost {
   background: transparent;
-  color: var(--accent);
-  border-color: var(--accent);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(212, 175, 55, 0.1);
-  box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+  color: var(--color-text);
+  border-color: var(--color-accent);
 }
 
-/* Danger - Red */
-.btn-danger {
-  background: linear-gradient(135deg, var(--danger) 0%, #8B0000 100%);
-  color: var(--text);
-  border-color: var(--danger);
+.btn-sm {
+  font-size: var(--text-sm);
+  padding: 0.45em 1em;
 }
 
-.btn-danger:hover:not(:disabled) {
-  box-shadow: 0 0 15px rgba(196, 30, 58, 0.4);
-  transform: translateY(-1px);
+.btn-lg {
+  font-size: var(--text-lg);
+  padding: 0.7em 1.6em;
 }
 
-/* Loading state */
+/* 加载态 */
 .btn-loading {
-  pointer-events: none;
+  position: relative;
 }
 
 .btn-spinner {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  animation: spin 1s linear infinite;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-spinner svg {
-  width: 100%;
-  height: 100%;
+  width: 1.1em;
+  height: 1.1em;
+  animation: btn-spin 0.8s linear infinite;
 }
 
 .btn-text-hidden {
   visibility: hidden;
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
+@keyframes btn-spin {
   to {
     transform: rotate(360deg);
   }

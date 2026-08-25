@@ -40,9 +40,17 @@ export interface CreateGameResponse {
   characters: CharacterInfo[];
 }
 
+export interface LoadGameResponse {
+  game_id: string;
+  story_id: string;
+  phase: string;
+  player: CharacterInfo;
+  characters: CharacterInfo[];
+}
+
 export interface GameStatus {
   game_id: string;
-  phase: 'introduction' | 'investigation' | 'discussion' | 'voting' | 'reveal';
+  phase: GamePhase;
   round: number;
   max_rounds: number;
   player: CharacterInfo;
@@ -67,11 +75,24 @@ export interface SpeakResponse {
   phase: string;
 }
 
+export interface InvestigateResponse {
+  found: Clue[];
+  clue_board: ClueBoard;
+}
+
+export interface PhaseResponse {
+  phase: string;
+  round?: number;
+}
+
 export interface VoteResponse {
   votes: Record<string, string>;
   result: string;
   game_ended: boolean;
   winner: string | null;
+  phase: string;
+  all_submitted: boolean;
+  reveal?: RevealInfo;
 }
 
 export interface AccuseResponse {
@@ -92,5 +113,6 @@ export interface RevealInfo {
     crime: string;
     motive: string;
     true_killer: string;
+    true_killer_name?: string;
   };
 }

@@ -1,126 +1,148 @@
-/* Sidebar Styles */
+/* Sidebar — 桌面固定栏；移动端抽屉 */
 
 .sidebar {
-  width: 320px;
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  padding: var(--space-xxl);
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  overflow-y: auto;
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxl);
-  overflow-y: auto;
+  gap: var(--space-6);
+}
+
+/* 桌面端没有抽屉头 */
+.sidebar-drawer-header {
+  display: none;
 }
 
 .sidebar-section {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-3);
 }
 
 .sidebar-section-title {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  font-family: var(--font-display);
-  font-size: 1rem;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  padding-bottom: var(--space-md);
-  border-bottom: 1px solid var(--border);
+  color: var(--color-text-faint);
+  letter-spacing: 0.08em;
 }
 
 .sidebar-character-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-2);
 }
 
 .sidebar-character {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-md);
-  border-radius: var(--radius-lg);
-  background: var(--surface-light);
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
   border: 1px solid transparent;
-  transition: all var(--transition-fast);
+  transition: background-color var(--transition-fast),
+    border-color var(--transition-fast);
 }
 
 .sidebar-character:hover {
-  border-color: var(--border);
+  background: var(--color-surface-raised);
 }
 
 .sidebar-character.is-player {
-  border-color: var(--accent);
-  background: rgba(212, 175, 55, 0.05);
+  border-color: rgba(176, 141, 74, 0.35);
+  background: rgba(176, 141, 74, 0.06);
 }
 
 .sidebar-character-info {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.35;
 }
 
 .sidebar-character-name {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--color-text);
 }
 
 .sidebar-character-identity {
-  font-size: 0.9375rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.sidebar-character-badge {
-  font-family: var(--font-display);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--primary-dark);
-  background: var(--accent);
-  padding: 4px 10px;
-  border-radius: var(--radius-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  white-space: nowrap;
 }
 
 .sidebar-stat {
   display: flex;
   align-items: baseline;
-  gap: var(--space-md);
-  padding: var(--space-lg);
-  background: var(--surface-light);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  gap: var(--space-2);
+  padding: var(--space-2);
 }
 
 .sidebar-stat-value {
-  font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: var(--text-2xl);
   font-weight: 700;
-  color: var(--accent);
+  color: var(--color-accent-bright);
+  line-height: 1;
 }
 
 .sidebar-stat-label {
-  font-size: 1rem;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* ===== 移动端：抽屉 ===== */
+@media (max-width: 767.98px) {
   .sidebar {
-    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(85vw, 320px);
+    z-index: var(--z-drawer);
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    border-right: 1px solid var(--color-border-strong);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sidebar-drawer-title {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    color: var(--color-accent-bright);
+  }
+
+  .sidebar-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    color: var(--color-text-faint);
+  }
+
+  .sidebar-close:hover {
+    color: var(--color-text);
+    background: var(--color-surface-raised);
   }
 }

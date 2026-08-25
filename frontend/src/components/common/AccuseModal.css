@@ -1,0 +1,88 @@
+/* AccuseModal — 指认弹窗内容（唯一一份） */
+
+.accuse-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.accuse-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgba(163, 41, 63, 0.45);
+  border-radius: var(--radius-md);
+  background: rgba(163, 41, 63, 0.1);
+  color: var(--color-danger-bright);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.accuse-warning svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.accuse-suspects h4 {
+  font-size: var(--text-base);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.accuse-suspect-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: var(--space-3);
+}
+
+.accuse-suspect-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  position: relative;
+}
+
+.accuse-suspect-card.selected {
+  background: rgba(176, 141, 74, 0.08);
+}
+
+.accuse-suspect-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.35;
+}
+
+.accuse-suspect-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.accuse-suspect-identity {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accuse-selected-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  flex-shrink: 0;
+}
+
+.accuse-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}

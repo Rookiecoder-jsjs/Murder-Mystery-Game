@@ -1,68 +1,50 @@
-/* Badge Component Styles */
+/* Badge — 药丸形小标签 */
 
 .badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
+  gap: 4px;
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: var(--radius-md);
+  line-height: 1;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
   white-space: nowrap;
 }
 
-/* Sizes */
-.badge-sm {
-  padding: 4px 10px;
-  font-size: 0.75rem;
-}
-
-.badge-md {
-  padding: 6px 14px;
-  font-size: 0.875rem;
-}
-
-/* Variants */
-.badge-default {
-  background: var(--surface-light);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-}
-
 .badge-gold {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
-  color: var(--accent);
-  border: 1px solid var(--accent);
+  color: var(--color-accent-bright);
+  border-color: rgba(176, 141, 74, 0.4);
 }
 
 .badge-danger {
-  background: linear-gradient(135deg, rgba(196, 30, 58, 0.2) 0%, rgba(196, 30, 58, 0.1) 100%);
-  color: var(--danger);
-  border: 1px solid var(--danger);
+  color: var(--color-danger-bright);
+  border-color: rgba(163, 41, 63, 0.5);
 }
 
 .badge-info {
-  background: linear-gradient(135deg, rgba(74, 144, 217, 0.2) 0%, rgba(74, 144, 217, 0.1) 100%);
-  color: var(--info);
-  border: 1px solid var(--info);
+  color: var(--color-info);
+  border-color: rgba(109, 158, 201, 0.4);
 }
 
-/* Clue type badges */
 .badge-physical {
-  background: linear-gradient(135deg, rgba(201, 162, 39, 0.2) 0%, rgba(201, 162, 39, 0.1) 100%);
   color: var(--clue-physical);
-  border: 1px solid var(--clue-physical);
+  border-color: rgba(201, 162, 39, 0.4);
 }
 
 .badge-testimony {
-  background: linear-gradient(135deg, rgba(74, 144, 217, 0.2) 0%, rgba(74, 144, 217, 0.1) 100%);
   color: var(--clue-testimony);
-  border: 1px solid var(--clue-testimony);
+  border-color: rgba(109, 158, 201, 0.4);
 }
 
 .badge-document {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.1) 100%);
   color: var(--clue-document);
-  border: 1px solid var(--clue-document);
+  border-color: rgba(157, 123, 216, 0.4);
+}
+
+.badge-sm {
+  padding: 2px 8px;
 }

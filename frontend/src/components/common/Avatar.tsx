@@ -1,10 +1,9 @@
-// Avatar Component
+// Avatar — 角色头像（色板来自令牌，选中态用暗金描边）
 import './Avatar.css';
 
 interface AvatarProps {
   name: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  imageUrl?: string;
   showBorder?: boolean;
   className?: string;
 }
@@ -18,40 +17,27 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
-function getColorFromName(name: string): string {
-  const colors = [
-    '#8B1538', // burgundy
-    '#D4AF37', // gold
-    '#4A90D9', // blue
-    '#2D8B4E', // green
-    '#8B5CF6', // purple
-    '#C9A227', // amber
-  ];
-  const index = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  return colors[index % colors.length];
+function getColorVar(name: string): string {
+  const index = name
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return `var(--avatar-c-${(index % 6) + 1})`;
 }
 
 export function Avatar({
   name,
   size = 'md',
-  imageUrl,
   showBorder = false,
   className = '',
 }: AvatarProps) {
-  const initials = getInitials(name);
-  const bgColor = getColorFromName(name);
-
   return (
     <div
       className={`avatar avatar-${size} ${showBorder ? 'avatar-border' : ''} ${className}`}
-      style={{ backgroundColor: imageUrl ? 'transparent' : bgColor }}
+      style={{ backgroundColor: getColorVar(name) }}
       title={name}
+      aria-hidden="true"
     >
-      {imageUrl ? (
-        <img src={imageUrl} alt={name} className="avatar-image" />
-      ) : (
-        <span className="avatar-initials">{initials}</span>
-      )}
+      <span className="avatar-initials">{getInitials(name)}</span>
     </div>
   );
 }
