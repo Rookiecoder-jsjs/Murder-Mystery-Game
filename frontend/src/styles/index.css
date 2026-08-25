@@ -4,6 +4,7 @@
 
 @import './tokens.css';
 @import './base.css';
+@import './effects.css';
 
 /* ==========================================================================
    兼容别名 — 旧变量名 → 新令牌
@@ -13,15 +14,12 @@
 :root {
   --primary: var(--color-bg);
   --primary-light: var(--color-surface-raised);
-  --primary-dark: #000000;
 
   --secondary: var(--color-danger);
   --secondary-light: var(--color-danger-bright);
-  --secondary-dark: #451021;
 
   --accent: var(--color-accent);
   --accent-light: var(--color-accent-bright);
-  --accent-dark: #8a6d38;
 
   --surface: var(--color-surface);
   --surface-light: var(--color-surface-raised);

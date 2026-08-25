@@ -1,14 +1,27 @@
-/* Avatar — 尺寸收敛，选中态暗金描边 */
+/* Avatar — 证件照瓦片：方形、虚线内框、纸角；色板由 --avatar-bg 注入 */
 
 .avatar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 3px;
   flex-shrink: 0;
-  color: var(--color-text);
+  background: var(--avatar-bg, var(--color-surface-raised));
+  color: var(--photo-ink);
   font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 0 1px var(--paper-sheen), var(--shadow-sm);
   user-select: none;
+}
+
+.avatar::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px dashed var(--paper-frame);
+  border-radius: 1px;
+  pointer-events: none;
 }
 
 .avatar-initials {
@@ -35,11 +48,12 @@
 }
 
 .avatar-xl {
-  width: 84px;
-  height: 84px;
+  width: 88px;
+  height: 88px;
   font-size: var(--text-2xl);
 }
 
+/* 玩家框：朱红描边 */
 .avatar-border {
-  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-seal);
 }

@@ -1,4 +1,4 @@
-/* Voting Phase */
+/* Voting Phase — 表决单：浅纸规则卡 + 角色册页 + 朱红勾章 + 唱票等待 */
 
 .voting-phase {
   width: min(100%, 900px);
@@ -31,35 +31,50 @@
 }
 
 .voting-title {
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-2xl);
+  color: var(--color-accent-bright);
 }
 
 .voting-subtitle {
   color: var(--color-text-faint);
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+}
+
+/* 表决规则：浅纸说明单 */
+.voting-instructions {
+  background: var(--paper-1);
+  border-color: var(--paper-edge);
+  color: var(--paper-ink);
+  box-shadow: var(--shadow-paper);
 }
 
 .voting-instructions-content {
   display: flex;
   align-items: flex-start;
   gap: var(--space-3);
+  position: relative;
+  z-index: 1;
 }
 
 .voting-warning-icon {
-  color: var(--color-accent);
+  color: var(--color-seal);
   flex-shrink: 0;
   margin-top: 3px;
 }
 
 .voting-instructions-content h4 {
   font-size: var(--text-base);
-  color: var(--color-accent-bright);
+  color: var(--paper-ink);
   margin-bottom: 4px;
 }
 
 .voting-instructions-content p {
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  color: var(--paper-ink-muted);
   line-height: 1.8;
 }
 
@@ -78,18 +93,22 @@
   height: 28px;
   border-radius: 50%;
   border: 2px solid var(--color-border-strong);
-  border-top-color: var(--color-accent);
+  border-top-color: var(--color-seal);
   animation: voting-spin 0.9s linear infinite;
 }
 
 .voting-waiting-title {
   color: var(--color-accent-bright);
+  font-family: var(--font-mono);
   font-size: var(--text-lg);
+  letter-spacing: 0.12em;
 }
 
 .voting-waiting-hint {
   color: var(--color-text-faint);
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
 }
 
 @keyframes voting-spin {
@@ -125,8 +144,10 @@
   padding: var(--space-4);
 }
 
+/* 圈定：朱红勾章 */
 .voting-character-card.selected {
-  background: rgba(176, 141, 74, 0.08);
+  background: var(--c-danger-bg-faint);
+  border-color: var(--color-seal);
 }
 
 .voting-character-info {
@@ -155,8 +176,9 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
+  background: var(--color-seal);
+  color: #f7eee0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .voting-actions {
@@ -182,12 +204,14 @@
 
 .voting-result-detail {
   margin-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+  border-top: 1px dashed var(--color-border-strong);
   padding-top: var(--space-4);
 }
 
 .voting-result-detail h4 {
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
   color: var(--color-text-faint);
   margin-bottom: var(--space-2);
 }
@@ -207,7 +231,7 @@
 }
 
 .voting-result-arrow {
-  color: var(--color-accent);
+  color: var(--color-string);
 }
 
 .voting-result-target {

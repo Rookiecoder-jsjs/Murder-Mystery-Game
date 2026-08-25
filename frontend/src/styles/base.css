@@ -1,5 +1,6 @@
 /* ==========================================================================
    全局基础：reset、排版、表单、滚动条、关键帧、无障碍
+   案卷·证据墙：碳桌 + 暖纸白晕光 + 全屏纸屑噪点
    ========================================================================== */
 
 * {
@@ -23,14 +24,27 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 顶部一抹极淡的暗金晕光 + 右下酒红余烬，替代旧版花哨菱形纹理 */
+/* 桌面灯光：顶部暖纸白微光 + 底部碳桌暗角 */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(120vh 80vh at 50% -10%, rgba(176, 141, 74, 0.07), transparent 60%),
-    radial-gradient(90vh 60vh at 88% 112%, rgba(163, 41, 63, 0.05), transparent 55%);
+    radial-gradient(120vh 80vh at 50% -10%, rgba(232, 221, 200, 0.05), transparent 60%),
+    radial-gradient(100vh 70vh at 50% 115%, #0b0a08, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* 纸屑氛围：全屏噪点叠加 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: var(--texture-noise);
+  background-size: 200px 200px;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
   pointer-events: none;
   z-index: -1;
 }
@@ -49,7 +63,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text);
 }
 
-/* 书法体只用于点题大标题（.font-display），不全局套用 */
+/* 书法体只用于卷宗题款/首页大字（.font-display），不全局套用 */
 .font-display {
   font-family: var(--font-display);
   font-weight: 400;
@@ -95,14 +109,14 @@ input, textarea, select {
 
 input:focus, textarea:focus, select:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(176, 141, 74, 0.18);
+  box-shadow: 0 0 0 2px var(--c-accent-bg);
 }
 
 input::placeholder, textarea::placeholder {
   color: var(--color-text-faint);
 }
 
-/* 键盘焦点可见（旧版 outline:none 让 Tab 导航失明） */
+/* 键盘焦点可见 */
 :focus-visible {
   outline: 2px solid var(--color-accent-bright);
   outline-offset: 2px;
@@ -127,13 +141,13 @@ input::placeholder, textarea::placeholder {
   background: var(--color-accent);
 }
 
-/* ===== 选区 ===== */
+/* ===== 选区（朱红墨迹） ===== */
 ::selection {
   background: var(--color-danger);
   color: var(--color-text);
 }
 
-/* ===== 关键帧（全站唯一定义处） ===== */
+/* ===== 关键帧（全站唯一定义处；组件只引用） ===== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -149,9 +163,41 @@ input::placeholder, textarea::placeholder {
   50% { opacity: 0.45; }
 }
 
-@keyframes shimmer {
+/* 纸面眩光：取代旧 shimmer，hover 时一道高光扫过 */
+@keyframes paper-sheen {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+/* 印章盖落：1.25 落 1，带微震 */
+@keyframes seal-stamp {
+  0% { transform: scale(1.25) rotate(-14deg); opacity: 0; }
+  55% { transform: scale(0.96) rotate(-9deg); opacity: 1; }
+  75% { transform: scale(1.05) rotate(-7deg); }
+  85% { transform: translate(1px, -1px); }
+  100% { transform: scale(1) rotate(var(--seal-angle, -8deg)); }
+}
+
+/* 新证据上墙吸附：下落 + 过冲回弹 */
+@keyframes evidence-drop {
+  0% { transform: translateY(-14px) rotate(0deg); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: translateY(0) rotate(var(--paper-tilt, 0deg)); }
+}
+
+/* 阶段黑场：合拢 → 细缝 → 开合，总时长随 --transition-slow */
+@keyframes curtain-reveal {
+  0%, 7% { opacity: 1; clip-path: inset(0 0 0 0); }
+  32% { opacity: 1; clip-path: inset(49.5% 0 49.5% 0); }
+  55%, 62% { opacity: 1; clip-path: inset(49% 0 49% 0); }
+  85% { opacity: 1; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+
+/* 打字机光标闪烁 */
+@keyframes typewriter-caret {
+  0%, 60% { opacity: 1; }
+  61%, 100% { opacity: 0; }
 }
 
 .animate-fade-in {

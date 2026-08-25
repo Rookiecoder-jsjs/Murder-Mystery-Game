@@ -35,18 +35,18 @@ export function AccuseModal({
   }, [isOpen]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="指认凶手" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="拘捕令" size="md">
       <div className="accuse-modal">
         <div className="accuse-warning">
           <AlertTriangle size={18} />
           <p>
-            指认机会只剩 <strong>{accusationPoints}</strong> 次。
-            指认正确则好人胜利，错误则凶手逃脱！
+            缉捕权限仅余 <strong>{accusationPoints}</strong> 次。
+            签捕正确则好人胜利，错捕则真凶逍遥法外！
           </p>
         </div>
 
         <div className="accuse-suspects">
-          <h4>选择你要指认的角色：</h4>
+          <h4>在下列嫌犯中圈定一人：</h4>
           <div className="accuse-suspect-grid">
             {characters
               .filter((char) => char.id !== playerId)
@@ -91,7 +91,7 @@ export function AccuseModal({
             disabled={!selected}
             isLoading={isAccusing}
           >
-            确认指认
+            签发拘捕令
           </Button>
         </div>
       </div>

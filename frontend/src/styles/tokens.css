@@ -1,37 +1,42 @@
 /* ==========================================================================
    设计令牌 — 全站唯一来源
-   Refined 暗黑推理：深黑暖底、暗金仅做点缀、酒红用于危险/凶手
+   案卷·证据墙（Case File Noir）：碳桌深底、做旧纸证物、朱红印章、黄铜点缀
    ========================================================================== */
 
 :root {
-  /* ===== 颜色 ===== */
-  --color-bg: #0d0b09;              /* 页面底色（暖深黑） */
-  --color-surface: #16130f;         /* 卡片、面板 */
-  --color-surface-raised: #1d1913;  /* 悬停、输入框、抽屉 */
-  --color-border: #2b251c;          /* 细边框 */
-  --color-border-strong: #3a3327;   /* 激活行、分区线 */
+  /* ===== 颜色 · 桌面深底 ===== */
+  --color-bg: #12100c;              /* 碳桌底色 */
+  --color-surface: #16130f;         /* 深面板（侧栏/抽屉底） */
+  --color-surface-raised: #1d1913;  /* 悬停、输入框升面 */
+  --color-border: #2b251c;          /* 深分隔线 */
+  --color-border-strong: #3a3327;   /* 强分隔、激活行 */
 
-  --color-text: #f2ede4;            /* 暖白正文 */
-  --color-text-muted: #b4a893;      /* 次要文字 */
-  --color-text-faint: #7a7263;      /* 时间戳、占位符 */
+  --color-text: #e8ddc8;            /* 暖纸白正文 */
+  --color-text-muted: #a99c82;      /* 次要文字 */
+  --color-text-faint: #7a7263;      /* 时码、占位符 */
 
-  --color-accent: #b08d4a;          /* 暗金：标题、激活态、细边框（克制使用） */
-  --color-accent-bright: #c9a75d;   /* 悬停高亮、焦点环 */
-  --color-accent-ink: #241d10;      /* 金底上的文字 */
+  /* 黄铜系（克制使用：标题、激活态、细边框） */
+  --color-accent: #b08d4a;
+  --color-accent-bright: #c9a75d;
+  --color-accent-ink: #241d10;      /* 铜底上的墨字 */
+  --color-brass: #a5824a;           /* 黄铜暗面：图钉、档案扣、錾刻 */
 
-  --color-danger: #a3293f;          /* 酒红：凶手、危险、错误 */
-  --color-danger-bright: #c23a52;
+  /* 朱红系（印章 / 危险 / 真凶） */
+  --color-danger: #9e2b23;          /* 深朱红：危险、错误 */
+  --color-danger-bright: #c23a2a;   /* 印章朱红 */
+  --color-string: #b5432e;          /* 证据红绳 */
+  --color-seal: #c23a2a;            /* 印章专用（语义名） */
   --color-success: #5f7d5c;
   --color-info: #6d9ec9;
 
-  --color-scrim: rgba(10, 8, 6, 0.72); /* 抽屉/弹窗遮罩 */
+  --color-scrim: rgba(10, 8, 6, 0.78); /* 抽屉/弹窗遮罩 */
 
-  /* 线索类型三色（低饱和） */
+  /* 线索类型三色（低饱和；纸上以小印呈现） */
   --clue-physical: #c9a227;
   --clue-testimony: #6d9ec9;
   --clue-document: #9d7bd8;
 
-  /* 头像六色（低饱和、暗底可辨） */
+  /* 头像六色（证件照瓦片，低饱和暗底可辨） */
   --avatar-c-1: #6b5b3f;
   --avatar-c-2: #5d6b7e;
   --avatar-c-3: #6e5f7e;
@@ -39,13 +44,53 @@
   --avatar-c-5: #557a6a;
   --avatar-c-6: #7a7a5a;
 
+  /* ===== 颜色 · 纸面（浅色证物/档案） ===== */
+  --paper-1: #e9ddc0;               /* 主纸面 */
+  --paper-2: #d8c69b;               /* 旧纸、次纸面 */
+  --paper-ink: #33291b;             /* 纸上墨字 */
+  --paper-ink-muted: #6f6146;       /* 纸上次要字 */
+  --paper-line: #b09d77;            /* 纸上分隔线 */
+  --paper-edge: #cbbb99;            /* 纸边高光 */
+
+  /* ===== 颜色 · alpha 工具（收敛全部硬编码 rgba，color-mix 派生） ===== */
+  --c-bg-header: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  --c-accent-bg: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  --c-accent-bg-faint: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  --c-accent-line: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  --c-accent-line-strong: color-mix(in srgb, var(--color-accent) 50%, transparent);
+  --c-danger-bg: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  --c-danger-bg-faint: color-mix(in srgb, var(--color-danger) 6%, transparent);
+  --c-danger-line: color-mix(in srgb, var(--color-danger) 45%, transparent);
+  --c-danger-line-strong: color-mix(in srgb, var(--color-danger) 50%, transparent);
+  --c-info-line: color-mix(in srgb, var(--color-info) 40%, transparent);
+  --c-clue-physical-line: color-mix(in srgb, var(--clue-physical) 40%, transparent);
+  --c-clue-testimony-line: color-mix(in srgb, var(--clue-testimony) 40%, transparent);
+  --c-clue-document-line: color-mix(in srgb, var(--clue-document) 40%, transparent);
+  --c-string-line: color-mix(in srgb, var(--color-string) 55%, transparent);
+
+  /* ===== 材质微色（纸/胶带/证件照/纸上暗影体系） ===== */
+  --tape-bg: rgba(240, 226, 190, 0.65);      /* 半透明胶带 */
+  --tape-line: rgba(120, 100, 60, 0.35);     /* 胶带撕边虚线 */
+  --paper-cream: rgba(255, 252, 240, 0.4);   /* 纸上卡片底 */
+  --paper-sheen: rgba(255, 250, 235, 0.14);  /* 证件照内高光 */
+  --paper-frame: rgba(255, 250, 235, 0.22);  /* 证件照内虚线框 */
+  --photo-ink: rgba(250, 244, 228, 0.92);    /* 证件照字色 */
+  --seal-glow: rgba(80, 60, 30, 0.14);       /* 纸上印章暗影 */
+  --card-topline: rgba(255, 250, 235, 0.035);/* 卡片顶缘微光 */
+
+  /* ===== 纸纹（全站唯一噪点图，浏览器只解码一次） ===== */
+  --texture-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+
   /* ===== 字体 ===== */
-  /* display：书法体，仅用于大标题（只有 400 字重，禁止加粗请求） */
+  /* display：书法体，仅卷宗题款/首页大字（只有 400 字重） */
   --font-display: 'Ma Shan Zheng', 'Noto Serif SC', 'STKaiti', 'KaiTi', 'SimSun', serif;
+  /* body：宋体正文 */
   --font-body: 'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
-  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  /* mono：打字机等宽（编号/时码/口供头），中文自动回退宋体 */
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Noto Serif SC', 'Songti SC', 'SimSun', monospace;
 
   /* ===== 流式字号 ===== */
+  --text-2xs: clamp(0.64rem, 0.6rem + 0.22vw, 0.7rem);   /* 编号章、时码 */
   --text-xs: clamp(0.72rem, 0.66rem + 0.28vw, 0.82rem);
   --text-sm: clamp(0.82rem, 0.78rem + 0.24vw, 0.88rem);
   --text-base: clamp(0.95rem, 0.91rem + 0.2vw, 1rem);
@@ -69,18 +114,21 @@
   --radius-lg: 12px;
   --radius-pill: 999px;
 
-  /* ===== 阴影（只用黑色系，禁止发光） ===== */
+  /* ===== 阴影（只用黑色系，纸卡悬浮倾向自然投影） ===== */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+  --shadow-paper: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.3);
+  --shadow-desk: 0 30px 60px -24px rgba(0, 0, 0, 0.55);
 
-  /* ===== 过渡（曾被 15+ 文件引用但从未定义，现补齐） ===== */
+  /* ===== 过渡 ===== */
   --transition-fast: 120ms ease;
   --transition-normal: 240ms ease;
   --transition-slow: 400ms cubic-bezier(0.22, 0.61, 0.36, 1);
 
   /* ===== 布局 ===== */
   --header-h: 64px;
+  --phase-band-h: 56px;
   --sidebar-w: 288px;
   --container-game: min(100% - 2 * var(--space-4), 1000px);
 
@@ -89,4 +137,5 @@
   --z-drawer: 200;
   --z-modal: 300;
   --z-toast: 400;
+  --z-curtain: 500;                 /* 阶段黑场（最顶，pointer-events none） */
 }

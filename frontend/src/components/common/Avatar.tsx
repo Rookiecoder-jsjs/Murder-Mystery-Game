@@ -1,4 +1,5 @@
-// Avatar — 角色头像（色板来自令牌，选中态用暗金描边）
+// Avatar — 角色证件照瓦片（色板来自令牌，玩家态用朱红描边）
+import type { CSSProperties } from 'react';
 import './Avatar.css';
 
 interface AvatarProps {
@@ -33,7 +34,7 @@ export function Avatar({
   return (
     <div
       className={`avatar avatar-${size} ${showBorder ? 'avatar-border' : ''} ${className}`}
-      style={{ backgroundColor: getColorVar(name) }}
+      style={{ '--avatar-bg': getColorVar(name) } as CSSProperties}
       title={name}
       aria-hidden="true"
     >

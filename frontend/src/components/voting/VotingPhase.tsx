@@ -58,8 +58,8 @@ export function VotingPhase() {
         <div className="voting-icon">
           <Vote size={24} />
         </div>
-        <h2 className="voting-title">投票阶段</h2>
-        <p className="voting-subtitle">选择你认为是凶手的角色</p>
+        <h2 className="voting-title">表决</h2>
+        <p className="voting-subtitle">圈定你认为是凶手的角色，落笔为凭</p>
       </div>
 
       <Card className="voting-instructions">
@@ -80,7 +80,7 @@ export function VotingPhase() {
       {isVoting && (
         <Card className="voting-waiting">
           <div className="voting-waiting-spinner" aria-hidden="true" />
-          <p className="voting-waiting-title">等待其他角色投票…</p>
+          <p className="voting-waiting-title">唱票中…</p>
           <p className="voting-waiting-hint">
             各位角色正在权衡与抉择（已等待 {elapsed} 秒）
           </p>
@@ -136,7 +136,7 @@ export function VotingPhase() {
               disabled={!selectedCharacter}
             >
               <Vote size={16} />
-              确认投票
+              落笔表决
             </Button>
           </div>
         </>
@@ -174,7 +174,7 @@ export function VotingPhase() {
       <Modal
         isOpen={showConfirmModal}
         onClose={() => setShowConfirmModal(false)}
-        title="确认投票"
+        title="签署表决"
         size="sm"
       >
         <div className="voting-confirm-content">
@@ -189,7 +189,7 @@ export function VotingPhase() {
               取消
             </Button>
             <Button variant="danger" onClick={handleVote}>
-              确认投票
+              落笔表决
             </Button>
           </div>
         </div>

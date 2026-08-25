@@ -1,4 +1,4 @@
-/* Introduction Phase */
+/* Introduction Phase — 报案：卷宗题款 + 人物档案卡 + 供词页结果 */
 
 .introduction-phase {
   width: min(100%, 880px);
@@ -32,12 +32,37 @@
 }
 
 .introduction-title {
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-2xl);
+  color: var(--color-accent-bright);
 }
 
 .introduction-subtitle {
   color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
+}
+
+/* 人物档案卡：证件照 + 墨字名 + 「你」章 */
+.introduction-player-card {
+  position: relative;
+}
+
+.introduction-player-card::after {
+  content: '你';
+  position: absolute;
+  top: -9px;
+  right: 18px;
+  padding: 0.1em 0.4em;
+  border: 2px solid var(--color-seal);
+  color: var(--color-seal);
+  font-family: var(--font-display);
   font-size: var(--text-sm);
+  background: color-mix(in srgb, var(--color-seal) 10%, transparent);
+  transform: rotate(6deg);
+  pointer-events: none;
 }
 
 .introduction-player {
@@ -54,13 +79,21 @@
 }
 
 .introduction-player-name {
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-xl);
   color: var(--color-accent-bright);
 }
 
 .introduction-player-identity {
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
+  padding: 0.15em 0.6em;
+  border: 1px solid var(--c-accent-line);
+  border-radius: 2px;
+  align-self: flex-start;
 }
 
 .introduction-player-appearance {
@@ -76,7 +109,10 @@
 }
 
 .introduction-input-title {
-  font-size: var(--text-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.1em;
+  color: var(--color-accent-bright);
 }
 
 .introduction-input-hint {
@@ -84,11 +120,24 @@
   color: var(--color-text-faint);
 }
 
+/* 供词纸输入 */
 .introduction-textarea {
   width: 100%;
   resize: vertical;
   min-height: 96px;
   line-height: 1.7;
+  background: var(--paper-1);
+  color: var(--paper-ink);
+  border-color: var(--paper-edge);
+}
+
+.introduction-textarea::placeholder {
+  color: var(--paper-ink-muted);
+}
+
+.introduction-textarea:focus {
+  border-color: var(--color-seal);
+  box-shadow: 0 0 0 2px var(--c-danger-bg);
 }
 
 .introduction-submit {
@@ -98,6 +147,9 @@
 .introduction-waiting {
   text-align: center;
   color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -107,35 +159,50 @@
 }
 
 .introduction-results-title {
-  font-size: var(--text-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
   color: var(--color-accent-bright);
   margin-bottom: var(--space-4);
 }
 
+/* 供词记录 */
 .introduction-result-item {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: var(--space-3) var(--space-4);
-  border-left: 2px solid var(--color-border-strong);
+  border-left: 3px solid var(--color-border-strong);
   background: var(--color-surface-raised);
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-radius: 0 2px 2px 0;
   margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-sm);
 }
 
 .introduction-result-item.is-player {
-  border-left-color: var(--color-accent);
+  border-left-color: var(--color-string);
+  background: var(--paper-1);
 }
 
 .introduction-result-speaker {
+  font-family: var(--font-mono);
   font-weight: 600;
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
+  letter-spacing: 0.08em;
   color: var(--color-accent-bright);
+}
+
+.introduction-result-item.is-player .introduction-result-speaker {
+  color: var(--color-seal);
 }
 
 .introduction-result-message {
   color: var(--color-text-muted);
   line-height: 1.7;
+}
+
+.introduction-result-item.is-player .introduction-result-message {
+  color: var(--paper-ink);
 }
 
 .introduction-other-chars {
@@ -145,7 +212,9 @@
 }
 
 .introduction-other-title {
-  font-size: var(--text-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.12em;
   color: var(--color-text-muted);
 }
 
@@ -188,6 +257,10 @@
   .introduction-player {
     flex-direction: column;
     text-align: center;
+  }
+
+  .introduction-player-identity {
+    align-self: center;
   }
 
   .introduction-submit {

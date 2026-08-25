@@ -65,6 +65,11 @@ export function RevealPhase() {
             </Badge>
           ) : null}
         </div>
+        <div className="reveal-seal-row">
+          <span className="seal anim-seal" aria-hidden="true">
+            结案
+          </span>
+        </div>
       </div>
 
       <div className="reveal-content">
@@ -94,6 +99,9 @@ export function RevealPhase() {
                 <span className="reveal-truth-value reveal-killer">
                   {state.revealInfo.case_info.true_killer_name ||
                     state.revealInfo.case_info.true_killer}
+                  <span className="seal seal--small reveal-killer-seal" aria-hidden="true">
+                    凶
+                  </span>
                 </span>
               </div>
               <div className="reveal-truth-item">

@@ -84,26 +84,40 @@ export function HomePage() {
   return (
     <div className="home-page">
       <div className="home-hero">
-        <h1 className="home-logo font-display">剧本杀</h1>
-        <p className="home-tagline">
-          沉浸式推理体验 · 多智能体协作 · 真相只有一个
-        </p>
+        <div className="case-cover">
+          <p className="case-cover-kicker">名案档案馆 · 卷宗登记</p>
+          <h1 className="home-logo font-display">剧本杀</h1>
+          <p className="home-tagline">
+            沉浸式推理体验 · 多智能体协作 · 真相只有一个
+          </p>
+          <div className="case-cover-string" aria-hidden="true" />
+        </div>
       </div>
 
       <div className="home-content">
         <Card className="home-create-card" variant="gold-border">
           <div className="home-create-header">
             <Sparkles size={20} className="home-create-icon" />
-            <h2>创建新游戏</h2>
+            <h2>新案登记</h2>
           </div>
 
           {isCreating ? (
             <div className="home-generating" role="status">
               <LoadingSpinner size="md" />
-              <p className="home-generating-title">正在生成剧本…</p>
+              <p className="home-generating-stage">
+                {elapsed < 40 ? 'STAGE Ⅰ · 构思' : 'STAGE Ⅱ · 撰写'}
+              </p>
+              <p className="home-generating-title">
+                {elapsed < 40 ? '正在构思案情…' : '正在撰写卷宗…'}
+              </p>
               <p className="home-generating-hint">
-                AI 正在构思人物、线索与真相，通常需要 1-2 分钟（已等待
-                {Math.floor(elapsed / 60)}分{elapsed % 60}秒）
+                {elapsed < 40
+                  ? 'AI 正在推演人物关系、动机与核心诡计，通常需要 1-2 分钟'
+                  : '正在落笔人物档案与线索，即将归档开卷'}
+              </p>
+              <p className="timecode home-generating-timecode">
+                T+{Math.floor(elapsed / 60)}分
+                {String(elapsed % 60).padStart(2, '0')}秒
               </p>
             </div>
           ) : (
@@ -129,7 +143,7 @@ export function HomePage() {
                   className="home-create-btn"
                 >
                   <Play size={16} />
-                  开始游戏
+                  提交登记
                 </Button>
               </div>
 
@@ -161,7 +175,7 @@ export function HomePage() {
         <div className="home-stories-section">
           <div className="home-section-header">
             <BookOpen size={18} />
-            <h3>已有剧本</h3>
+            <h3>旧案卷宗</h3>
           </div>
 
           {isLoadingStories ? (
@@ -179,32 +193,20 @@ export function HomePage() {
               <span>创建一个新游戏开始你的推理之旅</span>
             </Card>
           ) : (
-            <div className="home-stories-grid">
+            <div className="shelf">
               {stories.map((story) => (
-                <Card
+                <button
                   key={story.id}
-                  className="home-story-card"
-                  hoverable
+                  className="shelf-book"
                   onClick={() => handleLoadGame(story.id)}
                 >
-                  <div className="home-story-icon">
-                    <BookOpen size={22} />
-                  </div>
-                  <div className="home-story-info">
-                    <h4 className="home-story-title">{story.title}</h4>
-                    <p className="home-story-topic">{story.topic}</p>
-                    <div className="home-story-meta">
-                      <Clock size={12} />
-                      <span>
-                        {new Date(story.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="home-story-play">
-                    <Play size={13} />
-                    再来一局
-                  </Button>
-                </Card>
+                  <span className="shelf-book-topic">{story.topic}</span>
+                  <span className="shelf-book-title">{story.title}</span>
+                  <span className="shelf-book-meta">
+                    <Clock size={11} />
+                    {new Date(story.created_at).toLocaleDateString()}
+                  </span>
+                </button>
               ))}
             </div>
           )}

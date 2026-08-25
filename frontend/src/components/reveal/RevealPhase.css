@@ -1,4 +1,4 @@
-/* Reveal Phase */
+/* Reveal Phase — 结案卷宗：封面式头 + 大印章 + 真凶朱红章 */
 
 .reveal-phase {
   width: min(100%, 800px);
@@ -16,12 +16,15 @@
   padding: var(--space-12) 0;
 }
 
+/* 卷宗封面式头 */
 .reveal-header {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
   text-align: center;
+  padding: var(--space-4) 0;
 }
 
 .reveal-icon {
@@ -38,22 +41,36 @@
 
 .reveal-icon-win {
   color: var(--color-accent-bright);
-  border-color: rgba(176, 141, 74, 0.5);
+  border-color: var(--c-accent-line-strong);
 }
 
 .reveal-icon-lose {
   color: var(--color-danger-bright);
-  border-color: rgba(163, 41, 63, 0.5);
+  border-color: var(--c-danger-line-strong);
 }
 
 .reveal-title {
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-2xl);
+  color: var(--color-accent-bright);
+  letter-spacing: 0.06em;
+}
+
+/* 结案大印章 */
+.reveal-seal-row {
+  margin-top: var(--space-2);
+}
+
+.reveal-result-badge {
+  font-family: var(--font-mono);
 }
 
 .reveal-story-card {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background-image: linear-gradient(to bottom, var(--card-topline), transparent 4px);
 }
 
 .reveal-section-title {
@@ -69,14 +86,16 @@
 
 .reveal-divider {
   height: 1px;
-  background: var(--color-border);
+  border-bottom: 1px dashed var(--color-border-strong);
 }
 
 .reveal-label {
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.14em;
   color: var(--color-text-faint);
-  letter-spacing: 0.12em;
   margin-bottom: var(--space-3);
+  text-transform: uppercase;
 }
 
 .reveal-truth {
@@ -89,21 +108,39 @@
   display: grid;
   grid-template-columns: 5em 1fr;
   gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
   font-size: var(--text-base);
   line-height: 1.7;
 }
 
+.reveal-truth-item:last-child {
+  border-bottom: none;
+}
+
 .reveal-truth-label {
   color: var(--color-text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  padding-top: 2px;
 }
 
 .reveal-truth-value {
   color: var(--color-text);
 }
 
+/* 真凶行：朱红大字 + 盖「凶」章 */
 .reveal-killer {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--color-danger-bright);
   font-weight: 700;
+}
+
+.reveal-killer-seal {
+  animation: seal-stamp 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
 .reveal-story-text {

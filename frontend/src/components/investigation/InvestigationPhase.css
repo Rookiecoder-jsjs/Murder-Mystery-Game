@@ -1,4 +1,4 @@
-/* Investigation Phase */
+/* Investigation Phase — 证据墙：碳桌 + 装饰红绳 + 拍立得交错倾斜 */
 
 .investigation-phase {
   width: min(100%, 1100px);
@@ -16,6 +16,7 @@
   align-items: center;
   text-align: center;
   gap: var(--space-2);
+  padding: var(--space-4) 0;
 }
 
 .investigation-icon {
@@ -36,7 +37,9 @@
 
 .investigation-subtitle {
   color: var(--color-text-faint);
-  font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
 }
 
 .investigation-actions {
@@ -47,9 +50,30 @@
 }
 
 .investigation-content {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+/* 证据墙上一条横贯红绳（装饰性，移动端随 .string-line 隐藏） */
+.investigation-content::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 64px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--c-string-line);
+  transform: rotate(-0.6deg);
+  pointer-events: none;
+}
+
+@media (max-width: 767.98px) {
+  .investigation-content::before {
+    display: none;
+  }
 }
 
 .investigation-clues-header {
@@ -61,17 +85,11 @@
 }
 
 .investigation-clues-header h3 {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: var(--space-2);
   font-size: var(--text-lg);
   color: var(--color-accent-bright);
-}
-
-.investigation-clues-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
-  gap: var(--space-3);
 }
 
 .investigation-empty {
@@ -79,7 +97,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-12) var(--space-4);
+  padding: var(--space-8);
   color: var(--color-text-faint);
   text-align: center;
 }
@@ -95,19 +113,48 @@
 
 .investigation-empty span {
   font-size: var(--text-sm);
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
 }
 
-/* 线索详情弹窗内容 */
+/* 证据墙网格：拍立得交错倾斜 */
+.investigation-clues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--space-4);
+}
+
+.investigation-clues-grid .clue-card:nth-child(3n + 1) {
+  --paper-tilt: 1.4deg;
+}
+
+.investigation-clues-grid .clue-card:nth-child(3n + 2) {
+  --paper-tilt: -1.1deg;
+}
+
+.investigation-clues-grid .clue-card:nth-child(3n + 3) {
+  --paper-tilt: 0.8deg;
+}
+
+/* 线索详情（弹窗内容落在浅纸上则换墨色，保持默认深底即可） */
+.investigation-clue-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
 .investigation-clue-detail-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
-  margin-bottom: var(--space-4);
 }
 
 .investigation-clue-detail-holder {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
   color: var(--color-text-faint);
-  font-size: var(--text-sm);
 }
 
 .investigation-clue-detail-content {
@@ -120,7 +167,7 @@
     flex-direction: column;
   }
 
-  .investigation-action {
+  .investigation-actions .investigation-action {
     width: 100%;
   }
 }

@@ -1,7 +1,6 @@
-// Clue Card — 线索卡片（新发现的线索带徽标）
+// Clue Card — 证物拍立得（编号章；新发现盖朱红「新」字章）
 import { Search, MessageSquare, FileText } from 'lucide-react';
 import type { Clue } from '../../api/types';
-import { Badge } from '../common';
 import './ClueCard.css';
 
 interface ClueCardProps {
@@ -43,7 +42,13 @@ export function ClueCard({ clue, isNew = false, onClick }: ClueCardProps) {
           {clueIcons[clue.type as keyof typeof clueIcons]}
           <span>{label}</span>
         </div>
-        {isNew && <Badge variant="gold" size="sm">新发现</Badge>}
+        {isNew ? (
+          <span className="stamp stamp--seal">新</span>
+        ) : (
+          <span className="stamp clue-card-id">
+            C-{clue.id.split('-').pop()?.slice(-4) ?? '0000'}
+          </span>
+        )}
       </div>
       <p className="clue-card-content">{clue.content}</p>
       <div className="clue-card-footer">

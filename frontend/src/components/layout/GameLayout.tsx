@@ -2,7 +2,7 @@
 // 高度模型：外壳占满 100dvh，主区与侧边栏各自滚动；
 // 阶段组件内部禁止再计算 calc(100vh - X)。
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { ConnectionBanner } from '../common';
@@ -16,6 +16,17 @@ interface GameLayoutProps {
 export function GameLayout({ children }: GameLayoutProps) {
   const { state } = useGame();
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // 阶段黑场：phase 变化时挂一帧 400ms 细缝转场（首帧不触发）
+  const [curtainKey, setCurtainKey] = useState(0);
+  const lastPhaseRef = useRef(state.phase);
+
+  useEffect(() => {
+    if (state.phase !== lastPhaseRef.current) {
+      lastPhaseRef.current = state.phase;
+      setCurtainKey((k) => k + 1);
+    }
+  }, [state.phase]);
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
@@ -42,6 +53,7 @@ export function GameLayout({ children }: GameLayoutProps) {
         <main className="game-main">{children}</main>
       </div>
       {drawerOpen && <div className="drawer-scrim" onClick={closeDrawer} />}
+      {curtainKey > 0 && <div key={curtainKey} className="curtain" aria-hidden="true" />}
     </div>
   );
 }

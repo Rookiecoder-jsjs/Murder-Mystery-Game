@@ -1,4 +1,4 @@
-/* PhaseIndicator — 紧凑步骤条 */
+/* PhaseIndicator — 办案流程：图钉步骤 + 红线连接；active=朱红章点 */
 
 .phase-indicator {
   display: flex;
@@ -13,7 +13,9 @@
   padding: 4px 10px;
   border-radius: var(--radius-pill);
   border: 1px solid transparent;
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.12em;
   color: var(--color-text-faint);
   white-space: nowrap;
   transition: color var(--transition-normal),
@@ -26,26 +28,47 @@
   align-items: center;
 }
 
+/* 已办结：红绳色图标 */
 .phase-step.past {
   color: var(--color-text-muted);
 }
 
-.phase-step.active {
-  color: var(--color-accent-bright);
-  border-color: rgba(176, 141, 74, 0.4);
-  background: rgba(176, 141, 74, 0.08);
+.phase-step.past .phase-icon {
+  color: var(--color-string);
 }
 
+/* 当前步骤：朱红章点 + 铜字 */
+.phase-step.active {
+  color: var(--color-accent-bright);
+}
+
+.phase-step.active::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-seal);
+  box-shadow: 0 0 0 2px var(--c-danger-bg);
+  flex-shrink: 0;
+}
+
+.phase-step.active .phase-icon {
+  color: var(--color-seal);
+}
+
+/* 连接线：办结变证据红绳 */
 .phase-connector {
   width: 16px;
-  height: 1px;
+  height: 2px;
+  border-radius: var(--radius-pill);
   background: var(--color-border-strong);
   flex-shrink: 0;
   transition: background-color var(--transition-normal);
 }
 
 .phase-connector.past {
-  background: var(--color-accent);
+  background: var(--color-string);
+  opacity: 0.85;
 }
 
 .phase-round {
@@ -53,7 +76,9 @@
   padding: 3px 10px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-pill);
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
   white-space: nowrap;
   display: flex;

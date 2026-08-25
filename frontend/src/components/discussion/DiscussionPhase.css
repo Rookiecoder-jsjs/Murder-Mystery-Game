@@ -1,4 +1,4 @@
-/* Discussion Phase — 外壳决定高度，消息列表内部滚动 */
+/* Discussion Phase — 提审室：顶栏纸签 + 口供流 + 供词纸输入 */
 
 .discussion-phase {
   flex: 1;
@@ -7,6 +7,7 @@
   flex-direction: column;
 }
 
+/* 顶部纸签横条 */
 .discussion-topbar {
   display: flex;
   align-items: center;
@@ -14,24 +15,30 @@
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
   padding: var(--space-3) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
+  background: var(--paper-1);
+  border-bottom: 1px solid var(--paper-edge);
+  color: var(--paper-ink);
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 .discussion-topbar-title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--color-accent-bright);
+  color: var(--paper-ink);
 }
 
 .discussion-topbar-title h2 {
   font-size: var(--text-lg);
+  color: var(--paper-ink);
 }
 
 .discussion-round {
+  font-family: var(--font-mono);
   font-size: var(--text-xs);
-  color: var(--color-text-faint);
+  letter-spacing: 0.08em;
+  color: var(--paper-ink-muted);
   margin-left: var(--space-2);
 }
 
@@ -39,6 +46,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/* 纸签上的 ghost 按钮重新着墨 */
+.discussion-topbar .btn-ghost {
+  color: var(--paper-ink-muted);
+  border-color: var(--paper-line);
+}
+
+.discussion-topbar .btn-ghost:hover:not(:disabled) {
+  color: var(--paper-ink);
+  border-color: var(--paper-ink);
 }
 
 .discussion-messages {
@@ -86,6 +104,7 @@
   margin-inline: auto;
 }
 
+/* 供词纸输入 */
 .discussion-input {
   flex: 1;
   min-width: 0;
@@ -93,6 +112,18 @@
   min-height: 52px;
   max-height: 160px;
   line-height: 1.6;
+  background: var(--paper-1);
+  color: var(--paper-ink);
+  border-color: var(--paper-edge);
+}
+
+.discussion-input::placeholder {
+  color: var(--paper-ink-muted);
+}
+
+.discussion-input:focus {
+  border-color: var(--color-seal);
+  box-shadow: 0 0 0 2px var(--c-danger-bg);
 }
 
 .discussion-send-btn {
@@ -104,7 +135,9 @@
 
 .discussion-hint {
   text-align: center;
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.04em;
   color: var(--color-text-faint);
   margin-top: var(--space-2);
 }

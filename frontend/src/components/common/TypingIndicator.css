@@ -1,4 +1,4 @@
-/* TypingIndicator — 三点呼吸 */
+/* TypingIndicator — 打字机光标 + 三点呼吸 */
 
 .typing-indicator {
   display: inline-flex;
@@ -7,6 +7,20 @@
   padding: var(--space-2) var(--space-4);
   color: var(--color-text-faint);
   font-size: var(--text-sm);
+}
+
+.typing-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.06em;
+}
+
+/* 光标 ▍ 闪烁 */
+.typing-label::after {
+  content: '▍';
+  margin-left: 4px;
+  color: var(--color-accent-bright);
+  animation: typewriter-caret 1s steps(1) infinite;
 }
 
 .typing-dots {

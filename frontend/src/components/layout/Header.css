@@ -1,4 +1,4 @@
-/* Header — 64px 品牌 + 阶段 + 玩家身份 */
+/* Header — 64px 品牌 + 阶段 + 玩家身份（炭底 + 底部黄铜缝线） */
 
 .header {
   height: var(--header-h);
@@ -8,9 +8,21 @@
   gap: var(--space-4);
   padding: 0 var(--space-6);
   border-bottom: 1px solid var(--color-border);
-  background: rgba(13, 11, 9, 0.92);
+  background: var(--c-bg-header);
   position: relative;
   z-index: var(--z-header);
+}
+
+/* 首饰缝线：黄铜细线 */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1px;
+  background: var(--c-accent-line);
+  pointer-events: none;
 }
 
 .header-left {
@@ -43,7 +55,10 @@
   min-width: 0;
 }
 
+/* 品牌：书法体铜字 */
 .header-title {
+  font-family: var(--font-display);
+  font-weight: 400;
   font-size: var(--text-xl);
   color: var(--color-accent-bright);
   white-space: nowrap;
@@ -83,7 +98,9 @@
 }
 
 .header-player-label {
-  font-size: var(--text-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
   color: var(--color-text-faint);
 }
 

@@ -1,4 +1,5 @@
-/* ChatMessage — 玩家右对齐暗金，AI 左对齐 */
+/* ChatMessage — 口供记录切片：mono 记录头 + 宋体供词 + 红绳左签；
+   玩家供词为浅纸反白，AI 口供为深底档案格 */
 
 .chat-message {
   display: flex;
@@ -14,23 +15,25 @@
 .chat-message-content {
   flex: 1;
   min-width: 0;
-  background: var(--color-surface);
+  background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--color-string);
+  border-radius: 2px;
   padding: var(--space-2) var(--space-4) var(--space-3);
+  box-shadow: var(--shadow-sm);
 }
 
-.chat-message-player .chat-message-content {
-  background: rgba(176, 141, 74, 0.1);
-  border-color: rgba(176, 141, 74, 0.35);
-}
-
+/* 记录头：打字机小字 */
 .chat-message-header {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-bottom: 2px;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.06em;
+  color: var(--color-text-faint);
 }
 
 .chat-message-sender {
@@ -39,12 +42,7 @@
   color: var(--color-text);
 }
 
-.chat-message-player .chat-message-sender {
-  color: var(--color-accent-bright);
-}
-
 .chat-message-identity {
-  font-size: var(--text-xs);
   color: var(--color-text-faint);
 }
 
@@ -54,6 +52,29 @@
   color: var(--color-text);
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* 玩家供词纸：浅纸反白 + 虚线分隔 + 朱红签名 */
+.chat-message-player .chat-message-content {
+  background: var(--paper-1);
+  border-color: var(--paper-edge);
+  border-left-color: var(--paper-line);
+  color: var(--paper-ink);
+}
+
+.chat-message-player .chat-message-header {
+  border-bottom: 1px dashed var(--paper-line);
+  padding-bottom: 2px;
+  margin-bottom: 5px;
+  color: var(--paper-ink-muted);
+}
+
+.chat-message-player .chat-message-sender {
+  color: var(--color-seal);
+}
+
+.chat-message-player .chat-message-text {
+  color: var(--paper-ink);
 }
 
 @media (max-width: 639.98px) {

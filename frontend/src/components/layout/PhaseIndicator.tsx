@@ -12,11 +12,11 @@ interface PhaseIndicatorProps {
 }
 
 const phases: { key: GamePhase; label: string; icon: React.ReactNode }[] = [
-  { key: 'introduction', label: '介绍', icon: <User size={14} /> },
+  { key: 'introduction', label: '报案', icon: <User size={14} /> },
   { key: 'investigation', label: '搜证', icon: <Search size={14} /> },
   { key: 'discussion', label: '讨论', icon: <MessageSquare size={14} /> },
-  { key: 'voting', label: '投票', icon: <Vote size={14} /> },
-  { key: 'reveal', label: '揭晓', icon: <Eye size={14} /> },
+  { key: 'voting', label: '表决', icon: <Vote size={14} /> },
+  { key: 'reveal', label: '结案', icon: <Eye size={14} /> },
 ];
 
 export function PhaseIndicator({ phase, round, maxRounds }: PhaseIndicatorProps) {

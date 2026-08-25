@@ -1,4 +1,4 @@
-/* Modal — 唯一弹窗样式（指控弹窗不再两处各写一份） */
+/* Modal — 档案抽屉形：深底 + 顶部纸签横条 + 朱红图钉 */
 
 .modal-overlay {
   position: fixed;
@@ -22,6 +22,7 @@
   display: flex;
   flex-direction: column;
   outline: none;
+  overflow: hidden;
 }
 
 .modal-sm {
@@ -36,35 +37,55 @@
   max-width: 900px;
 }
 
+/* 顶部纸签横条：浅纸底 + 墨字标题 + 红图钉 */
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-4) var(--space-6);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-6);
+  background: var(--paper-1);
+  border-bottom: 1px solid var(--paper-edge);
+  color: var(--paper-ink);
+}
+
+.modal-header::before {
+  content: '';
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-seal);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
 }
 
 .modal-title {
-  font-size: var(--text-lg);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--color-accent-bright);
+  letter-spacing: 0.12em;
+  color: var(--paper-ink);
+  text-transform: uppercase;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-close {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
-  color: var(--color-text-faint);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  color: var(--paper-ink-muted);
   transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .modal-close:hover {
-  color: var(--color-text);
-  background: var(--color-surface);
+  color: var(--paper-ink);
+  background: color-mix(in srgb, var(--paper-ink) 10%, transparent);
 }
 
 .modal-content {

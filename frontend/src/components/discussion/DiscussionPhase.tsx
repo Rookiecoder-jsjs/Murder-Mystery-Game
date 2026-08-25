@@ -170,7 +170,7 @@ export function DiscussionPhase() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入你的发言…"
+            placeholder="写下你的口供…"
             rows={2}
             maxLength={500}
             disabled={isSpeaking}

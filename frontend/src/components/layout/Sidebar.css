@@ -1,4 +1,4 @@
-/* Sidebar — 桌面固定栏；移动端抽屉 */
+/* Sidebar — 办案日志档案：人物档案页 + 统计；移动端抽屉 */
 
 .sidebar {
   width: var(--sidebar-w);
@@ -23,14 +23,27 @@
   gap: var(--space-3);
 }
 
+/* 分区标题：打字机小签 + 朱红图钉点 */
 .sidebar-section-title {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--text-sm);
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: 500;
+  letter-spacing: 0.14em;
   color: var(--color-text-faint);
-  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sidebar-section-title::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-seal);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
 }
 
 .sidebar-character-list {
@@ -54,9 +67,10 @@
   background: var(--color-surface-raised);
 }
 
+/* 玩家档案页：铜线框 + 微铜底 */
 .sidebar-character.is-player {
-  border-color: rgba(176, 141, 74, 0.35);
-  background: rgba(176, 141, 74, 0.06);
+  border-color: var(--c-accent-line);
+  background: var(--c-accent-bg-faint);
 }
 
 .sidebar-character-info {
@@ -89,8 +103,10 @@
 }
 
 .sidebar-stat-value {
+  font-family: var(--font-mono);
   font-size: var(--text-2xl);
-  font-weight: 700;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--color-accent-bright);
   line-height: 1;
 }
@@ -126,8 +142,9 @@
   }
 
   .sidebar-drawer-title {
+    font-family: var(--font-display);
+    font-weight: 400;
     font-size: var(--text-lg);
-    font-weight: 600;
     color: var(--color-accent-bright);
   }
 

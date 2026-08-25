@@ -1,9 +1,15 @@
-/* AccuseModal — 指认弹窗内容（唯一一份） */
+/* AccuseModal — 拘捕令：整面浅纸 + 粗双线框 + 朱红章文案 */
 
 .accuse-modal {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background: var(--paper-1);
+  color: var(--paper-ink);
+  border: 3px double var(--paper-ink);
+  border-radius: var(--radius-sm);
+  padding: var(--space-6);
+  box-shadow: inset 0 0 60px var(--seal-glow);
 }
 
 .accuse-warning {
@@ -11,10 +17,10 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  border: 1px solid rgba(163, 41, 63, 0.45);
-  border-radius: var(--radius-md);
-  background: rgba(163, 41, 63, 0.1);
-  color: var(--color-danger-bright);
+  border: 1px solid var(--c-danger-line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--c-danger-bg-faint);
+  color: var(--color-danger);
   font-size: var(--text-sm);
   line-height: 1.6;
 }
@@ -26,7 +32,8 @@
 
 .accuse-suspects h4 {
   font-size: var(--text-base);
-  color: var(--color-text-muted);
+  color: var(--paper-ink-muted);
+  font-weight: 600;
   margin-bottom: var(--space-3);
 }
 
@@ -42,10 +49,14 @@
   gap: var(--space-3);
   padding: var(--space-3);
   position: relative;
+  background: var(--paper-cream);
+  border: 1px dashed var(--paper-line);
 }
 
 .accuse-suspect-card.selected {
-  background: rgba(176, 141, 74, 0.08);
+  border-style: solid;
+  border-color: var(--color-seal);
+  background: color-mix(in srgb, var(--color-seal) 8%, var(--paper-cream));
 }
 
 .accuse-suspect-info {
@@ -58,17 +69,18 @@
 
 .accuse-suspect-name {
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .accuse-suspect-identity {
   font-size: var(--text-xs);
-  color: var(--color-text-faint);
+  color: var(--paper-ink-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* 圈定标记：朱红印章点 */
 .accuse-selected-badge {
   display: inline-flex;
   align-items: center;
@@ -76,13 +88,25 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
+  background: var(--color-seal);
+  color: #f7eee0;
   flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .accuse-actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
+}
+
+/* 纸面上的 ghost 按钮重新着墨 */
+.accuse-actions .btn-ghost {
+  color: var(--paper-ink-muted);
+  border-color: var(--paper-line);
+}
+
+.accuse-actions .btn-ghost:hover:not(:disabled) {
+  color: var(--paper-ink);
+  border-color: var(--paper-ink);
 }
