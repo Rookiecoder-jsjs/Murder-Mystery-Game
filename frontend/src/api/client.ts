@@ -41,19 +41,34 @@ export function apiErrorStatus(error: unknown): number | undefined {
   return error instanceof ApiError ? error.status : undefined;
 }
 
-async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> {
+async function fetchApi<T>(
+  endpoint: string,
+  options?: RequestInit,
+  timeoutMs?: number,
+): Promise<T> {
   let response: Response;
+  const controller = new AbortController();
+  const timer = timeoutMs
+    ? setTimeout(() => controller.abort(), timeoutMs)
+    : undefined;
   try {
     response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         ...options?.headers,
       },
     });
-  } catch {
+  } catch (err) {
+    if (timer !== undefined) clearTimeout(timer);
+    // 主动超时中断 → 提示用户重试，而不是永远转圈
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError('生成超时，请点击提交重新尝试');
+    }
     throw new ApiError('无法连接服务器，请检查后端是否启动');
   }
+  if (timer !== undefined) clearTimeout(timer);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ detail: '未知错误' }));
@@ -72,11 +87,16 @@ export const api = {
     fetchApi<{ stories: Story[] }>('/stories'),
 
   // Games
+  // 生成上限：后端内部有 1 次重试，5 分钟只兜"静默挂起"，不误杀慢但正常的生成
   createGame: (topic: string, playerName?: string) =>
-    fetchApi<CreateGameResponse>('/games', {
-      method: 'POST',
-      body: JSON.stringify({ topic, player_name: playerName }),
-    }),
+    fetchApi<CreateGameResponse>(
+      '/games',
+      {
+        method: 'POST',
+        body: JSON.stringify({ topic, player_name: playerName }),
+      },
+      300_000,
+    ),
 
   loadGame: (storyId: string) =>
     fetchApi<LoadGameResponse>('/games/load', {

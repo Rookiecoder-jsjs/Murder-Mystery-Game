@@ -60,7 +60,7 @@ export function GameLayout({ children }: GameLayoutProps) {
       {state.connectionLost && <ConnectionBanner />}
       <div className="game-body">
         <Sidebar drawerOpen={drawerOpen} onClose={closeDrawer} />
-        <main className="game-main">{children}</main>
+        <main className="game-main stage-paper">{children}</main>
       </div>
       {drawerOpen && <div className="drawer-scrim" onClick={closeDrawer} />}
       {curtainVisible && <div key={curtainKey} className="curtain" aria-hidden="true" />}

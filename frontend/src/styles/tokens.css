@@ -106,6 +106,7 @@
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-10: 2.5rem;
   --space-12: 3rem;
 
   /* ===== 圆角 ===== */
@@ -138,4 +139,42 @@
   --z-modal: 300;
   --z-toast: 400;
   --z-curtain: 500;                 /* 阶段黑场（最顶，pointer-events none） */
+}
+
+/* ==========================================================================
+   纸面主舞台 —— 浅纸成为内容主角（暖纸重型化）
+   用法：在内容容器（首页 home-content / 游戏 game-main）上挂 .stage-paper，
+   在此作用域内覆盖全部语义 token → 组件自动反白，无需逐个改写。
+   深炭桌面（body）/ Header / Sidebar / Modal / Toast / curtain 留在作用域外。
+   ========================================================================== */
+.stage-paper {
+  /* 底与面：舞台=主纸，卡片/输入区=旧纸，升面=更旧纸 */
+  --color-bg: var(--paper-1);
+  --color-surface: var(--paper-2);       /* Card / 输入区 = 旧纸（与主纸区分） */
+  --color-surface-raised: #cbb690;       /* 悬停/升面 = 更旧纸 */
+  --color-border: var(--paper-line);
+  --color-border-strong: #8a7a55;        /* 纸面强分隔（比 paper-line 更深） */
+
+  --color-text: var(--paper-ink);
+  --color-text-muted: #5f5238;           /* 加深：纸上 ≈6.4:1 */
+  --color-text-faint: #6a5c40;           /* 纸上仍 >4.5:1 */
+
+  /* 强调色 → 纸面加深值 */
+  --color-accent: #8a6d38;
+  --color-accent-bright: #7a5f2e;
+  --color-accent-ink: #f7eee0;           /* 铜底墨字反白 */
+  --color-danger: #8a2a20;
+  --color-danger-bright: #a33027;
+  --color-seal: #a33027;                 /* 纸上朱红（原 3.96 → 深至 ≈4.5） */
+
+  /* 线索三色 → 纸面加深 */
+  --clue-physical: #8a6d1f;
+  --clue-testimony: #4a7ba3;
+  --clue-document: #7a5bb0;
+
+  /* 阴影 → 暖棕（纸面投影非纯黑；--c-* alpha 系自动随 accent/danger 派生） */
+  --shadow-sm: 0 1px 2px rgba(90, 72, 44, 0.35);
+  --shadow-md: 0 4px 14px rgba(90, 72, 44, 0.35);
+  --shadow-lg: 0 12px 36px rgba(90, 72, 44, 0.4);
+  --shadow-paper: 0 1px 2px rgba(90, 72, 44, 0.3), 0 10px 26px rgba(90, 72, 44, 0.3);
 }

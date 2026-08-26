@@ -1,6 +1,25 @@
-/* Modal — 档案抽屉形：深底 + 顶部纸签横条 + 朱红图钉 */
+/* Modal — 档案抽屉形：深炭工具弹层（即使渲染在纸舞台内部，也回退深炭 token）
+   弹层语义 = 桌面上的工具抽屉，不属于纸面卷宗，故在此重建深炭作用域 */
 
 .modal-overlay {
+  /* 深炭 token 作用域：隔离 .stage-paper 的纸面继承 */
+  --color-surface: #16130f;
+  --color-surface-raised: #1d1913;
+  --color-border: #2b251c;
+  --color-border-strong: #3a3327;
+  --color-text: #e8ddc8;
+  --color-text-muted: #a99c82;
+  --color-text-faint: #7a7263;
+  --color-accent: #b08d4a;
+  --color-accent-bright: #c9a75d;
+  --color-danger: #9e2b23;
+  --color-danger-bright: #c23a2a;
+  --color-seal: #c23a2a;
+  --color-scrim: rgba(10, 8, 6, 0.78);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+
   position: fixed;
   inset: 0;
   background: var(--color-scrim);

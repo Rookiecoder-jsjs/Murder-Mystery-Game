@@ -15,6 +15,23 @@ const EXAMPLE_TOPICS = [
   '密室中的摄影师之死',
 ];
 
+/** 誊录台工序清单 —— 卷Ⅰ 构思 / 卷Ⅱ 撰写（纯叙事，无真实进度语义） */
+const STAGE_ONE_STEPS = [
+  '人物立案 · 身份与容貌',
+  '关系推演 · 受害者的人际网',
+  '动机暗线 · 深层心理',
+  '核心诡计 · 时差 / 密室 / 身份替换',
+  '审判席核验 · 谁最可疑',
+];
+
+const STAGE_TWO_STEPS = [
+  '人物档案誊录',
+  '线索归档 · 物证 / 人证 / 旁证',
+  '时间线复原 · 真相串联',
+  '证据链核验 · 逐一指向',
+  '密封归档 · 等待朱印落款',
+];
+
 export function HomePage() {
   const navigate = useNavigate();
   const { createGame, loadGame } = useGame();
@@ -83,7 +100,7 @@ export function HomePage() {
 
   return (
     <div className="home-page">
-      <div className="home-hero">
+      <div className="home-content stage-paper">
         <div className="case-cover">
           <p className="case-cover-kicker">名案档案馆 · 卷宗登记</p>
           <h1 className="home-logo font-display">剧本杀</h1>
@@ -91,38 +108,63 @@ export function HomePage() {
             沉浸式推理体验 · 多智能体协作 · 真相只有一个
           </p>
           <div className="case-cover-string" aria-hidden="true" />
+          <span className="seal case-cover-seal" aria-hidden="true">
+            壹
+          </span>
         </div>
-      </div>
 
-      <div className="home-content">
-        <Card className="home-create-card" variant="gold-border">
-          <div className="home-create-header">
-            <Sparkles size={20} className="home-create-icon" />
-            <h2>新案登记</h2>
-          </div>
+        {isCreating ? (
+            <div className="home-gendesk" role="status">
+              <div className="home-gendesk-kicker">
+                <span className="home-gendesk-lamp" aria-hidden="true" />
+                名案档案馆 · 卷宗调取
+              </div>
 
-          {isCreating ? (
-            <div className="home-generating" role="status">
-              <LoadingSpinner size="md" />
-              <p className="home-generating-stage">
-                {elapsed < 40 ? 'STAGE Ⅰ · 构思' : 'STAGE Ⅱ · 撰写'}
+              <p className="home-gendesk-stage">
+                {elapsed < 40 ? '卷壹 · 构思案情' : '卷贰 · 撰写卷宗'}
               </p>
-              <p className="home-generating-title">
-                {elapsed < 40 ? '正在构思案情…' : '正在撰写卷宗…'}
-              </p>
-              <p className="home-generating-hint">
-                {elapsed < 40
-                  ? 'AI 正在推演人物关系、动机与核心诡计，通常需要 1-2 分钟'
-                  : '正在落笔人物档案与线索，即将归档开卷'}
-              </p>
-              <p className="timecode home-generating-timecode">
-                T+{Math.floor(elapsed / 60)}分
-                {String(elapsed % 60).padStart(2, '0')}秒
-              </p>
+              <h2 className="home-gendesk-title">
+                {elapsed < 40 ? '正在推演人物与诡计' : '正在誊录本案卷宗'}
+                <span className="home-gendesk-caret" aria-hidden="true" />
+              </h2>
+              <p className="home-gendesk-topic">本案主题 ·{topic}</p>
+
+              <div
+                className="home-gendesk-ledger"
+                key={elapsed < 40 ? 'gen-stage-1' : 'gen-stage-2'}
+                aria-hidden="true"
+              >
+                {(elapsed < 40 ? STAGE_ONE_STEPS : STAGE_TWO_STEPS).map(
+                  (step, i) => (
+                    <div className="ledger-row" key={step}>
+                      <span className="ledger-row-num">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="ledger-row-text">{step}</span>
+                      <span className="ledger-row-dot" aria-hidden="true" />
+                    </div>
+                  ),
+                )}
+              </div>
+
+              <div className="home-gendesk-foot">
+                <span className="home-gendesk-note">
+                  AI 正在逐本誊录，通常 1–2 分钟
+                </span>
+                <span className="timecode home-gendesk-timecode">
+                  T+{Math.floor(elapsed / 60)}分
+                  {String(elapsed % 60).padStart(2, '0')}秒
+                </span>
+              </div>
             </div>
           ) : (
-            <>
-              <div className="home-input-group">
+          <Card className="home-create-card" variant="gold-border">
+            <div className="home-create-header">
+              <Sparkles size={20} className="home-create-icon" />
+              <h2>新案登记</h2>
+            </div>
+
+            <div className="home-input-group">
                 <input
                   type="text"
                   className="home-input"
@@ -168,11 +210,12 @@ export function HomePage() {
                   ))}
                 </div>
               </div>
-            </>
-          )}
-        </Card>
+            </Card>
+        )}
 
-        <div className="home-stories-section">
+        <div
+          className={`home-stories-section${isCreating ? ' home-stories-section--dim' : ''}`}
+        >
           <div className="home-section-header">
             <BookOpen size={18} />
             <h3>旧案卷宗</h3>

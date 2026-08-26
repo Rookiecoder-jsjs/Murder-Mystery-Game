@@ -24,14 +24,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 桌面灯光：顶部暖纸白微光 + 底部碳桌暗角 */
+/* 桌面灯光：顶部暖纸白微光（纸面反射）+ 四周碳桌暗角（纸面像从桌面亮起） */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(120vh 80vh at 50% -10%, rgba(232, 221, 200, 0.05), transparent 60%),
-    radial-gradient(100vh 70vh at 50% 115%, #0b0a08, transparent 60%);
+    radial-gradient(110vh 70vh at 50% -5%, rgba(232, 221, 200, 0.07), transparent 60%),
+    radial-gradient(120vh 90vh at 50% 120%, #0b0a08, transparent 65%),
+    radial-gradient(90vh 90vh at 8% 100%, rgba(0, 0, 0, 0.35), transparent 55%);
   pointer-events: none;
   z-index: -1;
 }

@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
     from openai import OpenAI
+    from app.domain.models import CaseData
 
 from app.core.config import RoleplayConfig, get_config
 from app.core.phases import GamePhase
@@ -43,6 +44,7 @@ class RoleplayCharacter:
         character: ScriptCharacter,
         client: "OpenAI",
         user_persona: str = "",
+        case: Optional["CaseData"] = None,
         config: Optional[RoleplayConfig] = None,
     ):
         """Initialize the roleplay character.
@@ -52,12 +54,16 @@ class RoleplayCharacter:
             client: OpenAI-compatible client configured for roleplay.
             user_persona: Description of who the human player is playing
                 (name + public identity). Empty means unknown.
+            case: The case data for the story, so the character knows
+                which case / era it is inside. Empty means the phase
+                prompts render without the case block.
             config: Roleplay config (model name + generation params).
                 Falls back to ``get_config().roleplay`` when not provided.
         """
         self.character = character
         self.client = client
         self.user_persona = user_persona or "一位参与游戏的玩家"
+        self.case = case
         self.config = config or get_config().roleplay
         self.conversation_history: List[Dict[str, str]] = []
 
@@ -79,6 +85,7 @@ class RoleplayCharacter:
     def _build_system_message(
         self,
         phase: GamePhase,
+        case: Optional["CaseData"],
         known_clues: List[ClueData],
         revealed_clues: List[ClueData],
         other_chars: List[ScriptCharacter],
@@ -86,28 +93,29 @@ class RoleplayCharacter:
     ) -> str:
         """Build the system prompt for a phase from live game state."""
         if phase == GamePhase.INTRODUCTION:
-            return PhasePromptTemplates.introduction_template(self.character)
+            return PhasePromptTemplates.introduction_template(self.character, case)
         elif phase == GamePhase.INVESTIGATION:
             return PhasePromptTemplates.investigation_template(
-                self.character, known_clues, revealed_clues, other_chars
+                self.character, case, known_clues, revealed_clues, other_chars
             )
         elif phase == GamePhase.DISCUSSION:
             return PhasePromptTemplates.discussion_template(
-                self.character, known_clues, revealed_clues,
+                self.character, case, known_clues, revealed_clues,
                 other_chars, discussion_history,
             )
         elif phase == GamePhase.VOTING:
             return PhasePromptTemplates.voting_template(
-                self.character, known_clues, revealed_clues,
+                self.character, case, known_clues, revealed_clues,
                 other_chars, discussion_history,
             )
         else:
-            return PhasePromptTemplates.base_roleplay_template(self.character)
+            return PhasePromptTemplates.base_roleplay_template(self.character, case)
 
     def _build_messages(
         self,
         user_input: str,
         phase: GamePhase,
+        case: Optional["CaseData"],
         known_clues: List[ClueData],
         revealed_clues: List[ClueData],
         other_chars: List[ScriptCharacter],
@@ -121,7 +129,8 @@ class RoleplayCharacter:
         in-character across turns.
         """
         system_content = self._build_system_message(
-            phase, known_clues, revealed_clues, other_chars, discussion_history,
+            phase, case, known_clues, revealed_clues, other_chars,
+            discussion_history,
         )
 
         messages: List[Dict[str, str]] = [
@@ -148,9 +157,15 @@ class RoleplayCharacter:
                 "content": user_input,
             })
         else:
+            # 无玩家输入时的占位消息 —— 按阶段给语义正确的指令，
+            # 避免投票/引言阶段被一句泛化的"继续角色扮演"带偏输出。
+            phase_prompt = {
+                GamePhase.INTRODUCTION: "请开始你的自我介绍。",
+                GamePhase.VOTING: "请根据投票任务直接给出你的投票目标，只输出角色ID。",
+            }.get(phase, "请继续你的角色扮演。")
             messages.append({
                 "role": "user",
-                "content": "请继续你的角色扮演。",
+                "content": phase_prompt,
             })
 
         return messages
@@ -183,6 +198,7 @@ class RoleplayCharacter:
         revealed_clues: Optional[List[ClueData]] = None,
         other_chars: Optional[List[ScriptCharacter]] = None,
         discussion_history: Optional[List[str]] = None,
+        case: Optional["CaseData"] = None,
         record_in_memory: bool = True,
     ) -> str:
         """Generate a response using live game context.
@@ -191,6 +207,8 @@ class RoleplayCharacter:
             user_input: The user's input message (empty to let the
                 character speak on its own).
             phase: Current game phase.
+            case: Case data for the case block; falls back to the
+                character-level ``self.case`` when not provided.
             known_clues: Clues known to this character.
             revealed_clues: Globally revealed clues.
             other_chars: All characters (filtered internally).
@@ -206,9 +224,11 @@ class RoleplayCharacter:
         all_chars = other_chars or []
         discussion_history = discussion_history or []
 
+        effective_case = case if case is not None else self.case
         messages = self._build_messages(
             user_input,
             phase,
+            effective_case,
             known_clues,
             revealed_clues,
             [c for c in all_chars if c.id != self.character.id],

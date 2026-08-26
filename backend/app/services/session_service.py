@@ -172,6 +172,7 @@ class GameSession:
                     character=char,
                     client=roleplay_client,
                     user_persona=persona,
+                    case=self.archive.case,
                     config=self.roleplay_config,
                 )
 
@@ -200,6 +201,11 @@ class GameSession:
             "revealed_clue_ids": [
                 c.id for c in self.archive.clues if c.reveal_to_all
             ],
+            # AI 角色的私有对话记忆 —— 不落盘则重启后所有角色失忆
+            "ai_memories": {
+                cid: ai.conversation_history
+                for cid, ai in self.ai_characters.items()
+            },
         }
 
     @classmethod
@@ -229,15 +235,19 @@ class GameSession:
             if human_char else ""
         )
 
+        ai_memories = snapshot.get("ai_memories", {})
         session.ai_characters = {}
         for char in archive.characters:
             if char.id != session.human_player_id:
-                session.ai_characters[char.id] = RoleplayCharacter(
+                ai = RoleplayCharacter(
                     character=char,
                     client=roleplay_client,
                     user_persona=persona,
+                    case=session.archive.case,
                     config=session.roleplay_config,
                 )
+                ai.conversation_history = ai_memories.get(char.id, [])
+                session.ai_characters[char.id] = ai
         return session
 
     # -- read-only views -----------------------------------------------------
@@ -364,6 +374,7 @@ class GameSession:
             "revealed_clues": self.game.get_revealed_clues(),
             "other_chars": list(self.archive.characters),
             "discussion_history": self.game.state.discussion_history,
+            "case": self.archive.case,
         }
 
     # -- actions -------------------------------------------------------------

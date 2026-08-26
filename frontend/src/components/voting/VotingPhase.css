@@ -10,24 +10,44 @@
   overflow-y: auto;
 }
 
+/* 档案头：左上对齐 + 图钉 + 红绳（统一档案头样式） */
 .voting-header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   gap: var(--space-2);
+  padding: var(--space-2) 0 var(--space-4);
+  position: relative;
+}
+
+.voting-header::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 0;
+  left: 2px;
+}
+
+.voting-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--c-string-line);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .voting-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-accent);
+  display: none;
 }
 
 .voting-title {
@@ -35,6 +55,8 @@
   font-weight: 400;
   font-size: var(--text-2xl);
   color: var(--color-accent-bright);
+  letter-spacing: 0.1em;
+  margin-top: var(--space-4);
 }
 
 .voting-subtitle {
@@ -44,10 +66,11 @@
   letter-spacing: 0.08em;
 }
 
-/* 表决规则：浅纸说明单 */
+/* 表决规则：纸上的旧纸说明单（加深一档 + 朱红左条） */
 .voting-instructions {
-  background: var(--paper-1);
-  border-color: var(--paper-edge);
+  background: var(--paper-2);
+  border-color: var(--paper-line);
+  border-left: 3px solid var(--color-seal);
   color: var(--paper-ink);
   box-shadow: var(--shadow-paper);
 }

@@ -216,6 +216,36 @@
   color: var(--color-text-faint);
 }
 
+/* ---------- 纸面主舞台（暖纸重型化）：一张摊开的卷宗 ---------- */
+.stage-paper {
+  position: relative;
+  background-color: var(--paper-1);
+  /* 中心微亮 + 边缘暗角 + 纸屑噪点（三层背景一次合成，滚动不抖动） */
+  background-image:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 252, 240, 0.5), transparent 55%),
+    radial-gradient(130% 100% at 50% 115%, rgba(90, 72, 44, 0.16), transparent 62%),
+    var(--texture-noise);
+  background-size: auto, auto, 200px 200px;
+  color: var(--paper-ink);
+  /* 纸缘从深炭桌面"浮起" */
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-paper), 0 1px 0 rgba(255, 252, 240, 0.08) inset;
+}
+
+/* 纸舞台内再次强调的行（如顶部铜线装饰），由各屏自行挂载 */
+.stage-paper-line {
+  border-top: 3px solid var(--color-brass);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+/* 纸舞台内的浅纸元素统一加深一档，避免"纸 on 纸"消失 */
+.stage-paper .paper-card {
+  background:
+    linear-gradient(135deg, rgba(255, 252, 240, 0.35), transparent 30%),
+    var(--paper-2);
+  border-color: var(--paper-line);
+}
+
 /* ---------- 旧卷宗书架 ---------- */
 .shelf {
   position: relative;

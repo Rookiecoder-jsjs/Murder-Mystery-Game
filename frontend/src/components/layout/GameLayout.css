@@ -1,4 +1,5 @@
-/* Game Layout — 固定视口壳：整页只在此处滚动一次 */
+/* Game Layout — 固定视口壳：整页只在此处滚动一次
+   桌面（深炭壳）+ 纸面主舞台（.stage-paper 挂在 game-main 上） */
 
 .game-shell {
   height: 100vh;
@@ -14,6 +15,7 @@
   display: flex;
 }
 
+/* 纸面主舞台：暖纸背景固定在视口，阶段内容在纸上滚动（像一张钉在桌上的卷宗） */
 .game-main {
   flex: 1;
   min-width: 0;
@@ -21,6 +23,16 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  /* 覆盖 effects 的 .stage-paper：游戏壳取直角满幅纸面（圆角会让滚动条怪样），
+     纸缘用光影表现——顶部铜线、四周深炭桌面透过 */
+  border-radius: 0;
+  box-shadow: none;
+  background-attachment: fixed;
+}
+
+/* 纸面顶缘：铜线（卷宗合口） */
+.game-main.stage-paper {
+  border-top: 3px solid var(--color-brass);
 }
 
 /* 阶段组件填满主区；需要内部滚动的阶段自行声明 */

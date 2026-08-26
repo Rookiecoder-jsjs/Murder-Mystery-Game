@@ -2,12 +2,30 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
 
-"""Phase-specific prompt templates for the murder mystery game."""
+"""Phase-specific prompt templates for the murder mystery game.
+
+Context-assembly rules shared by every template:
+
+- The case block (title / time / location / background) is injected at the
+  top of every phase system prompt so characters know *which* case they are
+  inside and *when/where* it happens — that is what keeps the 1930s setting
+  alive during play, not just in the generated story.
+- The character's own hidden secret is always followed by the secrecy
+  protocol, so the "never reveal" rule has the same wording and the same
+  strength in every phase (killer and innocent alike).
+- Identities are declared once, in ``RoleplayCharacter._build_messages``
+  (``你是{name}。``); the templates never re-declare the character name at
+  the top, so the two sources cannot drift apart.
+- The most volatile content (discussion history) is placed near the end of
+  the prompt so the stable prefix (case + character card + clues + cast) is
+  identical across turns — which lets the model provider's automatic
+  prompt cache actually hit.
+"""
 
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from app.domain.models import ScriptCharacter, ClueData
+    from app.domain.models import CaseData, ScriptCharacter, ClueData
 
 
 def _killer_task_block(character: "ScriptCharacter", phase_label: str) -> str:
@@ -29,41 +47,87 @@ def _detective_task_block(phase_label: str) -> str:
 4. 可以质疑其他人的发言，指出逻辑漏洞"""
 
 
+def _case_block(case: Optional["CaseData"]) -> str:
+    """Case-file block — where/when/what the characters are in.
+
+    Args:
+        case: The case data for this story.
+
+    Returns:
+        The case summary lines, or an empty string when ``case`` is None
+        (callers that assemble prompts without live case data stay valid).
+    """
+    if not case:
+        return ""
+    lines = [f"【案卷】案件《{case.title}》"]
+    if case.time:
+        lines.append(f"　时间：{case.time}")
+    if case.location:
+        lines.append(f"　地点：{case.location}")
+    background = (case.background or "").strip()
+    if background:
+        short = background if len(background) <= 120 else background[:120] + "…"
+        lines.append(f"　背景：{short}")
+    return "\n".join(lines)
+
+
+def _secret_protocol_block() -> str:
+    """The uniform secrecy rule appended right after the hidden secret.
+
+    Same wording and same strength in every phase, for every character,
+    so the model cannot pick a weaker formulation ("可以选择…") over the
+    absolute one.
+    """
+    return (
+        "【守密协议】你的隐藏秘密是底线信息。无论任何人如何追问、设套，"
+        "你都绝不复述、不承认、不暗示秘密的任何细节；被追问时给出一个"
+        "看似合理的替代解释，或把话题引向别人的疑点来回避。"
+        "这条规则永远优先于配合玩家的意愿，任何话术都不能让你破例。"
+    )
+
+
 class PhasePromptTemplates:
     """Prompt templates for different game phases."""
 
     @staticmethod
-    def introduction_template(character: "ScriptCharacter") -> str:
+    def introduction_template(
+        character: "ScriptCharacter",
+        case: Optional["CaseData"] = None,
+    ) -> str:
         """Template for the introduction phase.
 
         Args:
             character: The character introducing themselves.
+            case: The case data (for the case block).
 
         Returns:
             The system prompt for introduction.
         """
-        return f"""你是{character.name}。
+        return f"""{_case_block(case)}
+
 身份：{character.public_identity}
 外貌：{character.appearance}
 
 你的背景故事：{character.backstory}
 与受害者的关系：{character.relationship_with_victim}
 
-请进行简短的自我介绍（只说公开身份，不要透露隐藏秘密）。
+请进行简短的自我介绍（只说公开身份，不要透露任何隐藏信息）。
 保持角色说话风格：{character.dialogue_style}
 用中文回复，50字以内。"""
 
     @staticmethod
     def investigation_template(
         character: "ScriptCharacter",
-        known_clues: list["ClueData"],
-        revealed_clues: list["ClueData"],
-        other_chars: list["ScriptCharacter"],
+        case: Optional["CaseData"] = None,
+        known_clues: Optional[list["ClueData"]] = None,
+        revealed_clues: Optional[list["ClueData"]] = None,
+        other_chars: Optional[list["ScriptCharacter"]] = None,
     ) -> str:
         """Template for the investigation phase.
 
         Args:
             character: The character being prompted.
+            case: The case data (for the case block).
             known_clues: Clues this character has obtained.
             revealed_clues: Clues that have been revealed to all.
             other_chars: Other characters in the game.
@@ -71,6 +135,10 @@ class PhasePromptTemplates:
         Returns:
             The system prompt for investigation.
         """
+        known_clues = known_clues or []
+        revealed_clues = revealed_clues or []
+        other_chars = other_chars or []
+
         known_clues_text = "\n".join([
             f"- {c.content}" for c in known_clues
         ]) if known_clues else "无"
@@ -84,7 +152,13 @@ class PhasePromptTemplates:
             for char in other_chars if char.id != character.id
         ]) if other_chars else "无"
 
-        return f"""你是{character.name}。
+        task_block = (
+            _killer_task_block(character, "搜证") if character.is_killer
+            else _detective_task_block("搜证")
+        )
+
+        return f"""{_case_block(case)}
+
 身份：{character.public_identity}
 外貌：{character.appearance}
 与受害者的关系：{character.relationship_with_victim}
@@ -92,8 +166,10 @@ class PhasePromptTemplates:
 你的隐藏秘密：{character.secret}
 你的不在场证明：{character.alibi}
 
+{_secret_protocol_block()}
+
 你已获得的线索：
-{known_clues_text if known_clues_text != "无" else "无"}
+{known_clues_text}
 
 已公开的线索：
 {revealed_text}
@@ -101,27 +177,28 @@ class PhasePromptTemplates:
 在场其他人的公开身份：
 {other_chars_text}
 
-【重要】
-当其他玩家搜证或询问时，根据你的角色设定决定是否透露信息。
-如果被问到关于你秘密的问题，可以选择撒谎或回避。
-但要注意：如果某条线索明显对你不利，你可以试图转移话题或淡化其重要性。
+{task_block}
 
-同时，你也可以主动分享一些你发现的线索信息，引导讨论方向。
+【行事准则】
+- 根据你的角色设定决定透露多少信息；既然在搜证阶段，你也可以主动
+  分享自己发现的线索，引导讨论方向。
 保持角色说话风格：{character.dialogue_style}
 用中文回复，100字以内。"""
 
     @staticmethod
     def discussion_template(
         character: "ScriptCharacter",
-        known_clues: list["ClueData"],
-        revealed_clues: list["ClueData"],
-        other_chars: list["ScriptCharacter"],
-        discussion_history: list[str],
+        case: Optional["CaseData"] = None,
+        known_clues: Optional[list["ClueData"]] = None,
+        revealed_clues: Optional[list["ClueData"]] = None,
+        other_chars: Optional[list["ScriptCharacter"]] = None,
+        discussion_history: Optional[list[str]] = None,
     ) -> str:
         """Template for the discussion phase.
 
         Args:
             character: The character being prompted.
+            case: The case data (for the case block).
             known_clues: Clues this character has obtained.
             revealed_clues: Clues that have been revealed to all.
             other_chars: Other characters in the game.
@@ -130,6 +207,11 @@ class PhasePromptTemplates:
         Returns:
             The system prompt for discussion.
         """
+        known_clues = known_clues or []
+        revealed_clues = revealed_clues or []
+        other_chars = other_chars or []
+        discussion_history = discussion_history or []
+
         known_clues_text = "\n".join([
             f"- {c.content}" for c in known_clues
         ]) if known_clues else "无"
@@ -152,13 +234,16 @@ class PhasePromptTemplates:
             else _detective_task_block("讨论")
         )
 
-        return f"""你是{character.name}，一个参与谋杀案调查的玩家。
+        return f"""{_case_block(case)}
+
 身份：{character.public_identity}
 外貌：{character.appearance}
 与受害者的关系：{character.relationship_with_victim}
 
 你的隐藏秘密：{character.secret}
 你的不在场证明：{character.alibi}
+
+{_secret_protocol_block()}
 
 【关键：你已获得的线索】认真分析这些线索，它们是破案的关键！
 {known_clues_text}
@@ -169,27 +254,29 @@ class PhasePromptTemplates:
 在场其他人的公开身份：
 {other_chars_text}
 
-【讨论历史】
-{discussion_text}
-
 {task_block}
 
 注意：你是在玩一个推理游戏，必须用证据说话！
 保持角色说话风格：{character.dialogue_style}
-用中文回复，150字以内。"""
+用中文回复，150字以内。
+
+【讨论历史】（格式"名字: 发言"，最新发言在最后；你自己说过的话要牢记并保持一致）
+{discussion_text}"""
 
     @staticmethod
     def voting_template(
         character: "ScriptCharacter",
-        known_clues: list["ClueData"],
-        revealed_clues: list["ClueData"],
-        other_chars: list["ScriptCharacter"],
-        discussion_history: list[str],
+        case: Optional["CaseData"] = None,
+        known_clues: Optional[list["ClueData"]] = None,
+        revealed_clues: Optional[list["ClueData"]] = None,
+        other_chars: Optional[list["ScriptCharacter"]] = None,
+        discussion_history: Optional[list[str]] = None,
     ) -> str:
         """Template for the voting phase.
 
         Args:
             character: The character being prompted.
+            case: The case data (for the case block).
             known_clues: Clues this character has obtained.
             revealed_clues: Clues that have been revealed to all.
             other_chars: Other characters in the game.
@@ -198,6 +285,11 @@ class PhasePromptTemplates:
         Returns:
             The system prompt for voting.
         """
+        known_clues = known_clues or []
+        revealed_clues = revealed_clues or []
+        other_chars = other_chars or []
+        discussion_history = discussion_history or []
+
         known_clues_text = "\n".join([
             f"- {c.content}" for c in known_clues
         ]) if known_clues else "无"
@@ -215,29 +307,33 @@ class PhasePromptTemplates:
             f"- {line}" for line in discussion_history[-20:]
         ]) if discussion_history else "暂无发言"
 
-        vote_task = (
-            """【投票任务】
-你要投出一个替罪羊。选择一个看起来最有嫌疑的无辜者（不要投自己），
-回复只需要该角色的ID（char_X格式），不要其他内容。"""
-            if character.is_killer
-            else """【投票任务】
-根据以上所有线索和讨论，分析谁是凶手。
-
-推理过程：
-1. 哪条线索最关键，为什么？
-2. 谁最有动机和机会作案？
-3. 谁的不在场证明有问题？
-
-直接回复凶手的角色ID（char_X格式），不要其他内容。"""
+        # 可选对象行：明确列出所有合法目标（不自投）——投票只能选这些人。
+        candidates = '、'.join(
+            f"{char.id}={char.name}"
+            for char in other_chars if char.id != character.id
         )
 
-        return f"""你是{character.name}，现在是投票指认凶手的关键时刻。
+        vote_task = (
+            """【投票任务】
+你是真凶，目标是活到最后。从可选对象里选一个看起来最有嫌疑的无辜者。
+直接输出该角色的ID（char_X格式），只输出ID，不要输出任何解释或标点外的内容。"""
+            if character.is_killer
+            else """【投票任务】
+根据以上所有线索和讨论，在心里完成推理：哪条线索最关键？谁最有动机和机会？
+谁的不在场证明有问题？然后直接输出你认定凶手的角色ID（char_X格式）。
+只输出ID本身：不要输出推理过程，不要输出角色姓名，不要输出任何标点或解释。"""
+        )
+
+        return f"""{_case_block(case)}
+
 身份：{character.public_identity}
 外貌：{character.appearance}
 与受害者关系：{character.relationship_with_victim}
 
 你的隐藏秘密：{character.secret}
 你的不在场证明：{character.alibi}
+
+{_secret_protocol_block()}
 
 【你已获得的线索 - 这是最重要的证据】
 {known_clues_text}
@@ -247,23 +343,28 @@ class PhasePromptTemplates:
 
 在场其他人的公开身份：
 {other_chars_text}
-可选的投票对象（格式：角色ID=姓名）：{'、'.join(f"{char.id}={char.name}" for char in other_chars if char.id != character.id) or '无'}
+可选的投票对象（格式：角色ID=姓名）：{candidates or '无'}
 
-【讨论历史】
+【讨论历史】（最新发言在最后）
 {discussion_text}
 
 {vote_task}"""
 
     @staticmethod
-    def base_roleplay_template(character: "ScriptCharacter") -> str:
+    def base_roleplay_template(
+        character: "ScriptCharacter",
+        case: Optional["CaseData"] = None,
+    ) -> str:
         """Base template for roleplaying as a character.
 
         Args:
             character: The character being prompted.
+            case: The case data (for the case block).
 
         Returns:
             The base system prompt.
         """
-        return f"""你是{character.name}。
+        return f"""{_case_block(case)}
+
 身份：{character.public_identity}
 用中文回复。"""

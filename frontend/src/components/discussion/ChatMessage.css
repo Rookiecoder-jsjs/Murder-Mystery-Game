@@ -54,19 +54,24 @@
   word-break: break-word;
 }
 
-/* 玩家供词纸：浅纸反白 + 虚线分隔 + 朱红签名 */
+/* 玩家供词：纸舞台上的深反白（墨槽），与 AI 旧纸格形成最强对比 + 朱红签名 */
+.chat-message-player {
+  --color-seal: #d04030;   /* 墨槽上的签名朱红要更亮（纸面 token 已加深） */
+}
+
 .chat-message-player .chat-message-content {
-  background: var(--paper-1);
-  border-color: var(--paper-edge);
-  border-left-color: var(--paper-line);
-  color: var(--paper-ink);
+  background: var(--paper-ink);
+  border-color: var(--paper-ink);
+  border-left-color: var(--color-seal);
+  color: var(--paper-1);
+  box-shadow: var(--shadow-sm);
 }
 
 .chat-message-player .chat-message-header {
-  border-bottom: 1px dashed var(--paper-line);
+  border-bottom: 1px dashed color-mix(in srgb, var(--paper-1) 30%, transparent);
   padding-bottom: 2px;
   margin-bottom: 5px;
-  color: var(--paper-ink-muted);
+  color: color-mix(in srgb, var(--paper-1) 65%, transparent);
 }
 
 .chat-message-player .chat-message-sender {
@@ -74,7 +79,7 @@
 }
 
 .chat-message-player .chat-message-text {
-  color: var(--paper-ink);
+  color: var(--paper-1);
 }
 
 @media (max-width: 639.98px) {

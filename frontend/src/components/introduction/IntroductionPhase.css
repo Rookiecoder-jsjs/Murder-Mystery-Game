@@ -10,25 +10,45 @@
   overflow-y: auto;
 }
 
+/* 档案头：左上对齐 + 朱红图钉 + 红绳横线（打破居中柱） */
 .introduction-header {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  align-items: flex-start;
+  text-align: left;
   gap: var(--space-2);
-  padding: var(--space-4) 0;
+  padding: var(--space-2) 0 var(--space-4);
+  position: relative;
+}
+
+/* 顶部朱红图钉 */
+.introduction-header::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 0;
+  left: 2px;
+}
+
+.introduction-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--c-string-line);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .introduction-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-accent);
+  display: none;   /* 档案头不再用图标圆 */
 }
 
 .introduction-title {
@@ -36,6 +56,8 @@
   font-weight: 400;
   font-size: var(--text-2xl);
   color: var(--color-accent-bright);
+  letter-spacing: 0.1em;
+  margin-top: var(--space-4);
 }
 
 .introduction-subtitle {
@@ -120,19 +142,19 @@
   color: var(--color-text-faint);
 }
 
-/* 供词纸输入 */
+/* 供词墨槽（纸舞台深反白：墨色底 + 纸白字） */
 .introduction-textarea {
   width: 100%;
   resize: vertical;
   min-height: 96px;
   line-height: 1.7;
-  background: var(--paper-1);
-  color: var(--paper-ink);
-  border-color: var(--paper-edge);
+  background: var(--paper-ink);
+  color: var(--paper-1);
+  border-color: var(--paper-ink-muted);
 }
 
 .introduction-textarea::placeholder {
-  color: var(--paper-ink-muted);
+  color: color-mix(in srgb, var(--paper-1) 60%, transparent);
 }
 
 .introduction-textarea:focus {
@@ -179,9 +201,11 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* 玩家供词在纸舞台上深反白（与讨论口供一致） */
 .introduction-result-item.is-player {
-  border-left-color: var(--color-string);
-  background: var(--paper-1);
+  border-left-color: var(--color-seal);
+  background: var(--paper-ink);
+  --color-seal: #d04030;
 }
 
 .introduction-result-speaker {
@@ -202,7 +226,7 @@
 }
 
 .introduction-result-item.is-player .introduction-result-message {
-  color: var(--paper-ink);
+  color: var(--paper-1);
 }
 
 .introduction-other-chars {

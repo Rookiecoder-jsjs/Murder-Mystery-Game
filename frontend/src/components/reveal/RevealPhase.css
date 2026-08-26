@@ -16,27 +16,44 @@
   padding: var(--space-12) 0;
 }
 
-/* 卷宗封面式头 */
+/* 结案档案头：左上对齐 + 图钉 + 红绳（与其余阶段统一） */
 .reveal-header {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-2);
-  text-align: center;
-  padding: var(--space-4) 0;
+  text-align: left;
+  padding: var(--space-2) 0 var(--space-4);
+}
+
+.reveal-header::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 0;
+  left: 2px;
+}
+
+.reveal-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--c-string-line);
+  opacity: 0.85;
+  pointer-events: none;
 }
 
 .reveal-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  color: var(--color-accent);
+  display: none;
 }
 
 .reveal-icon-win {
@@ -54,7 +71,8 @@
   font-weight: 400;
   font-size: var(--text-2xl);
   color: var(--color-accent-bright);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
+  margin-top: var(--space-4);
 }
 
 /* 结案大印章 */
