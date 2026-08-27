@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Trophy, Skull, Home } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { Button, Card, Badge, LoadingSpinner } from '../common';
 import './RevealPhase.css';
 

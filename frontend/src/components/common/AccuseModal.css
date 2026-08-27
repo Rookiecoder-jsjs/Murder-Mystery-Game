@@ -39,14 +39,15 @@
 
 .accuse-suspect-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr));
+  gap: var(--space-4);
 }
 
 .accuse-suspect-card {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  min-height: 186px;
   padding: var(--space-3);
   position: relative;
   background: var(--paper-cream);
@@ -70,14 +71,15 @@
 .accuse-suspect-name {
   font-size: var(--text-sm);
   font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  color: var(--paper-ink);
 }
 
 .accuse-suspect-identity {
   font-size: var(--text-xs);
   color: var(--paper-ink-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
 }
 
 /* 圈定标记：朱红印章点 */

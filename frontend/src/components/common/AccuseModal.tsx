@@ -1,5 +1,5 @@
 // AccuseModal — 指认凶手弹窗（搜证/讨论阶段共用同一份实现）
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, Check } from 'lucide-react';
 import type { CharacterInfo } from '../../api/types';
 import { Modal } from './Modal';
@@ -29,13 +29,13 @@ export function AccuseModal({
 }: AccuseModalProps) {
   const [selected, setSelected] = useState<string | null>(null);
 
-  // 关闭后清空选择
-  useEffect(() => {
-    if (!isOpen) setSelected(null);
-  }, [isOpen]);
+  const handleClose = () => {
+    setSelected(null);
+    onClose();
+  };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="拘捕令" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title="拘捕令" size="md">
       <div className="accuse-modal">
         <div className="accuse-warning">
           <AlertTriangle size={18} />
@@ -62,7 +62,8 @@ export function AccuseModal({
                 >
                   <Avatar
                     name={char.name}
-                    size="md"
+                    imageUrl={char.portrait_url}
+                    size="portrait"
                     showBorder={selected === char.name}
                   />
                   <div className="accuse-suspect-info">
@@ -82,7 +83,7 @@ export function AccuseModal({
         </div>
 
         <div className="accuse-actions">
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={handleClose}>
             取消
           </Button>
           <Button

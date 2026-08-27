@@ -14,6 +14,7 @@ from openai import OpenAI
 from app.core.config import get_config
 from app.core.logging import get_logger
 from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
+from app.services.image_service import PortraitService, delete_story_portraits
 
 
 logger = get_logger(__name__)
@@ -450,6 +451,12 @@ def delete_story(story_id: str) -> bool:
 
     try:
         os.remove(file_path)
+        try:
+            delete_story_portraits(story_id)
+        except Exception as e:
+            # The archive is already deleted; a leftover image directory must
+            # not turn that successful deletion into an API failure.
+            logger.warning("删除故事肖像失败（%s）: %s", story_id, e)
         logger.info("已删除存档: %s", story_id)
         return True
     except Exception as e:
@@ -465,6 +472,7 @@ class StoryService:
     def __init__(self):
         """Initialize the service."""
         ensure_stories_dir()
+        self.portrait_service = PortraitService()
 
     def create_story(
         self,
@@ -492,6 +500,9 @@ class StoryService:
             logger.error("案件数据结构不完整: %s", e)
             return None
 
+        # Portrait generation is non-fatal: a provider timeout still leaves a
+        # fully playable story with letter-avatar fallbacks.
+        self.portrait_service.generate_for_archive(archive)
         save_story(archive)
 
         return archive

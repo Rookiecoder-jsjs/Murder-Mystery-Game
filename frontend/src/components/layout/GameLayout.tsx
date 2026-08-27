@@ -6,7 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { ConnectionBanner } from '../common';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import './GameLayout.css';
 
 interface GameLayoutProps {
@@ -22,21 +22,25 @@ export function GameLayout({ children }: GameLayoutProps) {
   // 因此用 JS 定时器在 650ms 后强制卸载遮罩（动画未放完也最多多黑 0.65s）。
   const [curtainKey, setCurtainKey] = useState(0);
   const [curtainVisible, setCurtainVisible] = useState(false);
-  const lastPhaseRef = useRef(state.phase);
+  const initialPhaseRef = useRef(state.phase);
+  const curtainKeyRef = useRef(0);
 
   useEffect(() => {
-    if (state.phase !== lastPhaseRef.current) {
-      lastPhaseRef.current = state.phase;
-      setCurtainKey((k) => k + 1);
+    if (state.phase === initialPhaseRef.current) return;
+
+    const nextKey = curtainKeyRef.current + 1;
+    curtainKeyRef.current = nextKey;
+    const showTimer = window.setTimeout(() => {
+      setCurtainKey(nextKey);
       setCurtainVisible(true);
-    }
-  }, [state.phase]);
+    }, 0);
+    const hideTimer = window.setTimeout(() => setCurtainVisible(false), 650);
 
-  useEffect(() => {
-    if (!curtainVisible) return;
-    const timer = window.setTimeout(() => setCurtainVisible(false), 650);
-    return () => window.clearTimeout(timer);
-  }, [curtainVisible, curtainKey]);
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [state.phase]);
 
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 

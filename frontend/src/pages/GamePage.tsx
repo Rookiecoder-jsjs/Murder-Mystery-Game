@@ -1,7 +1,7 @@
 // Game Page — 从 /game/:gameId 续局 + 单一轮询持有者
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/useGame';
 import { apiErrorStatus } from '../api/client';
 import { GameLayout } from '../components/layout';
 import { IntroductionPhase } from '../components/introduction';
@@ -29,7 +29,10 @@ export function GamePage() {
   } = useGame();
 
   const failuresRef = useRef(0);
-  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [resumeError, setResumeError] = useState<{
+    gameId: string;
+    message: string;
+  } | null>(null);
   const [retryTick, setRetryTick] = useState(0);
   const isSameGame = Boolean(routeGameId) && state.gameId === routeGameId;
 
@@ -41,14 +44,16 @@ export function GamePage() {
     }
     if (state.gameId === routeGameId) return; // 已在本局
     let cancelled = false;
-    setResumeError(null);
     resumeGame(routeGameId).catch((err: unknown) => {
       if (cancelled) return;
       if (apiErrorStatus(err) === 404) {
         notify('找不到这局游戏，可能已随后端重启丢失', 'error');
         navigate('/', { replace: true });
       } else {
-        setResumeError(err instanceof Error ? err.message : '加载失败');
+        setResumeError({
+          gameId: routeGameId,
+          message: err instanceof Error ? err.message : '加载失败',
+        });
       }
     });
     return () => {
@@ -88,13 +93,23 @@ export function GamePage() {
   ]);
 
   if (!isSameGame) {
-    if (resumeError) {
+    const currentResumeError =
+      resumeError && resumeError.gameId === routeGameId
+        ? resumeError.message
+        : null;
+    if (currentResumeError) {
       return (
         <div className="game-loading">
           <div className="game-resume-error" role="alert">
-            <p>{resumeError}</p>
+            <p>{currentResumeError}</p>
             <div className="game-resume-error-actions">
-              <Button variant="primary" onClick={() => setRetryTick((t) => t + 1)}>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  setResumeError(null);
+                  setRetryTick((t) => t + 1);
+                }}
+              >
                 重试
               </Button>
               <Button variant="ghost" onClick={() => navigate('/', { replace: true })}>

@@ -20,7 +20,11 @@ export function ChatMessage({ message, isPlayer, character }: ChatMessageProps) 
       }`}
     >
       {!isPlayer && (
-        <Avatar name={character?.name || message.speaker} size="md" />
+        <Avatar
+          name={character?.name || message.speaker}
+          imageUrl={character?.portrait_url}
+          size="lg"
+        />
       )}
       <div className="chat-message-content">
         <div className="chat-message-header">
@@ -36,7 +40,12 @@ export function ChatMessage({ message, isPlayer, character }: ChatMessageProps) 
         <p className="chat-message-text">{message.message}</p>
       </div>
       {isPlayer && (
-        <Avatar name={message.speaker} size="md" showBorder />
+        <Avatar
+          name={message.speaker}
+          imageUrl={character?.portrait_url}
+          size="lg"
+          showBorder
+        />
       )}
     </div>
   );

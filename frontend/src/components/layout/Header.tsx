@@ -1,6 +1,6 @@
 // Header — 64px：品牌 + 阶段指示 + 玩家身份
 import { Menu } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { PhaseIndicator } from './PhaseIndicator';
 import './Header.css';
 

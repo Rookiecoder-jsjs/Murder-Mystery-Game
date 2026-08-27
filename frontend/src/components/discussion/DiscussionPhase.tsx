@@ -1,7 +1,7 @@
 // Discussion Phase — 聊天布局由外壳决定高度，列表内部滚动
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { MessageSquare, Send, Vote, ArrowRight, Search, AlertTriangle } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { Button, AccuseModal, TypingIndicator, useToast } from '../common';
 import { ChatMessage } from './ChatMessage';
 import './DiscussionPhase.css';

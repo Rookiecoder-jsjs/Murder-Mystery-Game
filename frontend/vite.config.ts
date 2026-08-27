@@ -20,6 +20,7 @@ export default defineConfig({
     proxy: {
       '/stories': `http://localhost:${getBackendPort()}`,
       '/games': `http://localhost:${getBackendPort()}`,
+      '/assets/portraits': `http://localhost:${getBackendPort()}`,
     },
   },
 })

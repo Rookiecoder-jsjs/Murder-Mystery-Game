@@ -264,6 +264,7 @@ class GameSession:
             "name": char.name,
             "public_identity": char.public_identity,
             "appearance": char.appearance,
+            "portrait_url": char.portrait_url,
         }
 
     def get_all_characters(self, include_private: bool = False) -> List[Dict[str, Any]]:
@@ -280,6 +281,7 @@ class GameSession:
                 "name": c.name,
                 "public_identity": c.public_identity,
                 "appearance": c.appearance,
+                "portrait_url": c.portrait_url,
             }
             if include_private:
                 info.update({

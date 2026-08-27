@@ -1,7 +1,7 @@
 // Introduction Phase — 角色介绍与开场自白
 import { useState } from 'react';
 import { User, Play, ArrowRight } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { Button, Card, Avatar, useToast } from '../common';
 import './IntroductionPhase.css';
 
@@ -57,7 +57,12 @@ export function IntroductionPhase() {
 
       <Card variant="gold-border" className="introduction-player-card">
         <div className="introduction-player">
-          <Avatar name={state.player?.name || '你'} size="xl" showBorder />
+          <Avatar
+            name={state.player?.name || '你'}
+            imageUrl={state.player?.portrait_url}
+            size="hero"
+            showBorder
+          />
           <div className="introduction-player-details">
             <h3 className="introduction-player-name">{state.player?.name}</h3>
             <p className="introduction-player-identity">
@@ -128,7 +133,7 @@ export function IntroductionPhase() {
             .filter((c) => c.id !== state.player?.id)
             .map((char) => (
               <Card key={char.id} className="introduction-other-card">
-                <Avatar name={char.name} size="lg" />
+                <Avatar name={char.name} imageUrl={char.portrait_url} size="portrait" />
                 <div className="introduction-other-info">
                   <span className="introduction-other-name">{char.name}</span>
                   <span className="introduction-other-identity">

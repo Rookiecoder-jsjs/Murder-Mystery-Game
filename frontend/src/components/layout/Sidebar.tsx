@@ -1,7 +1,7 @@
 // Sidebar — 桌面端固定栏；≤768px 由 GameLayout 变为抽屉（不再整体消失）
 
 import { Users, MessageSquare, Lightbulb, X } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { Avatar, Badge } from '../common';
 import './Sidebar.css';
 
@@ -35,7 +35,7 @@ export function Sidebar({ drawerOpen, onClose }: SidebarProps) {
                 key={char.id}
                 className={`sidebar-character ${isPlayer ? 'is-player' : ''}`}
               >
-                <Avatar name={char.name} size="sm" />
+                <Avatar name={char.name} imageUrl={char.portrait_url} size="md" />
                 <div className="sidebar-character-info">
                   <span className="sidebar-character-name">{char.name}</span>
                   <span className="sidebar-character-identity">

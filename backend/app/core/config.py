@@ -85,7 +85,7 @@ def _env_bool(name: str, default: bool) -> bool:
 
 @dataclass
 class DeepSeekConfig:
-    """DeepSeek model configuration for story generation (thinking mode on)."""
+    """DeepSeek model configuration for story generation."""
 
     api_key: str
     base_url: str
@@ -138,11 +138,46 @@ class RoleplayConfig:
 
 
 @dataclass
+class QwenImageConfig:
+    """DashScope native API settings for generated character portraits."""
+
+    api_key: str
+    base_url: str = "https://dashscope.aliyuncs.com/api/v1"
+    model_name: str = "qwen-image-3.0"
+    size: str = "1024*1536"
+    timeout_seconds: int = 150
+    poll_interval_seconds: float = 3.0
+    max_workers: int = 2
+    request_timeout_seconds: int = 30
+
+    @classmethod
+    def from_env(cls) -> "QwenImageConfig":
+        """Create image-generation settings from environment variables."""
+        return cls(
+            api_key=os.getenv("DASHSCOPE_API_KEY", ""),
+            base_url=os.getenv(
+                "DASHSCOPE_BASE_URL", "https://dashscope.aliyuncs.com/api/v1"
+            ),
+            model_name=os.getenv("DASHSCOPE_IMAGE_MODEL", "qwen-image-3.0"),
+            size=os.getenv("DASHSCOPE_IMAGE_SIZE", "1024*1536"),
+            timeout_seconds=max(1, _env_int("DASHSCOPE_IMAGE_TIMEOUT_SECONDS", 150)),
+            poll_interval_seconds=max(
+                0.1, _env_float("DASHSCOPE_IMAGE_POLL_INTERVAL_SECONDS", 3.0)
+            ),
+            max_workers=max(1, _env_int("DASHSCOPE_IMAGE_MAX_WORKERS", 2)),
+            request_timeout_seconds=max(
+                1, _env_int("DASHSCOPE_IMAGE_REQUEST_TIMEOUT_SECONDS", 30)
+            ),
+        )
+
+
+@dataclass
 class AppConfig:
     """Application configuration."""
 
     deepseek: DeepSeekConfig
     roleplay: RoleplayConfig
+    qwen_image: QwenImageConfig
 
     @classmethod
     def from_env(cls) -> "AppConfig":
@@ -150,6 +185,7 @@ class AppConfig:
         return cls(
             deepseek=DeepSeekConfig.from_env(),
             roleplay=RoleplayConfig.from_env(),
+            qwen_image=QwenImageConfig.from_env(),
         )
 
 

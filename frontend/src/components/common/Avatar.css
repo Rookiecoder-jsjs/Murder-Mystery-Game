@@ -13,6 +13,7 @@
   border: 1px solid rgba(0, 0, 0, 0.55);
   box-shadow: inset 0 0 0 1px var(--paper-sheen), var(--shadow-sm);
   user-select: none;
+  overflow: hidden;
 }
 
 .avatar::after {
@@ -29,28 +30,54 @@
   letter-spacing: 0.02em;
 }
 
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 2px;
+  filter: sepia(0.14) saturate(0.82) contrast(1.04);
+}
+
 .avatar-sm {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   font-size: var(--text-xs);
 }
 
 .avatar-md {
-  width: 40px;
-  height: 40px;
+  width: 56px;
+  height: 56px;
   font-size: var(--text-sm);
 }
 
 .avatar-lg {
-  width: 52px;
-  height: 52px;
+  width: 84px;
+  height: 84px;
   font-size: var(--text-base);
 }
 
 .avatar-xl {
-  width: 88px;
-  height: 88px;
+  width: 120px;
+  height: 120px;
   font-size: var(--text-2xl);
+}
+
+/* 角色册中的竖版档案照：让生成图本身成为信息层级的一部分。 */
+.avatar-portrait {
+  width: 118px;
+  height: 164px;
+  font-size: var(--text-xl);
+}
+
+/* 主角色的卷宗主图：保持生成时的 2:3 构图，而不是压成小图标。 */
+.avatar-hero {
+  width: clamp(156px, 28vw, 214px);
+  height: auto;
+  aspect-ratio: 2 / 3;
+  font-size: var(--text-3xl);
+  border-width: 2px;
+  box-shadow: inset 0 0 0 1px var(--paper-sheen), var(--shadow-md);
 }
 
 /* 玩家框：朱红描边 */

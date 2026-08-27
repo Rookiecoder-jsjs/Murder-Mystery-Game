@@ -1,11 +1,13 @@
 // Avatar — 角色证件照瓦片（色板来自令牌，玩家态用朱红描边）
 import type { CSSProperties } from 'react';
+import { useState } from 'react';
 import './Avatar.css';
 
 interface AvatarProps {
   name: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'portrait' | 'hero';
   showBorder?: boolean;
+  imageUrl?: string;
   className?: string;
 }
 
@@ -29,8 +31,12 @@ export function Avatar({
   name,
   size = 'md',
   showBorder = false,
+  imageUrl,
   className = '',
 }: AvatarProps) {
+  const [failedImageUrl, setFailedImageUrl] = useState<string>();
+  const showPortrait = Boolean(imageUrl && failedImageUrl !== imageUrl);
+
   return (
     <div
       className={`avatar avatar-${size} ${showBorder ? 'avatar-border' : ''} ${className}`}
@@ -38,7 +44,17 @@ export function Avatar({
       title={name}
       aria-hidden="true"
     >
-      <span className="avatar-initials">{getInitials(name)}</span>
+      {showPortrait ? (
+        <img
+          className="avatar-image"
+          src={imageUrl}
+          alt={`${name}的角色肖像`}
+          loading="lazy"
+          onError={() => setFailedImageUrl(imageUrl)}
+        />
+      ) : (
+        <span className="avatar-initials">{getInitials(name)}</span>
+      )}
     </div>
   );
 }

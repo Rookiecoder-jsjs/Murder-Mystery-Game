@@ -8,6 +8,7 @@ export interface CharacterInfo {
   public_identity: string;
   is_killer?: boolean;
   appearance: string;
+  portrait_url?: string;
   dialogue_style?: string;
 }
 

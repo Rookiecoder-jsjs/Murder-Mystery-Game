@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Clock, BookOpen, Sparkles, AlertTriangle } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import { useGame } from '../context/useGame';
 import { api } from '../api/client';
 import type { Story } from '../api/types';
 import { Button, Card, LoadingSpinner } from '../components/common';

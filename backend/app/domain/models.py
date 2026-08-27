@@ -111,6 +111,9 @@ class ScriptCharacter:
     appearance: str = ""
     """Physical appearance"""
 
+    portrait_url: str = ""
+    """Stable local URL of the generated portrait"""
+
 
 @dataclass
 class StoryArchive:

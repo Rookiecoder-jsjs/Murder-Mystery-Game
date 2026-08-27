@@ -4,7 +4,7 @@
 .chat-message {
   display: flex;
   gap: var(--space-3);
-  max-width: min(85%, 640px);
+  max-width: min(90%, 720px);
   animation: fadeIn 0.3s ease forwards;
 }
 
@@ -85,5 +85,10 @@
 @media (max-width: 639.98px) {
   .chat-message {
     max-width: 95%;
+  }
+
+  .chat-message .avatar-lg {
+    width: 64px;
+    height: 64px;
   }
 }

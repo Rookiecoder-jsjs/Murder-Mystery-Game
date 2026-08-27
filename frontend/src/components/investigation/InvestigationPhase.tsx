@@ -1,7 +1,7 @@
 // Investigation Phase — 搜证、线索板、指认凶手
 import { useState } from 'react';
 import { Search, Eye, MessageSquare, AlertTriangle } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { Button, Card, Badge, Modal, AccuseModal, useToast } from '../common';
 import { ClueCard } from './ClueCard';
 import './InvestigationPhase.css';

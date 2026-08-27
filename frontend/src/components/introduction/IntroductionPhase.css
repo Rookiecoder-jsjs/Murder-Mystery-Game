@@ -89,21 +89,30 @@
 
 .introduction-player {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  align-items: stretch;
+  gap: var(--space-5);
+  min-height: 270px;
+}
+
+.introduction-player > .avatar {
+  align-self: center;
+  flex-shrink: 0;
 }
 
 .introduction-player-details {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
   min-width: 0;
+  padding: var(--space-4) 0 var(--space-4) var(--space-5);
+  border-left: 1px solid var(--c-accent-line);
 }
 
 .introduction-player-name {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   color: var(--color-accent-bright);
 }
 
@@ -119,9 +128,9 @@
 }
 
 .introduction-player-appearance {
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   color: var(--color-text-faint);
-  line-height: 1.7;
+  line-height: 1.85;
 }
 
 .introduction-input-card {
@@ -244,15 +253,20 @@
 
 .introduction-other-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: var(--space-4);
 }
 
 .introduction-other-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-3);
-  padding: var(--space-3);
+  padding: var(--space-4);
+}
+
+.introduction-other-card > .avatar {
+  align-self: center;
 }
 
 .introduction-other-info {
@@ -260,6 +274,8 @@
   flex-direction: column;
   min-width: 0;
   line-height: 1.35;
+  text-align: center;
+  gap: 3px;
 }
 
 .introduction-other-name {
@@ -280,7 +296,16 @@
 @media (max-width: 639.98px) {
   .introduction-player {
     flex-direction: column;
+    align-items: center;
     text-align: center;
+    min-height: 0;
+  }
+
+  .introduction-player-details {
+    align-items: center;
+    padding: var(--space-2) 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--c-accent-line);
   }
 
   .introduction-player-identity {

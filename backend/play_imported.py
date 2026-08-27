@@ -42,7 +42,7 @@ class MurderMysteryCLI:
 
     def _print_header(self):
         print(Fore.CYAN + "=" * 50)
-        print(Fore.CYAN + "  剧本杀 - CAMEL 框架版")
+    print(Fore.CYAN + "  剧本杀 - OpenAI 兼容 API 版")
         print(Fore.CYAN + "=" * 50)
 
     def _show_stories(self):

@@ -47,6 +47,7 @@ logs/
 # Backend specific
 backend/stories/*.json
 !backend/stories/*.json
+backend/assets/portraits/
 backend/.port.json
 backend/sessions/
 

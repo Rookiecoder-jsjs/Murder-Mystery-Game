@@ -1,30 +1,13 @@
 // Toast — 全局轻提示（错误必须可见，不能再静默吞掉）
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { X } from 'lucide-react';
+import { ToastContext, type ToastKind } from './ToastContext';
 import './Toast.css';
-
-export type ToastKind = 'info' | 'error' | 'success';
 
 interface ToastItem {
   id: number;
   kind: ToastKind;
   message: string;
-}
-
-interface ToastContextValue {
-  notify: (message: string, kind?: ToastKind) => void;
-}
-
-const ToastContext = createContext<ToastContextValue>({ notify: () => {} });
-
-export function useToast(): ToastContextValue {
-  return useContext(ToastContext);
 }
 
 const AUTO_DISMISS_MS = 4500;

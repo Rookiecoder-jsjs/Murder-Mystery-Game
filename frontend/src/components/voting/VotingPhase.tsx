@@ -1,7 +1,7 @@
 // Voting Phase — 投票、等待计票、结果展示
 import { useEffect, useState } from 'react';
 import { Vote, AlertTriangle, Check, ArrowLeft } from 'lucide-react';
-import { useGame } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import { Button, Card, Avatar, Modal, useToast } from '../common';
 import type { VoteResponse } from '../../api/types';
 import './VotingPhase.css';
@@ -109,7 +109,8 @@ export function VotingPhase() {
                   >
                     <Avatar
                       name={char.name}
-                      size="lg"
+                      imageUrl={char.portrait_url}
+                      size="portrait"
                       showBorder={selectedCharacter === char.name}
                     />
                     <div className="voting-character-info">

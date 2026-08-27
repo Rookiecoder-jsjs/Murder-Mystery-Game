@@ -126,7 +126,7 @@ if (!fs.existsSync(path.join(FRONTEND_DIR, 'node_modules'))) {
 
 const pyProbe = spawnSync(
   'python',
-  ['-c', 'import fastapi, uvicorn, openai, pydantic, dotenv, numpy; import camel.agents'],
+  ['-c', 'import fastapi, uvicorn, openai, pydantic, dotenv, colorama'],
   { cwd: BACKEND_DIR, encoding: 'utf-8' },
 );
 if (pyProbe.status !== 0) {

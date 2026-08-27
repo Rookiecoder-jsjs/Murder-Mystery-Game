@@ -3,9 +3,7 @@
 // speak 的失败在服务端已有讨论历史兜底，内部完成重同步与提示。
 
 import {
-  createContext,
   useCallback,
-  useContext,
   useRef,
   useReducer,
   type ReactNode,
@@ -23,31 +21,7 @@ import type {
   RevealInfo,
   VoteResponse,
 } from '../api/types';
-
-interface GameState {
-  gameId: string | null;
-  storyId: string | null;
-  topic: string;
-  player: CharacterInfo | null;
-  characters: CharacterInfo[];
-  phase: GamePhase;
-  round: number;
-  maxRounds: number;
-  clues: Clue[];
-  accusationPoints: number;
-  scenePublicClues: Clue[];
-  discussionHistory: ChatMessage[];
-  availableActions: string[];
-  gameEnded: boolean;
-  winner: string | null;
-  revealInfo: RevealInfo | null;
-  isLoading: boolean;
-  isSpeaking: boolean;
-  connectionLost: boolean;
-  error: string | null;
-  currentDiscussionMessages: ChatMessage[];
-  introductions: ChatMessage[];
-}
+import { GameContext, type GameState } from './game-context';
 
 type GameAction =
   | { type: 'SET_LOADING'; payload: boolean }
@@ -197,29 +171,6 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 function errMsg(error: unknown): string {
   return error instanceof Error ? error.message : '操作失败，请重试';
 }
-
-interface GameContextValue {
-  state: GameState;
-  createGame: (topic: string, playerName?: string) => Promise<string>;
-  loadGame: (storyId: string) => Promise<string>;
-  resumeGame: (gameId: string) => Promise<void>;
-  refreshStatus: () => Promise<boolean>;
-  refreshClues: () => Promise<boolean>;
-  refreshDiscussionHistory: () => Promise<boolean>;
-  setConnectionLost: (lost: boolean) => void;
-  introduce: (message?: string) => Promise<void>;
-  nextPhase: () => Promise<void>;
-  startVoting: () => Promise<void>;
-  returnToInvestigation: () => Promise<void>;
-  investigate: () => Promise<Clue[]>;
-  speak: (message: string) => Promise<void>;
-  vote: (characterName: string) => Promise<VoteResponse>;
-  accuse: (characterName: string) => Promise<AccuseResponse>;
-  loadReveal: () => Promise<void>;
-  resetGame: () => void;
-}
-
-const GameContext = createContext<GameContextValue | null>(null);
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
@@ -609,12 +560,4 @@ export function GameProvider({ children }: { children: ReactNode }) {
       {children}
     </GameContext.Provider>
   );
-}
-
-export function useGame() {
-  const context = useContext(GameContext);
-  if (!context) {
-    throw new Error('useGame must be used within a GameProvider');
-  }
-  return context;
 }

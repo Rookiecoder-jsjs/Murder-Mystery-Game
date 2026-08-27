@@ -3,16 +3,17 @@
 ![Art Deco Noir Style](https://img.shields.io/badge/Style-Art%20Deco%20Noir-gold?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-62%20passed-brightgreen?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-65%20passed-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)
 
-一个基于 CAMEL-AI 框架的 AI 剧本杀游戏。玩家可以与 AI 角色进行实时对话、调查线索、讨论案情、指认凶手，体验完整的剧本杀游戏流程。
+一个基于 OpenAI 兼容大模型 API 的 AI 剧本杀游戏。玩家可以与 AI 角色进行实时对话、调查线索、讨论案情、指认凶手，体验完整的剧本杀游戏流程。
 
 ## ✨ 功能特点
 
 ### 🎯 核心功能
 - **AI 角色扮演** - 每个角色都有独特的对话风格、隐藏秘密与凶手伪装策略
 - **AI 剧本生成** - 输入任意主题，AI 自动生成完整剧本（人物、线索、真相）
+- **AI 人物肖像** - 基于角色公开身份与外貌，自动生成并保存民国档案肖像
 - **完整游戏流程** - 自我介绍 → 搜证 → 讨论 → 投票 → 真相揭晓
 - **⚡ 实时流式对话** - SSE 流式输出，AI 角色边生成边显示
 - **上下文感知** - AI 角色能看到自己的线索、公开线索、其他角色身份与完整讨论历史
@@ -83,21 +84,22 @@
 │  ┌──────────────────────▼───────────────────────────────┐   │
 │  │   app/domain/  — 纯逻辑                                │   │
 │  │  game_manager.py    阶段/投票/指认                     │   │
-│  │  clue_system.py     线索分配/解锁                      │   │
+│  │  game_manager.py    阶段/投票/指认/线索                 │   │
 │  │  models.py          数据模型（dataclass）              │   │
 │  └──────────────────────┬───────────────────────────────┘   │
 │                         │                                     │
 │  ┌──────────────────────▼───────────────────────────────┐   │
 │  │   app/agents/  — AI 角色                              │   │
 │  │  roleplay_character.py  V4-Flash 角色扮演             │   │
-│  │  generator_agent.py     DeepSeek 故事生成             │   │
+│  │  story_service.py    DeepSeek 剧本生成 / 存档 / 肖像调度 │   │
+│  │  image_service.py    Qwen Image 肖像生成与本地持久化    │   │
 │  └──────────────────────┬───────────────────────────────┘   │
 └────────────────────────────┼────────────────────────────────┘
                              │
                              ▼
                 ┌────────────────────────┐
                 │   LLM API              │
-                │   DeepSeek V4 Pro/Flash │
+                │ DeepSeek V4 + Qwen Image │
                 └────────────────────────┘
 ```
 
@@ -168,9 +170,9 @@ cd Murder-Mystery-Game
 
 ### 2. 配置 API 密钥
 
-本项目需要 LLM API 密钥来驱动 AI 角色。
+本项目需要 LLM API 密钥来驱动 AI 角色；若启用自动人物肖像，还需要 DashScope API 密钥。
 
-使用 **DeepSeek V4 Pro**（故事生成，思考模式）+ **DeepSeek V4 Flash**（角色扮演，低延迟），单一供应商、一个 API key 即可。
+使用 **DeepSeek V4 Pro**（故事生成，禁用思考模式以降低延迟）+ **DeepSeek V4 Flash**（角色扮演，低延迟），单一供应商、一个 API key 即可。
 
 密钥存放在 **`backend/.env`**（相对路径以 `backend/` 为基准解析，与启动目录无关）；该文件已被根目录 `.gitignore` 忽略，**绝不会被提交**。
 
@@ -198,11 +200,17 @@ DEEPSEEK_MODEL=deepseek-v4-pro
 
 # 角色扮演（V4 Flash，思考模式默认关闭以保证低延迟；不设 key 时自动复用 DEEPSEEK_API_KEY）
 ROLEPLAY_MODEL=deepseek-v4-flash
+
+# 人物肖像（DashScope 原生 API；不配置时仍使用首字母头像）
+DASHSCOPE_API_KEY=sk-xxxxxxxxxxxxxxxx
+DASHSCOPE_IMAGE_MODEL=qwen-image-3.0
 ```
 
-> 💡 **获取 API 密钥**: DeepSeek: https://platform.deepseek.com/
+> 💡 **获取 API 密钥**: DeepSeek: https://platform.deepseek.com/；DashScope: https://platform.qianwenai.com/
 >
 > ⚠️ **快速失败**：启动时若 `DEEPSEEK_API_KEY` 缺失，后端会直接报错退出（fail fast），而不是在游戏中途抛出晦涩的 401。检查 `.env` 环境变量是否配置正确即可。
+>
+> 🖼️ **肖像存储**：新剧本会为每个角色并发生成一张 2:3 肖像，成功图片立即下载到 `backend/assets/portraits/<剧本ID>/`，并将访问路径写入该剧本 JSON。DashScope 密钥缺失或单张失败时，剧本仍可正常创建，并回退为首字母头像。
 
 ### 3. 安装依赖 + 启动
 
@@ -256,7 +264,7 @@ powershell start.ps1   # Windows PowerShell
 |---|---|---|
 | `DEEPSEEK_API_KEY` | — | 故事生成 + 角色扮演必需 |
 | `DEEPSEEK_BASE_URL` | `https://api.deepseek.com/v1` | DeepSeek 端点 |
-| `DEEPSEEK_MODEL` | `deepseek-v4-pro` | 故事生成模型（思考模式开启） |
+| `DEEPSEEK_MODEL` | `deepseek-v4-pro` | 故事生成模型（思考模式关闭） |
 | `ROLEPLAY_API_KEY` | 复用 `DEEPSEEK_API_KEY` | 角色扮演密钥（可选，通常不设） |
 | `ROLEPLAY_BASE_URL` | 复用 `DEEPSEEK_BASE_URL` | 角色扮演端点（可选） |
 | `ROLEPLAY_MODEL` | `deepseek-v4-flash` | 角色扮演模型（思考模式关闭） |
@@ -264,6 +272,12 @@ powershell start.ps1   # Windows PowerShell
 | `ROLEPLAY_TOP_P` | `0.95` | 角色生成 top_p（思考模式下无效） |
 | `ROLEPLAY_MAX_TOKENS` | `2048` | 角色生成最大 token |
 | `ROLEPLAY_THINKING_ENABLED` | `false` | 角色扮演是否开思考模式 |
+| `DASHSCOPE_API_KEY` | — | Qwen Image 人物肖像密钥（可选） |
+| `DASHSCOPE_BASE_URL` | `https://dashscope.aliyuncs.com/api/v1` | DashScope 原生 API 端点 |
+| `DASHSCOPE_IMAGE_MODEL` | `qwen-image-3.0` | 人物肖像文生图模型 |
+| `DASHSCOPE_IMAGE_SIZE` | `1024*1536` | 肖像输出尺寸（宽*高） |
+| `DASHSCOPE_IMAGE_MAX_WORKERS` | `2` | 同时生成的肖像数，兼顾限流与成本 |
+| `DASHSCOPE_IMAGE_TIMEOUT_SECONDS` | `150` | 单张肖像任务的总超时秒数 |
 | `CORS_ALLOWED_ORIGINS` | localhost dev | 逗号分隔；不设则只允许本地 |
 | `LOG_LEVEL` | `INFO` | DEBUG/INFO/WARNING/ERROR |
 | `SESSIONS_DIR` | — | 不设则内存存储；设了启用 JSON 持久化。相对路径以 `backend/` 为基准（如 `sessions`） |
@@ -320,8 +334,9 @@ data: {"phase": "discussion"}
 |------|------|
 | [FastAPI](https://fastapi.tiangolo.com/) | Web 框架（薄路由层） |
 | [Pydantic](https://docs.pydantic.dev/) | 数据验证 / 配置 |
-| [CAMEL-AI](https://www.camel-ai.org/) | AI Agent 框架 |
 | [OpenAI SDK](https://github.com/openai/openai-python) | V4-Pro / V4-Flash 客户端（OpenAI 兼容） |
+| [DeepSeek](https://platform.deepseek.com/) | 剧本生成与角色扮演模型 |
+| [Qwen Image](https://platform.qianwenai.com/docs/developer-guides/image-generation/text-to-image) | 角色肖像文生图（DashScope 原生 API） |
 | [pytest](https://docs.pytest.org/) | 单元测试 |
 | [uvicorn](https://www.uvicorn.org/) | ASGI 服务器 |
 
@@ -418,7 +433,7 @@ A: DeepSeek 提供免费注册和低成本按量计费，还有错峰半价。�
 
 **Q: 游戏过程中 AI 响应很慢怎么办？**
 
-A: 1) 首次生成剧本需要一些时间（V4 Pro 思考模式推理时间）；2) 讨论阶段已用 thread pool 并发触发所有 AI 角色；3) SSE 流式让前端在第一个角色完成时就开始渲染。如仍慢，可调低 `ROLEPLAY_MAX_TOKENS`。
+A: 1) 首次生成剧本需要一些时间；2) 讨论阶段已用 thread pool 并发触发所有 AI 角色；3) SSE 流式让前端在第一个角色完成时就开始渲染。如仍慢，可调低 `ROLEPLAY_MAX_TOKENS`。
 
 **Q: 重启后游戏状态会丢吗？**
 
@@ -434,7 +449,7 @@ A: 当前版本每个游戏只有一个人类玩家，其他角色由 AI 控制�
 
 **Q: SSE 流式和普通 /speak 端点的区别？**
 
-A: `/speak` 等所有 AI 完成后一次性返回；`/speak/stream` 用 Server-Sent Events 每完成一个 AI 角色就推一条 `message` 事件。已实现前端自动回退：流式失败时降级用批式。
+A: `/speak` 等所有 AI 完成后一次性返回；`/speak/stream` 用 Server-Sent Events 每完成一个 AI 角色就推一条 `message` 事件。流式失败时，前端通过讨论历史接口重新同步，避免重复提交消息。
 
 ## 🤝 贡献指南
 
@@ -454,7 +469,6 @@ Copyright 2023-2026 CAMEL-AI.org. All Rights Reserved.
 
 ## 🙏 致谢
 
-- [CAMEL-AI](https://www.camel-ai.org/) - 提供了强大的 AI Agent 框架
 - [DeepSeek](https://platform.deepseek.com/) - 提供 V4 Pro / V4 Flash LLM API
 - 所有开源贡献者
 

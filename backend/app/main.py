@@ -18,6 +18,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router
 from app.core.config import ENV_FILE, validate_secrets
@@ -33,9 +34,11 @@ from app.services.story_service import (
     create_roleplay_client,
     ensure_stories_dir,
 )
+from app.services.image_service import PORTRAITS_DIR, ensure_portraits_dir
 
 
 load_dotenv(ENV_FILE)
+ensure_portraits_dir()
 
 # backend/ 目录的绝对路径（config.py 从 app/core/config.py 向上三级解析
 # 得到 backend/，这里用同一方式取 backend/，供相对 SESSIONS_DIR 解析）。
@@ -100,7 +103,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="剧本杀 API",
-    description="剧本杀游戏后端服务 - CAMEL框架版",
+    description="剧本杀游戏后端服务 - OpenAI 兼容大模型 API 版",
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -111,6 +114,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.mount(
+    "/assets/portraits",
+    StaticFiles(directory=str(PORTRAITS_DIR)),
+    name="portraits",
 )
 
 app.include_router(router)
