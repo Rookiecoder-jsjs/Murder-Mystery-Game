@@ -1,0 +1,160 @@
+.voting-panel__heading {
+  position: relative;
+  padding-right: 115rpx;
+}
+
+.voting-panel__seal {
+  position: absolute;
+  top: 8rpx;
+  right: 4rpx;
+  width: 92rpx;
+  height: 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(159,49,39,0.82);
+  border: 4rpx double var(--seal);
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  transform: rotate(-8deg);
+}
+
+.voting-panel__warning {
+  display: flex;
+  gap: 18rpx;
+  margin-top: 28rpx;
+  padding: 20rpx 22rpx;
+  color: #d9c8a5;
+  background: #2b2116;
+  border-left: 8rpx solid var(--seal);
+}
+
+.voting-panel__warning > text {
+  width: 42rpx;
+  height: 42rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #e4c6a0;
+  border: 2rpx solid #b24534;
+  border-radius: 50%;
+  font-family: 'Courier New', monospace;
+}
+
+.voting-panel__warning view { flex: 1; }
+.voting-panel__warning view text { display: block; }
+.voting-panel__warning view text:first-child { font-size: 24rpx; font-weight: 700; }
+.voting-panel__warning view text:last-child { margin-top: 5rpx; color: #9d8f76; font-size: 19rpx; line-height: 1.5; }
+
+.voting-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22rpx;
+  margin-top: 28rpx;
+}
+
+.voting-poster {
+  position: relative;
+  padding: 14rpx 14rpx 20rpx;
+  background: #d9c695;
+  border: 2rpx solid #a18855;
+  box-shadow: 0 10rpx 22rpx rgba(70,51,25,0.2);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.voting-poster:nth-child(even) { transform: rotate(0.5deg); }
+.voting-poster:nth-child(odd) { transform: rotate(-0.4deg); }
+
+.voting-poster--selected {
+  border: 4rpx solid var(--seal);
+  box-shadow: 0 0 0 7rpx rgba(165,52,39,0.11), 0 12rpx 24rpx rgba(70,51,25,0.24);
+}
+
+.voting-poster__no,
+.voting-poster__name,
+.voting-poster__identity {
+  display: block;
+  text-align: center;
+}
+
+.voting-poster__no {
+  margin-bottom: 10rpx;
+  color: #7f6a47;
+  font-family: 'Courier New', monospace;
+  font-size: 15rpx;
+  letter-spacing: 2rpx;
+}
+
+.voting-poster__name {
+  margin-top: 15rpx;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.voting-poster__identity {
+  min-height: 54rpx;
+  margin-top: 5rpx;
+  color: var(--ink-muted);
+  font-size: 19rpx;
+  line-height: 1.45;
+}
+
+.voting-poster__stamp {
+  position: absolute;
+  z-index: 6;
+  top: 70rpx;
+  right: 20rpx;
+  padding: 7rpx 10rpx;
+  color: var(--seal);
+  background: rgba(235,221,186,0.82);
+  border: 3rpx solid var(--seal);
+  font-size: 18rpx;
+  font-weight: 700;
+  transform: rotate(-8deg);
+}
+
+.voting-panel__result,
+.voting-panel__selection {
+  margin-top: 26rpx;
+  padding: 24rpx;
+}
+
+.voting-panel__result {
+  color: var(--seal);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.voting-panel__selection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.voting-panel__selection text:first-child {
+  color: var(--ink-muted);
+  font-size: 21rpx;
+}
+
+.voting-panel__selection text:last-child {
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.voting-panel__footer {
+  position: sticky;
+  z-index: 10;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr;
+  gap: 14rpx;
+  margin: 34rpx -24rpx -56rpx;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(230, 216, 179, 0.96);
+  border-top: 2rpx solid #9f814b;
+}

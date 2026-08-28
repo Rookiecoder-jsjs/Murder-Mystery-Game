@@ -19,10 +19,14 @@ build/
 
 # Node
 node_modules/
+.pnpm-store/
+.swc/
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 frontend/*.local
+miniprogram/project.private.config.json
+miniprogram/*.local
 
 # IDE
 .idea/

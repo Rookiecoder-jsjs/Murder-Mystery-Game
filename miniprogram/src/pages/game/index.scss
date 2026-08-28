@@ -1,0 +1,20 @@
+.game-page__stage {
+  min-height: calc(100vh - 218rpx - env(safe-area-inset-top));
+  border-radius: 0;
+}
+
+.game-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24rpx;
+  padding: 80rpx 50rpx;
+  color: var(--ink-muted);
+  line-height: 1.7;
+  text-align: center;
+}
+
+.game-page__error button {
+  width: 100%;
+}

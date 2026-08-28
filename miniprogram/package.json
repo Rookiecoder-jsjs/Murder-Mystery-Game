@@ -1,0 +1,46 @@
+{
+  "name": "murder-mystery-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.5.1",
+  "description": "剧本杀微信小程序端",
+  "scripts": {
+    "dev:weapp": "taro build --type weapp --watch",
+    "build:weapp": "taro build --type weapp",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.27.0",
+    "@tarojs/components": "4.2.1",
+    "@tarojs/helper": "4.2.1",
+    "@tarojs/plugin-framework-react": "4.2.1",
+    "@tarojs/plugin-platform-weapp": "4.2.1",
+    "@tarojs/react": "4.2.1",
+    "@tarojs/runtime": "4.2.1",
+    "@tarojs/shared": "4.2.1",
+    "@tarojs/taro": "4.2.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.4",
+    "@babel/plugin-transform-class-properties": "7.25.9",
+    "@babel/preset-react": "^7.24.1",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.5",
+    "@tarojs/cli": "4.2.1",
+    "@tarojs/taro-loader": "4.2.1",
+    "@tarojs/webpack5-runner": "4.2.1",
+    "@types/node": "^22.15.0",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "@types/webpack-env": "^1.18.8",
+    "babel-preset-taro": "4.2.1",
+    "less": "^4.2.0",
+    "postcss": "^8.5.6",
+    "react-refresh": "^0.14.0",
+    "sass": "^1.89.0",
+    "tsconfig-paths-webpack-plugin": "^4.1.0",
+    "typescript": "~5.8.3",
+    "webpack": "5.91.0"
+  }
+}

@@ -1,0 +1,318 @@
+.archive-home__hero {
+  position: relative;
+  min-height: 470rpx;
+  padding: 54rpx 32rpx 34rpx;
+  overflow: hidden;
+  color: #e6dac1;
+  background:
+    linear-gradient(100deg, rgba(14, 11, 8, 0.96) 0 58%, rgba(14, 11, 8, 0.68)),
+    radial-gradient(circle at 88% 22%, #76603e, #211910 56%);
+  border-bottom: 2rpx solid #8e6b34;
+}
+
+.archive-home__hero::after {
+  content: 'MURDER MYSTERY';
+  position: absolute;
+  right: -138rpx;
+  top: 146rpx;
+  color: rgba(202, 167, 95, 0.07);
+  font-family: 'Courier New', monospace;
+  font-size: 66rpx;
+  font-weight: 700;
+  letter-spacing: 7rpx;
+  transform: rotate(90deg);
+}
+
+.archive-home__serial,
+.archive-home__title,
+.archive-home__subtitle {
+  position: relative;
+  z-index: 2;
+  display: block;
+}
+
+.archive-home__serial {
+  color: #a88a51;
+  font-family: 'Courier New', monospace;
+  font-size: 18rpx;
+  letter-spacing: 5rpx;
+}
+
+.archive-home__title {
+  margin-top: 18rpx;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 58rpx;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 5rpx;
+}
+
+.archive-home__subtitle {
+  width: 500rpx;
+  margin-top: 16rpx;
+  color: #9e917a;
+  font-size: 23rpx;
+  line-height: 1.7;
+}
+
+.archive-home__red-thread {
+  position: absolute;
+  z-index: 1;
+  top: 80rpx;
+  right: 44rpx;
+  width: 210rpx;
+  height: 300rpx;
+  border: 3rpx solid transparent;
+  border-top-color: rgba(173, 57, 43, 0.7);
+  border-right-color: rgba(173, 57, 43, 0.45);
+  transform: rotate(16deg) skewY(-11deg);
+}
+
+.archive-home__stamp {
+  position: absolute;
+  z-index: 2;
+  top: 120rpx;
+  right: 50rpx;
+  width: 88rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(181, 61, 46, 0.82);
+  border: 4rpx double #9d3429;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 30rpx;
+  line-height: 1.05;
+  text-align: center;
+  transform: rotate(-9deg);
+}
+
+.archive-home__create {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  height: 104rpx;
+  margin-top: 38rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  color: #fff6df;
+  background: linear-gradient(100deg, #9d7736, #715127);
+  border: 2rpx solid #c29a50;
+  border-radius: 14rpx;
+  box-shadow: 0 12rpx 30rpx rgba(0,0,0,0.35);
+  text-align: left;
+}
+
+.archive-home__create > text:first-child {
+  margin-right: 20rpx;
+  font-size: 45rpx;
+  font-weight: 300;
+}
+
+.archive-home__create view {
+  flex: 1;
+}
+
+.archive-home__create view text {
+  display: block;
+}
+
+.archive-home__create view text:first-child {
+  font-size: 30rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.archive-home__create view text:last-child {
+  margin-top: 8rpx;
+  color: #d8c79f;
+  font-size: 19rpx;
+}
+
+.archive-home__create > text:last-child {
+  font-size: 46rpx;
+}
+
+.archive-home__resume {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  margin-top: 16rpx;
+  padding: 16rpx 20rpx;
+  display: flex;
+  justify-content: space-between;
+  color: #a9987a;
+  border: 1rpx dashed #5f4c31;
+  font-size: 21rpx;
+}
+
+.archive-home__resume text:first-child {
+  color: #d8c8aa;
+  font-weight: 700;
+}
+
+.archive-home__stage {
+  margin-top: 0;
+  border-radius: 0;
+}
+
+.archive-home__section-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 30rpx;
+}
+
+.archive-home__count {
+  padding-bottom: 6rpx;
+  color: var(--ink-muted);
+  font-family: 'Courier New', monospace;
+  font-size: 20rpx;
+}
+
+.archive-home__cases {
+  position: relative;
+  z-index: 1;
+  width: calc(100% + 48rpx);
+  margin-left: -24rpx;
+}
+
+.archive-home__case-row {
+  display: flex;
+  gap: 22rpx;
+  width: max-content;
+  padding: 14rpx 24rpx 40rpx;
+}
+
+.case-file {
+  position: relative;
+  width: 520rpx;
+  min-height: 380rpx;
+  padding: 46rpx 32rpx 30rpx;
+  background:
+    linear-gradient(rgba(110, 83, 39, 0.045) 1rpx, transparent 1rpx),
+    #e2d2aa;
+  background-size: 100% 36rpx;
+  border: 2rpx solid #a98f5b;
+  border-radius: 8rpx;
+  box-shadow: 8rpx 14rpx 26rpx rgba(79, 57, 26, 0.24);
+}
+
+.case-file:nth-child(even) { transform: rotate(0.7deg); }
+.case-file:nth-child(odd) { transform: rotate(-0.45deg); }
+
+.case-file__tab {
+  position: absolute;
+  top: -22rpx;
+  left: 20rpx;
+  padding: 10rpx 22rpx;
+  background: #6f542a;
+  color: #f2e4c5;
+  font-family: 'Courier New', monospace;
+  font-size: 17rpx;
+  letter-spacing: 3rpx;
+}
+
+.case-file__pin {
+  position: absolute;
+  top: 22rpx;
+  right: 24rpx;
+  width: 16rpx;
+  height: 16rpx;
+  background: var(--seal);
+  border-radius: 50%;
+  box-shadow: 2rpx 4rpx 5rpx rgba(0,0,0,0.33);
+}
+
+.case-file__topic,
+.case-file__title {
+  display: block;
+}
+
+.case-file__topic {
+  color: var(--seal);
+  font-family: 'Courier New', monospace;
+  font-size: 18rpx;
+  letter-spacing: 3rpx;
+}
+
+.case-file__title {
+  min-height: 110rpx;
+  margin-top: 14rpx;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 42rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.case-file__rule {
+  height: 2rpx;
+  margin: 16rpx 0;
+  background: linear-gradient(90deg, #8d7346, transparent);
+}
+
+.case-file__meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-muted);
+  font-size: 20rpx;
+}
+
+.case-file__status {
+  position: absolute;
+  right: 32rpx;
+  bottom: 68rpx;
+  padding: 7rpx 12rpx;
+  color: var(--seal);
+  border: 2rpx solid var(--seal);
+  font-size: 18rpx;
+  transform: rotate(-7deg);
+}
+
+.case-file__open {
+  position: absolute;
+  left: 32rpx;
+  bottom: 28rpx;
+  color: #745923;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.archive-home__skeletons {
+  display: flex;
+  gap: 22rpx;
+  overflow: hidden;
+}
+
+.archive-home__skeleton {
+  flex: 0 0 520rpx;
+  height: 380rpx;
+  background: linear-gradient(100deg, #d6c596 30%, #e7d9b4 50%, #d6c596 70%);
+  background-size: 200% 100%;
+  border: 2rpx solid #b49d6c;
+  animation: skeleton 1.4s linear infinite;
+}
+
+.archive-home__retry {
+  width: 240rpx;
+  margin: 28rpx auto 0;
+}
+
+.archive-home__footnote {
+  position: relative;
+  z-index: 1;
+  margin-top: 36rpx;
+  padding-top: 22rpx;
+  display: flex;
+  justify-content: space-between;
+  color: #887655;
+  border-top: 1rpx solid rgba(116, 91, 51, 0.28);
+  font-size: 18rpx;
+}
+
+@keyframes skeleton {
+  to { background-position: -200% 0; }
+}

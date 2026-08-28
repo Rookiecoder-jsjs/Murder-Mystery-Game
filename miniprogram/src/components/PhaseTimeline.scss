@@ -1,0 +1,87 @@
+.phase-timeline {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  height: 106rpx;
+  display: flex;
+  padding: 12rpx 18rpx 10rpx;
+  background: rgba(20, 16, 11, 0.98);
+  border-bottom: 1rpx solid #3d3020;
+}
+
+.phase-step {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  color: #665c4c;
+}
+
+.phase-step__track {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.phase-step:not(:last-child) .phase-step__track::after {
+  content: '';
+  position: absolute;
+  top: 17rpx;
+  left: calc(50% + 23rpx);
+  width: calc(100% - 46rpx);
+  height: 1rpx;
+  background: #4a3b28;
+}
+
+.phase-step__dot {
+  position: relative;
+  z-index: 1;
+  width: 36rpx;
+  height: 36rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1d1812;
+  border: 1rpx solid #53442f;
+  border-radius: 50%;
+  font-family: 'Courier New', monospace;
+  font-size: 14rpx;
+}
+
+.phase-step__label,
+.phase-step__short {
+  display: block;
+}
+
+.phase-step__label {
+  margin-top: 7rpx;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.phase-step__short {
+  margin-top: 2rpx;
+  font-family: 'Courier New', monospace;
+  font-size: 12rpx;
+  letter-spacing: 1rpx;
+}
+
+.phase-step--done {
+  color: #8f7544;
+}
+
+.phase-step--done .phase-step__dot {
+  color: #d7bd82;
+  border-color: #8c7040;
+}
+
+.phase-step--active {
+  color: #d6b36d;
+}
+
+.phase-step--active .phase-step__dot {
+  background: #9d3328;
+  color: #fff0d4;
+  border-color: #c95440;
+  box-shadow: 0 0 0 7rpx rgba(157, 51, 40, 0.13);
+}

@@ -1,0 +1,156 @@
+.game-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.game-panel__heading {
+  margin-bottom: 30rpx;
+}
+
+.intro-panel__hero {
+  display: flex;
+  gap: 28rpx;
+  padding: 32rpx 26rpx;
+  overflow: visible;
+}
+
+.intro-panel__identity {
+  flex: 1;
+  min-width: 0;
+  padding-top: 8rpx;
+}
+
+.intro-panel__file-no {
+  display: block;
+  color: #8a7653;
+  font-family: 'Courier New', monospace;
+  font-size: 15rpx;
+  letter-spacing: 2rpx;
+}
+
+.intro-panel__name-row {
+  display: flex;
+  align-items: center;
+  margin-top: 18rpx;
+}
+
+.intro-panel__name-row text:first-child {
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 46rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+}
+
+.intro-panel__name-row text:last-child {
+  margin-left: 14rpx;
+  padding: 5rpx 10rpx;
+  color: var(--seal);
+  border: 3rpx solid var(--seal);
+  font-size: 21rpx;
+  transform: rotate(7deg);
+}
+
+.intro-panel__job {
+  display: inline-block;
+  margin-top: 14rpx;
+  padding: 8rpx 12rpx;
+  background: rgba(255,255,255,0.22);
+  border: 1rpx solid #ad9565;
+  font-size: 22rpx;
+}
+
+.intro-panel__appearance {
+  display: block;
+  margin-top: 20rpx;
+  color: var(--ink-muted);
+  font-size: 24rpx;
+  line-height: 1.75;
+}
+
+.intro-panel__private {
+  display: block;
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  color: #9b3429;
+  border-top: 1rpx dashed #ae9463;
+  font-size: 19rpx;
+}
+
+.intro-panel__form {
+  margin-top: 26rpx;
+  padding: 30rpx 26rpx;
+}
+
+.intro-panel__form-note {
+  display: block;
+  margin-bottom: 16rpx;
+  color: var(--ink-muted);
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+.intro-panel__textarea {
+  height: 220rpx;
+}
+
+.intro-panel__form-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18rpx;
+}
+
+.intro-panel__form-foot > text {
+  color: #887655;
+  font-family: 'Courier New', monospace;
+  font-size: 18rpx;
+}
+
+.intro-panel__form-foot button {
+  width: 330rpx;
+}
+
+.intro-panel__roster {
+  margin-top: 34rpx;
+}
+
+.intro-panel__roster-row {
+  display: flex;
+  gap: 20rpx;
+  padding: 18rpx 8rpx 32rpx;
+  overflow-x: auto;
+}
+
+.intro-panel__dossiers {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.intro-panel__next {
+  margin-top: 30rpx;
+  padding: 30rpx 26rpx;
+  text-align: center;
+}
+
+.intro-panel__next > text {
+  display: block;
+}
+
+.intro-panel__next > text:first-child {
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.intro-panel__next > text:nth-child(2) {
+  margin-top: 10rpx;
+  color: var(--ink-muted);
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+.intro-panel__next button {
+  width: 100%;
+  margin-top: 24rpx;
+}

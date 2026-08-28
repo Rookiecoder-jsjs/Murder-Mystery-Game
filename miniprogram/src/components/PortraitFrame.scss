@@ -1,0 +1,131 @@
+.portrait-frame {
+  position: relative;
+  flex: none;
+  padding: 12rpx 12rpx 10rpx;
+  background: #efe3c3;
+  border: 2rpx solid #94743f;
+  box-shadow: 0 12rpx 28rpx rgba(52, 37, 17, 0.31), inset 0 0 0 5rpx rgba(255,255,255,0.18);
+  transform: rotate(-0.8deg);
+}
+
+.portrait-frame--hero {
+  width: 286rpx;
+}
+
+.portrait-frame--card {
+  width: 224rpx;
+}
+
+.portrait-frame--thumb {
+  width: 118rpx;
+  padding: 7rpx;
+}
+
+.portrait-frame--poster {
+  width: 100%;
+  padding: 10rpx;
+}
+
+.portrait-frame__tape {
+  position: absolute;
+  z-index: 3;
+  top: -15rpx;
+  left: 50%;
+  width: 96rpx;
+  height: 30rpx;
+  background: rgba(217, 199, 151, 0.82);
+  border: 1rpx dashed rgba(95, 75, 39, 0.38);
+  transform: translateX(-50%) rotate(2deg);
+}
+
+.portrait-frame__photo {
+  position: relative;
+  width: 100%;
+  height: 306rpx;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 26%, #755f43 0 14%, transparent 15%),
+    radial-gradient(ellipse at 50% 98%, #4a3a28 0 40%, transparent 41%),
+    linear-gradient(160deg, #2c2821, #796447);
+  border: 5rpx solid #241c13;
+}
+
+.portrait-frame--hero .portrait-frame__photo {
+  height: 393rpx;
+}
+
+.portrait-frame--card .portrait-frame__photo {
+  height: 300rpx;
+}
+
+.portrait-frame--thumb .portrait-frame__photo {
+  height: 153rpx;
+}
+
+.portrait-frame--poster .portrait-frame__photo {
+  height: 418rpx;
+}
+
+.portrait-frame__image {
+  width: 100%;
+  height: 100%;
+  filter: saturate(0.88) contrast(1.03);
+}
+
+.portrait-frame__focus {
+  position: absolute;
+  inset: 8rpx;
+  pointer-events: none;
+  border: 1rpx solid rgba(255, 247, 222, 0.25);
+}
+
+.portrait-frame__fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ebdfc2;
+}
+
+.portrait-frame__fallback text:first-child {
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 88rpx;
+}
+
+.portrait-frame__fallback text:last-child {
+  margin-top: 12rpx;
+  font-family: 'Courier New', monospace;
+  font-size: 16rpx;
+  letter-spacing: 4rpx;
+}
+
+.portrait-frame__caption {
+  padding: 12rpx 4rpx 2rpx;
+  color: #3a2d1c;
+  text-align: center;
+}
+
+.portrait-frame__caption text {
+  display: block;
+}
+
+.portrait-frame__caption text:first-child {
+  overflow: hidden;
+  font-size: 27rpx;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portrait-frame__caption text:last-child {
+  margin-top: 4rpx;
+  color: #8a7756;
+  font-size: 15rpx;
+}
+
+.portrait-frame--thumb .portrait-frame__caption,
+.portrait-frame--poster .portrait-frame__caption text:last-child {
+  display: none;
+}

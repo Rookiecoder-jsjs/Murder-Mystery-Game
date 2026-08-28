@@ -7,7 +7,9 @@
     "dev": "node scripts/dev.js",
     "dev:backend": "node scripts/dev-backend.js",
     "dev:frontend": "cd frontend && npm run dev",
-    "install:all": "npm install && cd frontend && npm install",
+    "dev:miniprogram": "cd miniprogram && npm run dev:weapp",
+    "build:miniprogram": "cd miniprogram && npm run build:weapp",
+    "install:all": "npm install && cd frontend && npm install && cd ../miniprogram && pnpm install --frozen-lockfile",
     "test:backend": "cd backend && python -m pytest"
   }
 }

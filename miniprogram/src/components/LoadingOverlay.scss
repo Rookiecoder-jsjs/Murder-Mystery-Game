@@ -1,0 +1,56 @@
+.loading-overlay {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 13, 9, 0.9);
+  color: #d7c6a4;
+  backdrop-filter: blur(8rpx);
+}
+
+.loading-overlay__stamp {
+  width: 98rpx;
+  height: 98rpx;
+  margin-bottom: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bf4b3a;
+  border: 5rpx double #a83b2e;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 48rpx;
+  animation: overlay-stamp 1.3s ease-in-out infinite alternate;
+}
+
+.loading-overlay text {
+  font-size: 28rpx;
+  letter-spacing: 5rpx;
+}
+
+.loading-overlay__line {
+  width: 280rpx;
+  height: 2rpx;
+  margin-top: 28rpx;
+  overflow: hidden;
+  background: #44341f;
+}
+
+.loading-overlay__line view {
+  width: 44%;
+  height: 100%;
+  background: #b58a43;
+  animation: overlay-line 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes overlay-line {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(230%); }
+}
+
+@keyframes overlay-stamp {
+  from { opacity: 0.58; transform: rotate(-8deg) scale(0.94); }
+  to { opacity: 1; transform: rotate(-3deg) scale(1); }
+}

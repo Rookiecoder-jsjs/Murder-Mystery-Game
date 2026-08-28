@@ -1,0 +1,80 @@
+.character-dossier {
+  display: flex;
+  gap: 24rpx;
+  padding: 28rpx 24rpx;
+  overflow: visible;
+}
+
+.character-dossier__portrait {
+  margin-top: 8rpx;
+}
+
+.character-dossier__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.character-dossier__name-row {
+  display: flex;
+  align-items: center;
+}
+
+.character-dossier__name {
+  color: var(--ink);
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 38rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.character-dossier__you {
+  margin-left: 14rpx;
+  padding: 5rpx 10rpx;
+  color: var(--seal);
+  border: 2rpx solid var(--seal);
+  font-size: 20rpx;
+  font-weight: 700;
+  transform: rotate(5deg);
+}
+
+.character-dossier__identity {
+  display: inline-block;
+  margin-top: 12rpx;
+  padding: 7rpx 12rpx;
+  background: rgba(255,255,255,0.22);
+  color: #5f4c2e;
+  border: 1rpx solid #b69c69;
+  font-size: 22rpx;
+}
+
+.character-dossier__appearance {
+  display: block;
+  margin-top: 18rpx;
+  color: var(--ink-muted);
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.character-dossier__statement {
+  margin-top: 20rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx dashed #a99264;
+}
+
+.character-dossier__statement text {
+  display: block;
+}
+
+.character-dossier__statement text:first-child {
+  color: var(--seal);
+  font-family: 'Courier New', monospace;
+  font-size: 17rpx;
+  letter-spacing: 3rpx;
+}
+
+.character-dossier__statement text:last-child {
+  margin-top: 8rpx;
+  color: #433520;
+  font-size: 24rpx;
+  line-height: 1.65;
+}

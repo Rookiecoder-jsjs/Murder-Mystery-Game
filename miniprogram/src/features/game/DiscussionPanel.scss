@@ -1,0 +1,202 @@
+.discussion-panel__roster {
+  width: calc(100% + 48rpx);
+  margin-left: -24rpx;
+}
+
+.discussion-panel__roster-row {
+  display: flex;
+  gap: 20rpx;
+  width: max-content;
+  padding: 20rpx 24rpx 34rpx;
+}
+
+.discussion-panel__roster-item {
+  position: relative;
+}
+
+.discussion-panel__you-stamp {
+  position: absolute;
+  z-index: 5;
+  top: 26rpx;
+  right: -5rpx;
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--seal);
+  background: rgba(238,225,192,0.85);
+  border: 3rpx solid var(--seal);
+  font-size: 22rpx;
+  font-weight: 700;
+  transform: rotate(8deg);
+}
+
+.discussion-panel__evidence {
+  margin-top: 10rpx;
+}
+
+.discussion-panel__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.discussion-panel__section-head .field-label { margin: 0; }
+.discussion-panel__section-head > text:last-child { color: var(--ink-muted); font-size: 19rpx; }
+
+.discussion-panel__evidence-row {
+  display: flex;
+  gap: 18rpx;
+  width: max-content;
+  padding: 14rpx 4rpx 24rpx;
+}
+
+.discussion-panel__evidence-card {
+  width: 530rpx;
+}
+
+.discussion-panel__testimony-head {
+  margin-top: 28rpx;
+  padding-bottom: 12rpx;
+  border-bottom: 2rpx solid rgba(121,92,44,0.35);
+}
+
+.discussion-panel__messages {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  margin-top: 22rpx;
+}
+
+.testimony {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+}
+
+.testimony--player {
+  flex-direction: row-reverse;
+}
+
+.testimony__sheet {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 22rpx 22rpx 25rpx;
+  background:
+    linear-gradient(rgba(105,80,39,0.055) 1rpx, transparent 1rpx),
+    #f0e4c4;
+  background-size: 100% 36rpx;
+  border: 2rpx solid #ad9668;
+  box-shadow: 0 7rpx 18rpx rgba(79,57,27,0.16);
+}
+
+.testimony--player .testimony__sheet {
+  background-color: #ddc99b;
+  border-color: #91723b;
+}
+
+.testimony__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12rpx;
+  border-bottom: 1rpx dashed #ad9669;
+}
+
+.testimony__head text:first-child {
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 29rpx;
+  font-weight: 700;
+}
+
+.testimony__head text:last-child {
+  color: #8b7958;
+  font-family: 'Courier New', monospace;
+  font-size: 14rpx;
+}
+
+.testimony__content {
+  display: block;
+  margin-top: 15rpx;
+  color: #3a2d1d;
+  font-size: 25rpx;
+  line-height: 1.75;
+}
+
+.testimony__stamp {
+  position: absolute;
+  right: 14rpx;
+  bottom: 10rpx;
+  color: rgba(155,51,41,0.62);
+  border: 2rpx solid rgba(155,51,41,0.62);
+  font-size: 15rpx;
+  transform: rotate(-5deg);
+}
+
+.testimony__unknown {
+  width: 92rpx;
+  height: 128rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d6c6a4;
+  background: #443522;
+  border: 6rpx solid #e7d9b8;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 42rpx;
+}
+
+.discussion-panel__thinking {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx 24rpx;
+  color: #76664a;
+  border: 1rpx dashed #a58d5c;
+  font-size: 21rpx;
+}
+
+.discussion-panel__thinking .spin-mark {
+  color: #8b6d36;
+  border-color: rgba(139,109,54,0.25);
+  border-top-color: #8b6d36;
+}
+
+.discussion-panel__composer {
+  margin-top: 32rpx;
+  padding: 26rpx;
+}
+
+.discussion-panel__textarea {
+  height: 210rpx;
+}
+
+.discussion-panel__composer-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16rpx;
+}
+
+.discussion-panel__composer-foot > text {
+  color: var(--ink-muted);
+  font-family: 'Courier New', monospace;
+  font-size: 18rpx;
+}
+
+.discussion-panel__composer-foot button { width: 280rpx; }
+
+.discussion-panel__footer {
+  position: sticky;
+  z-index: 10;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 0.8fr 1.45fr;
+  gap: 14rpx;
+  margin: 36rpx -24rpx -56rpx;
+  padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
+  background: rgba(230, 216, 179, 0.96);
+  border-top: 2rpx solid #9f814b;
+}

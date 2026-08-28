@@ -1,0 +1,76 @@
+.clue-card {
+  position: relative;
+  padding: 28rpx 24rpx 22rpx;
+  background: #f0e5c7;
+  border: 2rpx solid #b9a477;
+  border-top: 8rpx solid #8b6e35;
+  box-shadow: 0 8rpx 20rpx rgba(73, 53, 25, 0.18);
+  transform: rotate(0.35deg);
+}
+
+.clue-card--testimony { border-top-color: #657c8b; }
+.clue-card--document { border-top-color: #775f82; }
+.clue-card--featured { animation: archive-in 0.38s ease-out both; }
+
+.clue-card__pin {
+  position: absolute;
+  top: 12rpx;
+  right: 18rpx;
+  width: 14rpx;
+  height: 14rpx;
+  background: #a73a2d;
+  border-radius: 50%;
+  box-shadow: 1rpx 3rpx 4rpx rgba(0,0,0,0.35);
+}
+
+.clue-card__head,
+.clue-card__foot {
+  display: flex;
+  align-items: center;
+}
+
+.clue-card__glyph {
+  color: #81662f;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.clue-card__type {
+  margin-left: 10rpx;
+  color: #5c4c31;
+  font-size: 22rpx;
+  font-weight: 700;
+  letter-spacing: 3rpx;
+}
+
+.clue-card__id {
+  margin-left: auto;
+  margin-right: 20rpx;
+  color: #8b795a;
+  font-family: 'Courier New', monospace;
+  font-size: 17rpx;
+}
+
+.clue-card__content {
+  display: block;
+  margin-top: 18rpx;
+  color: #362b1d;
+  font-size: 27rpx;
+  line-height: 1.75;
+}
+
+.clue-card__foot {
+  justify-content: space-between;
+  margin-top: 24rpx;
+  padding-top: 14rpx;
+  color: #7e6d4f;
+  border-top: 1rpx dashed #b5a175;
+  font-size: 20rpx;
+}
+
+.clue-card__public {
+  padding: 3rpx 12rpx;
+  color: #9e3327;
+  border: 2rpx solid #a53a2d;
+  transform: rotate(-4deg);
+}

@@ -1,0 +1,101 @@
+.case-header {
+  position: relative;
+  z-index: 20;
+  background: rgba(16, 13, 9, 0.97);
+  color: #eadfc8;
+  border-bottom: 2rpx solid rgba(195, 154, 76, 0.55);
+}
+
+.case-header__safe {
+  height: env(safe-area-inset-top);
+}
+
+.case-header__bar {
+  height: 112rpx;
+  padding: 0 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.case-header__left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.case-header__menu,
+.case-header__back {
+  width: 64rpx;
+  margin-right: 12rpx;
+  color: #b99a60;
+  font-family: serif;
+  font-size: 42rpx;
+  text-align: center;
+}
+
+.case-header__back {
+  font-size: 64rpx;
+  line-height: 64rpx;
+}
+
+.case-header__eyebrow,
+.case-header__title {
+  display: block;
+}
+
+.case-header__eyebrow {
+  color: #8d8069;
+  font-family: 'Courier New', monospace;
+  font-size: 16rpx;
+  letter-spacing: 4rpx;
+  text-transform: uppercase;
+}
+
+.case-header__title {
+  margin-top: 4rpx;
+  color: #c7a45e;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 36rpx;
+  font-weight: 700;
+  letter-spacing: 5rpx;
+}
+
+.case-header__role {
+  max-width: 190rpx;
+  margin-right: 160rpx;
+  text-align: right;
+}
+
+.case-header__role text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.case-header__role text:first-child {
+  color: #776d5c;
+  font-size: 18rpx;
+}
+
+.case-header__role text:last-child {
+  margin-top: 3rpx;
+  color: #e7dcc5;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.case-header__seal {
+  width: 52rpx;
+  height: 52rpx;
+  margin-right: 160rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b34232;
+  border: 3rpx solid #9f3529;
+  font-family: 'STKaiti', 'KaiTi', serif;
+  font-size: 26rpx;
+  transform: rotate(-7deg);
+}

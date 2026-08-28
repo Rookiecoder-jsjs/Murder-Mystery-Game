@@ -1,0 +1,11 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  '@tarojs/binding': true
+  '@tarojs/cli': true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+
+# 在 CI 或其他非交互环境中，依赖树需要重建时不要求确认。
+confirmModulesPurge: false
