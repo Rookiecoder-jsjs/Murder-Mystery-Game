@@ -7,11 +7,13 @@
 import os
 import json
 import re
+import time
 from typing import Optional, List, Dict, Any
 
 from openai import OpenAI
 
 from app.core.config import get_config
+from app.core.llm_trace import trace_llm_chat
 from app.core.logging import get_logger
 from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
 from app.services.image_service import PortraitService, delete_story_portraits
@@ -185,6 +187,7 @@ def generate_story_text(
         {"role": "user", "content": prompt},
     ]
 
+    start = time.monotonic()
     try:
         response = client.chat.completions.create(
             model=config.model_name,
@@ -193,10 +196,26 @@ def generate_story_text(
             extra_body={"thinking": {"type": "disabled"}},
         )
     except APIError as e:
+        trace_llm_chat(
+            model=config.model_name,
+            kind="story_generation",
+            messages=messages,
+            error=str(e),
+            duration_ms=int((time.monotonic() - start) * 1000),
+        )
         raise RuntimeError(f"Story generation failed ({config.model_name}): {e}") from e
 
     reasoning = getattr(response.choices[0].message, "reasoning_content", None) or ""
     content = response.choices[0].message.content or ""
+    trace_llm_chat(
+        model=config.model_name,
+        kind="story_generation",
+        messages=messages,
+        response=content,
+        reasoning=reasoning,
+        usage=getattr(response, "usage", None),
+        duration_ms=int((time.monotonic() - start) * 1000),
+    )
 
     if show_reasoning and reasoning:
         logger.info("[思考过程] %s...", reasoning[:800])

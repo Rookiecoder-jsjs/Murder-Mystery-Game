@@ -16,6 +16,7 @@ and other structured queries bypass it so they never pollute roleplay.
 """
 
 import re
+import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 if TYPE_CHECKING:
@@ -23,9 +24,10 @@ if TYPE_CHECKING:
     from app.domain.models import CaseData
 
 from app.core.config import RoleplayConfig, get_config
+from app.core.llm_trace import trace_llm_chat
+from app.core.logging import get_logger
 from app.core.phases import GamePhase
 from app.core.prompts import PhasePromptTemplates
-from app.core.logging import get_logger
 from app.domain.models import ScriptCharacter, ClueData, GameState
 
 
@@ -235,15 +237,42 @@ class RoleplayCharacter:
             discussion_history,
         )
 
+        start = time.monotonic()
+        trace_context = {
+            "character_id": self.character_id,
+            "character_name": self.name,
+            "phase": phase.value,
+        }
+        reasoning = ""
         try:
             response = self._create_completion(messages)
-            content = response.choices[0].message.content
+            message = response.choices[0].message
+            content = message.content
+            reasoning = getattr(message, "reasoning_content", "") or ""
             if content is None:
                 content = "[无回复]"
         except Exception as e:
+            trace_llm_chat(
+                model=self.config.model_name,
+                kind="roleplay",
+                messages=messages,
+                context=trace_context,
+                error=str(e),
+                duration_ms=int((time.monotonic() - start) * 1000),
+            )
             logger.error("[Roleplay Error] %s: %s", self.name, e)
-            content = "[回复失败]"
-            return content
+            return "[回复失败]"
+
+        trace_llm_chat(
+            model=self.config.model_name,
+            kind="roleplay",
+            messages=messages,
+            context=trace_context,
+            response=content,
+            reasoning=reasoning,
+            usage=getattr(response, "usage", None),
+            duration_ms=int((time.monotonic() - start) * 1000),
+        )
 
         clean_content = self._strip_self_prefix(content)
 
