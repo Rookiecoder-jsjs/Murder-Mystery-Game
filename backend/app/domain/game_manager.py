@@ -322,7 +322,12 @@ class GameManager:
                 f"凶手逃脱，好人失败..."
             )
 
-    def submit_vote(self, player_id: str, target_id: str) -> bool:
+    def submit_vote(
+        self,
+        player_id: str,
+        target_id: str,
+        reason: Optional[str] = None,
+    ) -> bool:
         """Submit a vote for a player.
 
         A vote replaces any earlier vote by the same player (revote
@@ -331,6 +336,8 @@ class GameManager:
         Args:
             player_id: The voting player's character ID.
             target_id: The voted character's ID.
+            reason: Optional one-line reason (AI votes carry it); kept in
+                the record for reveal/logging but never influences tally.
 
         Returns:
             True if the vote was recorded.
@@ -346,10 +353,10 @@ class GameManager:
             if v["player_id"] != player_id
         ]
         state.vote = target_id
-        self.state.votes_record.append({
-            "player_id": player_id,
-            "target_id": target_id,
-        })
+        record = {"player_id": player_id, "target_id": target_id}
+        if reason:
+            record["reason"] = reason
+        self.state.votes_record.append(record)
         return True
 
     def reset_votes(self) -> None:

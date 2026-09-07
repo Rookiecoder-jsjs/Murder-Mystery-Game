@@ -201,9 +201,10 @@ class GameSession:
             "revealed_clue_ids": [
                 c.id for c in self.archive.clues if c.reveal_to_all
             ],
-            # AI 角色的私有对话记忆 —— 不落盘则重启后所有角色失忆
+            # AI 角色的私有对话记忆 —— 不落盘则重启后所有角色失忆；
+            # list() 拷贝快照语义：此后流内 append 不会污染已取快照
             "ai_memories": {
-                cid: ai.conversation_history
+                cid: list(ai.conversation_history)
                 for cid, ai in self.ai_characters.items()
             },
         }
@@ -514,29 +515,60 @@ class GameSession:
         self.game.submit_vote(self.human_player_id, target_id)
 
         loop = asyncio.get_running_loop()
-        alive_ai_ids = [
-            cid for cid in self.ai_characters
-            if (self.game.state.player_states.get(cid) or PlayerState("")).is_alive
+        alive_ids = [
+            pid for pid, st in self.game.state.player_states.items() if st.is_alive
         ]
+        alive_set = set(alive_ids)
 
         async def _vote(char_id: str, ai: RoleplayCharacter):
+            """Collect one AI's vote with a retry + random fallback.
+
+            ``check_voting_result`` only opens the ballot once *every* alive
+            player has voted, so a single AI whose vote comes back empty (a
+            hard failure or an unparseable tool reply) would stall the round
+            forever. Retry once via LLM; if still nothing, cast a random
+            alive target.
+            """
             ctx = self._ai_context(char_id)
-            raw = await loop.run_in_executor(
-                None, lambda: ai.get_vote(**ctx),
-            )
-            return (char_id, ai.name, raw)
+
+            def _try_once() -> tuple[str, str]:
+                # Pass only get_vote's accepted keys — ctx carries extra
+                # "case", and get_vote() does not accept it (TypeError).
+                target, reason = ai.get_vote(
+                    known_clues=ctx["known_clues"],
+                    revealed_clues=ctx["revealed_clues"],
+                    other_chars=ctx["other_chars"],
+                    discussion_history=ctx["discussion_history"],
+                )
+                if target in alive_set and target != char_id:
+                    return target, reason or ""
+                return "", ""
+
+            chosen, reason = await loop.run_in_executor(None, _try_once)
+            if not chosen:
+                chosen, reason = await loop.run_in_executor(None, _try_once)
+            if not chosen:
+                candidates = [pid for pid in alive_ids if pid != char_id]
+                chosen = random.choice(candidates) if candidates else ""
+                reason = ""
+                if chosen:
+                    logger.warning(
+                        "[Vote] %s 投票结果无法解析，回退为随机选择 %s",
+                        ai.name, self._char_name(chosen),
+                    )
+            return char_id, ai.name, chosen, reason
 
         results = await asyncio.gather(*(
-            _vote(cid, ai) for cid, ai in self.ai_characters.items() if cid in alive_ai_ids
+            _vote(cid, ai)
+            for cid, ai in self.ai_characters.items() if cid in alive_set
         ))
 
         votes_view: Dict[str, str] = {}
-        for char_id, name, raw in results:
-            parsed = RoleplayCharacter.parse_vote_target(raw, list(self.archive.characters))
-            if parsed in self.game.alive_players and parsed != char_id:
-                self.game.submit_vote(char_id, parsed)
-            if parsed:
-                votes_view[name] = self._char_name(parsed)
+        for char_id, name, chosen, reason in results:
+            if chosen in alive_set and chosen != char_id:
+                self.game.submit_vote(char_id, chosen, reason=reason)
+            if chosen:
+                votes_view[name] = self._char_name(chosen)
 
         ended, result_msg = self.game.check_voting_result()
         return {

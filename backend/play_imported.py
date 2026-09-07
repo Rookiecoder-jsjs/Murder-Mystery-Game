@@ -42,7 +42,7 @@ class MurderMysteryCLI:
 
     def _print_header(self):
         print(Fore.CYAN + "=" * 50)
-    print(Fore.CYAN + "  剧本杀 - OpenAI 兼容 API 版")
+        print(Fore.CYAN + "  剧本杀 - OpenAI 兼容 API 版")
         print(Fore.CYAN + "=" * 50)
 
     def _show_stories(self):
@@ -344,7 +344,12 @@ class MurderMysteryCLI:
             if not ai_state or not ai_state.is_alive:
                 continue
 
-            ai_vote = ai.get_vote()
+            ai_vote, _reason = ai.get_vote(
+                known_clues=self.session.game.get_player_clues(char_id),
+                revealed_clues=self.session.game.get_revealed_clues(),
+                other_chars=list(self.session.archive.characters),
+                discussion_history=self.session.game.state.discussion_history,
+            )
             if ai_vote in self.session.game.alive_players:
                 self.session.game.submit_vote(char_id, ai_vote)
                 vote_char = self.session.game.get_character(ai_vote)

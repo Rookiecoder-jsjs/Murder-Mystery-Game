@@ -9,11 +9,13 @@ LLM calls are faked with a stub client — no network access.
 
 from __future__ import annotations
 
+import asyncio
 import json
 from dataclasses import asdict
 
 import pytest
 
+from app.core.phases import GamePhase
 from app.domain.models import PlayerState
 from app.services.session_service import (
     GameSession,
@@ -25,23 +27,40 @@ from app.services.session_service import (
 from tests.conftest import sample_archive  # noqa: F401  (fixture import)
 
 
-class _StubMessage:
-    def __init__(self, content: str):
+class _FakeToolFunction:
+    def __init__(self, name: str, arguments: str):
+        self.name = name
+        self.arguments = arguments
+
+
+class _FakeToolCall:
+    def __init__(self, name: str, arguments: str):
+        self.type = "function"
+        self.function = _FakeToolFunction(name, arguments)
+
+
+class _FakeMessage:
+    def __init__(self, content: str | None, tool_calls: list | None = None):
         self.content = content
+        self.tool_calls = tool_calls
 
 
-class _StubChoice:
-    def __init__(self, content: str):
-        self.message = _StubMessage(content)
+class _FakeChoice:
+    def __init__(self, message: _FakeMessage):
+        self.message = message
 
 
-class _StubResponse:
-    def __init__(self, content: str):
-        self.choices = [_StubChoice(content)]
+class _FakeResponse:
+    def __init__(self, message: _FakeMessage):
+        self.choices = [_FakeChoice(message)]
 
 
 class StubRoleplayClient:
-    """OpenAI-client stand-in returning canned replies."""
+    """OpenAI-client stand-in returning canned replies.
+
+    Voting prompts (which mention ``submit_vote``) yield a forced tool call
+    to exercise the structured-vote path; everything else returns text.
+    """
 
     def __init__(self, reply: str = "我觉得线索很有意思。"):
         self.reply = reply
@@ -57,12 +76,14 @@ class StubRoleplayClient:
 
     def create(self, **kwargs):
         self.calls.append(kwargs)
-        # Voting prompts ask for char_X; reply with a name to exercise
-        # the name-parsing path.
-        system = kwargs.get("messages", [{}])[0].get("content", "")
-        if "投票" in system or "char_" in system:
-            return _StubResponse("我投 Bob，他就是凶手。")
-        return _StubResponse(self.reply)
+        texts = [m.get("content", "") for m in kwargs.get("messages", [])]
+        if any("submit_vote" in (t or "") for t in texts):
+            tool_call = _FakeToolCall(
+                "submit_vote",
+                '{"target_id": "char_2", "brief_reason": "他的时间线对不上"}',
+            )
+            return _FakeResponse(_FakeMessage(content=None, tool_calls=[tool_call]))
+        return _FakeResponse(_FakeMessage(content=self.reply))
 
 
 @pytest.fixture
@@ -216,3 +237,84 @@ class TestRestoreState:
         assert set(state.player_states.keys()) == {
             c.id for c in sample_archive.characters
         }
+
+
+# ---------- vote fallback (deadlock guard) ----------
+
+
+class TestVoteFallback:
+    """A failing/unparseable AI vote must not stall the whole round."""
+
+    def _voting_session(self, sample_archive):
+        session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+        session.game.set_phase(GamePhase.VOTING)
+        return session
+
+    def test_failing_ai_still_gets_a_vote(self, sample_archive):
+        session = self._voting_session(sample_archive)
+        # char_3 (Carol) always fails to produce a usable vote.
+        session.ai_characters["char_3"].get_vote = lambda **kw: ("", "")
+
+        result = asyncio.run(session.vote_async("Alice"))
+
+        # Every alive player (human + 3 AIs) must have cast a vote; otherwise
+        # check_voting_result never opens the ballot ("等待投票中..." forever).
+        assert len(session.game.state.votes_record) == 4
+        assert result["all_submitted"] is True
+        assert "等待投票中" not in result["result"]
+
+    def test_fallback_target_is_alive_and_not_self(self, sample_archive):
+        session = self._voting_session(sample_archive)
+        session.ai_characters["char_3"].get_vote = lambda **kw: ("", "")
+
+        alive_before = set(session.game.alive_players)
+        asyncio.run(session.vote_async("Alice"))
+
+        entry = next(
+            v for v in session.game.state.votes_record
+            if v["player_id"] == "char_3"
+        )
+        assert entry["target_id"] in alive_before
+        assert entry["target_id"] != "char_3"
+
+
+# ---------- vote function calling (structured output) ----------
+
+
+class TestVoteTool:
+    def test_tool_target_and_reason_recorded(self, sample_archive):
+        session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+        session.game.set_phase(GamePhase.VOTING)
+
+        asyncio.run(session.vote_async("Alice"))
+
+        by_player = {v["player_id"]: v for v in session.game.state.votes_record}
+        # char_4 is an AI whose stub always returns the submit_vote tool call.
+        assert by_player["char_4"]["target_id"] == "char_2"
+        assert by_player["char_4"].get("reason") == "他的时间线对不上"
+        # Every alive player voted (human + 3 AIs).
+        assert len(session.game.state.votes_record) == 4
+
+
+# ---------- snapshot defensive copy ----------
+
+
+class TestSnapshotDefensiveCopy:
+    def test_ai_memory_snapshot_is_not_alias(self, sample_archive):
+        session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+        session.ai_characters["char_3"].conversation_history.append(
+            {"role": "assistant", "message": "已发言"}
+        )
+
+        snap = session.to_snapshot("g1")
+        assert snap["ai_memories"]["char_3"] == [
+            {"role": "assistant", "message": "已发言"}
+        ]
+
+        # Appending after snapshotting must not retroactively change it.
+        session.ai_characters["char_3"].conversation_history.append(
+            {"role": "user", "message": "新发言"}
+        )
+        assert snap["ai_memories"]["char_3"] == [
+            {"role": "assistant", "message": "已发言"}
+        ]

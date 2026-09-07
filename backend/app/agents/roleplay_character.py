@@ -15,6 +15,7 @@ private memory only records what this character actually said — votes
 and other structured queries bypass it so they never pollute roleplay.
 """
 
+import json
 import re
 import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
@@ -32,6 +33,39 @@ from app.domain.models import ScriptCharacter, ClueData, GameState
 
 
 logger = get_logger(__name__)
+
+
+def _vote_tool_spec(candidate_ids: List[str]) -> dict:
+    """OpenAI-compatible tool definition for the AI voting decision.
+
+    The ``target_id`` enum pins the legal choices to the live candidate
+    list, so a well-behaved model can only ever emit a valid target.
+    """
+    return {
+        "type": "function",
+        "function": {
+            "name": "submit_vote",
+            "description": (
+                "提交你认定的本案真凶。target_id 必须从候选中选择；"
+                "可附一句 brief_reason。"
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "target_id": {
+                        "type": "string",
+                        "description": "嫌疑人角色ID",
+                        "enum": list(candidate_ids),
+                    },
+                    "brief_reason": {
+                        "type": "string",
+                        "description": "一句话投票理由（可选）",
+                    },
+                },
+                "required": ["target_id"],
+            },
+        },
+    }
 
 
 class RoleplayCharacter:
@@ -163,7 +197,7 @@ class RoleplayCharacter:
             # 避免投票/引言阶段被一句泛化的"继续角色扮演"带偏输出。
             phase_prompt = {
                 GamePhase.INTRODUCTION: "请开始你的自我介绍。",
-                GamePhase.VOTING: "请根据投票任务直接给出你的投票目标，只输出角色ID。",
+                GamePhase.VOTING: "请根据投票任务调用 submit_vote 函数提交你的投票目标。",
             }.get(phase, "请继续你的角色扮演。")
             messages.append({
                 "role": "user",
@@ -172,25 +206,99 @@ class RoleplayCharacter:
 
         return messages
 
-    def _create_completion(self, messages: List[Dict[str, str]]):
+    def _create_completion(
+        self,
+        messages: List[Dict[str, str]],
+        *,
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        thinking_enabled: Optional[bool] = None,
+    ):
         """Call the chat completion API with roleplay generation params.
 
         Thinking mode is toggled per ``config.thinking_enabled`` — it is
         off by default so concurrent replies stay fast. Note that with
-        thinking enabled the API silently ignores temperature/top_p.
+        thinking enabled the API silently ignores temperature/top_p. A
+        ``thinking_enabled`` override (votes always disable it) wins.
         """
+        if thinking_enabled is None:
+            thinking_enabled = self.config.thinking_enabled
         return self.client.chat.completions.create(
             model=self.config.model_name,
             messages=messages,
             temperature=self.config.generation.temperature,
             top_p=self.config.generation.top_p,
             max_tokens=self.config.generation.max_completion_tokens,
+            tools=tools,
+            tool_choice=tool_choice,
             extra_body={
                 "thinking": {
-                    "type": "enabled" if self.config.thinking_enabled else "disabled"
+                    "type": "enabled" if thinking_enabled else "disabled"
                 }
             },
         )
+
+    def _call_with_trace(
+        self,
+        messages: List[Dict[str, str]],
+        *,
+        trace_context: Dict[str, Any],
+        tools: Optional[List[Dict[str, Any]]] = None,
+        tool_choice: Optional[Dict[str, Any]] = None,
+        thinking_enabled: Optional[bool] = None,
+    ):
+        """Run one completion and record it to the JSONL LLM trace.
+
+        On success the ``response`` trace field carries the text reply or —
+        when the model returns a tool call instead — a compact rendering of
+        that call. On error the failure is traced and re-raised so each
+        caller keeps its own fallback semantics.
+        """
+        start = time.monotonic()
+        try:
+            response = self._create_completion(
+                messages,
+                tools=tools,
+                tool_choice=tool_choice,
+                thinking_enabled=thinking_enabled,
+            )
+        except Exception as e:
+            trace_llm_chat(
+                model=self.config.model_name,
+                kind="roleplay",
+                messages=messages,
+                context=trace_context,
+                error=str(e),
+                duration_ms=int((time.monotonic() - start) * 1000),
+            )
+            raise
+
+        message = response.choices[0].message
+        content = message.content
+        tool_calls = getattr(message, "tool_calls", None)
+        if content:
+            trace_body = content
+        elif tool_calls:
+            trace_body = json.dumps(
+                [
+                    {"name": tc.function.name, "arguments": tc.function.arguments}
+                    for tc in tool_calls
+                ],
+                ensure_ascii=False,
+            )
+        else:
+            trace_body = ""
+        trace_llm_chat(
+            model=self.config.model_name,
+            kind="roleplay",
+            messages=messages,
+            context=trace_context,
+            response=trace_body,
+            reasoning=getattr(message, "reasoning_content", "") or "",
+            usage=getattr(response, "usage", None),
+            duration_ms=int((time.monotonic() - start) * 1000),
+        )
+        return message
 
     def respond(
         self,
@@ -237,42 +345,19 @@ class RoleplayCharacter:
             discussion_history,
         )
 
-        start = time.monotonic()
         trace_context = {
             "character_id": self.character_id,
             "character_name": self.name,
             "phase": phase.value,
         }
-        reasoning = ""
         try:
-            response = self._create_completion(messages)
-            message = response.choices[0].message
+            message = self._call_with_trace(messages, trace_context=trace_context)
             content = message.content
-            reasoning = getattr(message, "reasoning_content", "") or ""
             if content is None:
                 content = "[无回复]"
         except Exception as e:
-            trace_llm_chat(
-                model=self.config.model_name,
-                kind="roleplay",
-                messages=messages,
-                context=trace_context,
-                error=str(e),
-                duration_ms=int((time.monotonic() - start) * 1000),
-            )
             logger.error("[Roleplay Error] %s: %s", self.name, e)
             return "[回复失败]"
-
-        trace_llm_chat(
-            model=self.config.model_name,
-            kind="roleplay",
-            messages=messages,
-            context=trace_context,
-            response=content,
-            reasoning=reasoning,
-            usage=getattr(response, "usage", None),
-            duration_ms=int((time.monotonic() - start) * 1000),
-        )
 
         clean_content = self._strip_self_prefix(content)
 
@@ -325,26 +410,72 @@ class RoleplayCharacter:
         revealed_clues: Optional[List[ClueData]] = None,
         other_chars: Optional[List[ScriptCharacter]] = None,
         discussion_history: Optional[List[str]] = None,
-    ) -> str:
-        """Get a vote target from live game state.
+    ) -> tuple[str, str]:
+        """Collect one vote via a forced ``submit_vote`` tool call.
 
-        Parses either a character ID (char_X) or a character name from
-        the reply; returns an empty string when neither appears. Does
-        not touch the conversation memory.
+        The model is pinned to a tool whose ``target_id`` is drawn from the
+        live candidates, so the reply is structured instead of free text.
+        If a model still answers in prose (rare), the reply falls back to
+        name/char_X parsing. Votes never touch the conversation memory.
 
         Returns:
-            The voted character ID, or "" when unparseable.
+            (target_id, brief_reason) — target_id is "" when no valid
+            target could be extracted (the caller retries / falls back).
         """
-        result = self.respond(
+        others = [c for c in (other_chars or []) if c.id != self.character.id]
+        messages = self._build_messages(
             "",
             GamePhase.VOTING,
-            known_clues=known_clues,
-            revealed_clues=revealed_clues,
-            other_chars=other_chars,
-            discussion_history=discussion_history,
-            record_in_memory=False,
+            self.case,
+            known_clues or [],
+            revealed_clues or [],
+            others,
+            discussion_history or [],
         )
-        return self.parse_vote_target(result, other_chars or [])
+        candidates = [c.id for c in others]
+        trace_context = {
+            "character_id": self.character_id,
+            "character_name": self.name,
+            "phase": GamePhase.VOTING.value,
+            "via": "function_call",
+        }
+        try:
+            message = self._call_with_trace(
+                messages,
+                trace_context=trace_context,
+                tools=[_vote_tool_spec(candidates)],
+                tool_choice={
+                    "type": "function",
+                    "function": {"name": "submit_vote"},
+                },
+                thinking_enabled=False,
+            )
+        except Exception as e:
+            logger.error("[Vote Tool Error] %s: %s", self.name, e)
+            return "", ""
+
+        target = ""
+        reason = ""
+        for tc in getattr(message, "tool_calls", None) or []:
+            if getattr(tc, "type", "function") != "function":
+                continue
+            if tc.function.name != "submit_vote":
+                continue
+            raw_args = (tc.function.arguments or "").strip()
+            args = {}
+            if raw_args:
+                try:
+                    args = json.loads(raw_args)
+                except json.JSONDecodeError:
+                    args = {}
+            target = str(args.get("target_id") or "").strip()
+            reason = str(args.get("brief_reason") or "").strip()
+            break
+
+        if not target and message.content:
+            # 偶发：模型没调工具而回了纯文本 —— 走原有名字/char_X 解析兜底
+            target = self.parse_vote_target(message.content, others)
+        return target, reason
 
     @staticmethod
     def parse_vote_target(
