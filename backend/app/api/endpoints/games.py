@@ -29,9 +29,13 @@ from app.api.schemas import (
     SpeakRequest,
     VoteRequest,
 )
+from app.core.logging import get_logger
 from app.core.phases import GamePhase
 from app.services.session_service import GameSession, SessionManager
 from app.services.story_service import StoryService
+
+
+logger = get_logger(__name__)
 
 
 router = APIRouter(prefix="/games", tags=["games"])
@@ -240,8 +244,10 @@ async def speak(
 
 @router.post("/{game_id}/speak/stream")
 async def speak_stream(
+    game_id: str,
     request: SpeakRequest,
-    session: GameSession = Depends(persist_session),
+    session: GameSession = Depends(get_session),
+    manager: SessionManager = Depends(get_session_manager),
 ) -> StreamingResponse:
     """SSE variant of ``/speak``.
 
@@ -249,6 +255,11 @@ async def speak_stream(
     human player's own message is NOT re-emitted — the frontend echoes
     it optimistically. The final ``done`` event carries the current
     phase; a failure mid-stream is emitted as an ``error`` event.
+
+    Persistence happens after the body is consumed (this handler uses
+    ``get_session``, not ``persist_session``): the stream mutates state
+    while it runs, so a snapshot taken before the first AI reply would
+    drop the entire round.
     """
     if session.game.state.phase != GamePhase.DISCUSSION.value:
         raise HTTPException(status_code=400, detail="当前不是讨论阶段")
@@ -265,6 +276,13 @@ async def speak_stream(
         except Exception as e:
             err = json.dumps({"detail": str(e)}, ensure_ascii=False)
             yield f"event: error\ndata: {err}\n\n"
+        finally:
+            # Stream is fully consumed (success, error, or disconnect):
+            # snapshot now so the round's entries + AI memories persist.
+            try:
+                manager.save(game_id)
+            except Exception as e:
+                logger.warning("流式发言后保存会话失败: %s", e)
 
     return StreamingResponse(
         event_source(),
