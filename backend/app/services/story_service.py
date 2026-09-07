@@ -7,6 +7,7 @@
 import os
 import json
 import re
+import threading
 import time
 from typing import Optional, List, Dict, Any
 
@@ -500,6 +501,12 @@ class StoryService:
     ) -> Optional[StoryArchive]:
         """Generate and save a new story.
 
+        The archive is written to disk immediately (portrait URLs empty) and
+        returned right away so a new game can start playing with letter-avatar
+        fallbacks. Portraits are then generated on a daemon thread and written
+        back to the same archive file — a provider timeout must never gate the
+        story itself.
+
         Args:
             topic: The story topic.
             show_reasoning: Whether to show DeepSeek reasoning.
@@ -519,12 +526,32 @@ class StoryService:
             logger.error("案件数据结构不完整: %s", e)
             return None
 
-        # Portrait generation is non-fatal: a provider timeout still leaves a
-        # fully playable story with letter-avatar fallbacks.
-        self.portrait_service.generate_for_archive(archive)
         save_story(archive)
 
+        if self.portrait_service.is_configured:
+            threading.Thread(
+                target=self._generate_portraits_background,
+                args=(archive,),
+                daemon=True,
+                name=f"portraits-{archive.id}",
+            ).start()
+
         return archive
+
+    def _generate_portraits_background(self, archive: StoryArchive) -> None:
+        """Generate portraits for an archive and persist the updated URLs.
+
+        Runs on a daemon thread after ``create_story`` returns. Mutates
+        ``archive.characters`` in place — live ``GameSession`` objects that
+        share this archive pick the URLs up on their next status poll, and a
+        final ``save_story`` writes them to disk. Non-fatal by construction.
+        """
+        try:
+            saved = self.portrait_service.generate_for_archive(archive)
+            if saved:
+                save_story(archive)
+        except Exception as e:
+            logger.warning("角色肖像后台生成失败（%s）: %s", archive.id, e)
 
     def get_story(self, story_id: str) -> Optional[StoryArchive]:
         """Load a story by ID.
