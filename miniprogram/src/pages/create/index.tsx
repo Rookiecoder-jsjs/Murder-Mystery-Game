@@ -3,6 +3,7 @@ import { Button, Text, Textarea, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import { CaseHeader } from '@/components'
 import { useGame } from '@/store/game-context'
+import type { GameMode } from '@/types/game'
 import { showError } from '@/utils/feedback'
 import './index.scss'
 
@@ -24,6 +25,7 @@ const GENERATION_STEPS = [
 export default function CreatePage() {
   const { createGame } = useGame()
   const [topic, setTopic] = useState('')
+  const [mode, setMode] = useState<GameMode>('quick')
   const [creating, setCreating] = useState(false)
   const [elapsed, setElapsed] = useState(0)
 
@@ -39,7 +41,7 @@ export default function CreatePage() {
     setCreating(true)
     setElapsed(0)
     try {
-      const gameId = await createGame(trimmed)
+      const gameId = await createGame(trimmed, mode)
       Taro.redirectTo({ url: `/pages/game/index?gameId=${gameId}` })
     } catch (error) {
       showError(error)
@@ -109,6 +111,18 @@ export default function CreatePage() {
             onInput={(event) => setTopic(event.detail.value)}
           />
           <View className='create-form__counter'>{topic.length} / 100</View>
+
+          <Text className='field-label create-form__mode-label'>调查节奏</Text>
+          <View className='create-form__modes'>
+            <Button className={mode === 'quick' ? 'is-selected' : ''} onClick={() => setMode('quick')}>
+              <Text>速推模式</Text>
+              <Text>三轮推进 · 10–15 分钟</Text>
+            </Button>
+            <Button className={mode === 'classic' ? 'is-selected' : ''} onClick={() => setMode('classic')}>
+              <Text>经典模式</Text>
+              <Text>自由调查 · 完整流程</Text>
+            </Button>
+          </View>
 
           <Text className='field-label create-form__suggestion-label'>灵感签</Text>
           <View className='create-form__suggestions'>

@@ -9,6 +9,7 @@ from __future__ import annotations
 import inspect
 
 from app.api.endpoints.games import speak_stream
+from app.api.schemas import CreateGameRequest, InvestigateRequest, LoadGameRequest
 
 
 def test_speak_stream_declares_game_id_param():
@@ -18,3 +19,13 @@ def test_speak_stream_declares_game_id_param():
     round is never written to disk."""
     params = inspect.signature(speak_stream).parameters
     assert "game_id" in params
+
+
+def test_quick_mode_api_contract():
+    create = CreateGameRequest(topic="速推测试", mode="quick")
+    load = LoadGameRequest(story_id="story-1", mode="quick")
+    investigate = InvestigateRequest(lead_id="clue-1")
+
+    assert create.mode == "quick"
+    assert load.mode == "quick"
+    assert investigate.lead_id == "clue-1"

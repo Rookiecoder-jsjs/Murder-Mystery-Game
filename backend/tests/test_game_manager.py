@@ -62,6 +62,21 @@ class TestInit:
         gm = GameManager(sample_archive)
         assert gm.killer_id == "char_1"
 
+    def test_quick_mode_uses_three_rounds(self, sample_archive):
+        gm = GameManager(sample_archive, mode="quick")
+
+        assert gm.state.mode == "quick"
+        assert gm.state.max_rounds == 3
+
+    def test_distribute_specific_clue(self, sample_archive):
+        gm = GameManager(sample_archive, mode="quick")
+
+        found = gm.distribute_clue("char_2", "clue_b")
+
+        assert [clue.id for clue in found] == ["clue_b"]
+        assert "clue_b" in gm.state.player_states["char_2"].known_clues
+        assert gm.distribute_clue("char_2", "clue_b") == []
+
 
 # ---------- Phase transitions ----------
 

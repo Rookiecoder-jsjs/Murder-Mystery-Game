@@ -19,9 +19,9 @@ export function InvestigationPanel() {
     [state.characters, state.player?.id],
   )
 
-  const search = async () => {
+  const search = async (leadId?: string) => {
     try {
-      const found = await investigate()
+      const found = await investigate(leadId)
       if (found[0]) {
         setLatestClue(found[0])
         showNotice('发现一条新线索')
@@ -93,13 +93,50 @@ export function InvestigationPanel() {
         </View>
       )}
 
-      <View className='investigation-panel__actions paper-card'>
-        <View>
-          <Text>主动搜查</Text>
-          <Text>从尚未发现的证物中调取一条线索</Text>
+      {state.mode === 'quick' ? (
+        <View className='investigation-panel__leads paper-card'>
+          <View className='investigation-panel__section-head'>
+            <View>
+              <Text className='field-label'>QUICK CASE · ROUND {state.round}</Text>
+              <Text className='investigation-panel__leads-title'>选择调查方向</Text>
+            </View>
+            <Text>{state.investigationOptions.length} 个突破口</Text>
+          </View>
+          <View className='investigation-panel__lead-list'>
+            {state.investigationOptions.map((option) => (
+              <Button
+                key={option.id}
+                className='investigation-panel__lead'
+                disabled={state.isLoading}
+                onClick={() => search(option.id)}
+              >
+                <Text className='investigation-panel__lead-kind'>{option.kind.toUpperCase()}</Text>
+                <Text className='investigation-panel__lead-title'>{option.title}</Text>
+                <Text className='investigation-panel__lead-copy'>{option.description}</Text>
+                <Text className='investigation-panel__lead-cta'>调查此方向 →</Text>
+              </Button>
+            ))}
+          </View>
         </View>
-        <Button className='primary-button' onClick={search}>⌕ 搜查现场</Button>
-      </View>
+      ) : (
+        <View className='investigation-panel__actions paper-card'>
+          <View>
+            <Text>主动搜查</Text>
+            <Text>从尚未发现的证物中调取一条线索</Text>
+          </View>
+          <Button className='primary-button' onClick={() => search()}>⌕ 搜查现场</Button>
+        </View>
+      )}
+
+      {state.lastEvent && (
+        <View className='investigation-panel__event paper-card'>
+          <Text className='investigation-panel__event-mark'>!</Text>
+          <View>
+            <Text className='investigation-panel__event-title'>{state.lastEvent.title}</Text>
+            <Text>{state.lastEvent.message}</Text>
+          </View>
+        </View>
+      )}
 
       <View className='investigation-panel__section'>
         <View className='investigation-panel__section-head'>

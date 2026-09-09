@@ -3,6 +3,7 @@ import type {
   AccuseResponse,
   ClueBoard,
   GameBootstrap,
+  GameMode,
   GameStatus,
   IntroductionResponse,
   InvestigateResponse,
@@ -16,15 +17,15 @@ import type {
 export const gameApi = {
   listStories: () => request<{ stories: Story[] }>('/stories'),
 
-  createGame: (topic: string) => request<GameBootstrap>('/games', {
+  createGame: (topic: string, mode: GameMode = 'classic') => request<GameBootstrap>('/games', {
     method: 'POST',
-    data: { topic },
+    data: { topic, mode },
     timeout: 360_000,
   }),
 
-  loadGame: (storyId: string) => request<GameBootstrap>('/games/load', {
+  loadGame: (storyId: string, mode: GameMode = 'classic') => request<GameBootstrap>('/games/load', {
     method: 'POST',
-    data: { story_id: storyId },
+    data: { story_id: storyId, mode },
   }),
 
   getStatus: (gameId: string) => request<GameStatus>(`/games/${gameId}`),
@@ -39,8 +40,9 @@ export const gameApi = {
     { method: 'POST', data: { message } },
   ),
 
-  investigate: (gameId: string) => request<InvestigateResponse>(`/games/${gameId}/investigate`, {
+  investigate: (gameId: string, leadId?: string) => request<InvestigateResponse>(`/games/${gameId}/investigate`, {
     method: 'POST',
+    data: leadId ? { lead_id: leadId } : {},
   }),
 
   nextPhase: (gameId: string) => request<PhaseResponse>(`/games/${gameId}/next-phase`, {

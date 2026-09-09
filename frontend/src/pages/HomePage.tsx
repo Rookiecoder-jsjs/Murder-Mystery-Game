@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Clock, BookOpen, Sparkles, AlertTriangle } from 'lucide-react';
 import { useGame } from '../context/useGame';
 import { api } from '../api/client';
-import type { Story } from '../api/types';
+import type { GameMode, Story } from '../api/types';
 import { Button, Card, LoadingSpinner } from '../components/common';
 import './HomePage.css';
 
@@ -36,6 +36,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const { createGame, loadGame } = useGame();
   const [topic, setTopic] = useState('');
+  const [mode, setMode] = useState<GameMode>('quick');
   const [isCreating, setIsCreating] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [isLoadingStories, setIsLoadingStories] = useState(true);
@@ -80,7 +81,7 @@ export function HomePage() {
     setError(null);
     setIsCreating(true);
     try {
-      const gameId = await createGame(topic.trim());
+      const gameId = await createGame(topic.trim(), undefined, mode);
       navigate(`/game/${gameId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '创建游戏失败');
@@ -91,7 +92,7 @@ export function HomePage() {
   const handleLoadGame = async (storyId: string) => {
     setError(null);
     try {
-      const gameId = await loadGame(storyId);
+      const gameId = await loadGame(storyId, mode);
       navigate(`/game/${gameId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载游戏失败');
@@ -162,6 +163,25 @@ export function HomePage() {
             <div className="home-create-header">
               <Sparkles size={20} className="home-create-icon" />
               <h2>新案登记</h2>
+            </div>
+
+            <div className="home-mode-picker" role="group" aria-label="选择游戏模式">
+              <button
+                type="button"
+                className={`home-mode-option${mode === 'quick' ? ' is-selected' : ''}`}
+                onClick={() => setMode('quick')}
+              >
+                <span>速推模式</span>
+                <small>三轮推进 · 10–15 分钟</small>
+              </button>
+              <button
+                type="button"
+                className={`home-mode-option${mode === 'classic' ? ' is-selected' : ''}`}
+                onClick={() => setMode('classic')}
+              >
+                <span>经典模式</span>
+                <small>自由调查 · 完整流程</small>
+              </button>
             </div>
 
             <div className="home-input-group">

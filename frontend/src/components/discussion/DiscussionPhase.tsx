@@ -24,6 +24,8 @@ export function DiscussionPhase() {
 
   const isSpeaking = state.isSpeaking;
   const playerName = state.player?.name;
+  const quickModeNeedsAnotherRound =
+    state.mode === 'quick' && state.round < state.maxRounds;
 
   // 角色名 → 角色信息（避免每条消息都 find 一遍）
   const characterByName = useMemo(
@@ -123,6 +125,7 @@ export function DiscussionPhase() {
             size="sm"
             onClick={handleReturnToInvestigation}
             isLoading={isTransitioning}
+            disabled={!quickModeNeedsAnotherRound && state.mode === 'quick'}
             className="discussion-action"
           >
             <Search size={14} />
@@ -133,10 +136,11 @@ export function DiscussionPhase() {
             size="sm"
             onClick={handleTransitionToVoting}
             isLoading={isTransitioning}
+            disabled={quickModeNeedsAnotherRound}
             className="discussion-action"
           >
             <Vote size={14} />
-            进入投票
+            {quickModeNeedsAnotherRound ? `还需 ${state.maxRounds - state.round} 轮` : '进入投票'}
             <ArrowRight size={14} />
           </Button>
         </div>

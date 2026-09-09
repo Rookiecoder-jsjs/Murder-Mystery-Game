@@ -8,7 +8,7 @@ These match the wire format that the React frontend (``frontend/src/api/client.t
 expects: ``character_name`` (not character ID) for vote/accuse payloads.
 """
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -16,10 +16,16 @@ from pydantic import BaseModel, Field
 class CreateGameRequest(BaseModel):
     topic: str = Field(..., min_length=1, max_length=200, description="剧本主题")
     player_name: Optional[str] = Field(None, max_length=50, description="玩家名字")
+    mode: Literal["classic", "quick"] = Field("classic", description="游戏模式")
 
 
 class LoadGameRequest(BaseModel):
     story_id: str = Field(..., description="故事ID")
+    mode: Literal["classic", "quick"] = Field("classic", description="游戏模式")
+
+
+class InvestigateRequest(BaseModel):
+    lead_id: Optional[str] = Field(None, max_length=100, description="调查方向")
 
 
 class AccuseRequest(BaseModel):

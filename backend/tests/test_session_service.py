@@ -114,6 +114,43 @@ class _FakeStoryService:
 
 
 class TestSnapshotRoundTrip:
+    def test_quick_mode_state_and_investigation_options(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.INVESTIGATION)
+
+        status = session.get_game_status()
+
+        assert status["mode"] == "quick"
+        assert status["max_rounds"] == 3
+        assert len(status["investigation_options"]) == 2
+
+        result = session.investigate(status["investigation_options"][0]["id"])
+
+        assert result["found"]
+        assert result["event"]["title"]
+        assert result["investigation_options"]
+
+    def test_quick_mode_survives_snapshot_restore(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        snapshot = session.to_snapshot("g1")
+
+        restored = GameSession.from_snapshot(
+            snapshot, sample_archive, StubRoleplayClient()
+        )
+
+        assert restored.game.state.mode == "quick"
+        assert restored.game.state.max_rounds == 3
+
     def test_restore_yields_typed_player_states(self, sample_archive):
         game_id = "g1"
         session = GameSession(sample_archive, "char_2", StubRoleplayClient())

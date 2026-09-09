@@ -1,4 +1,19 @@
 export type GamePhase = 'introduction' | 'investigation' | 'discussion' | 'voting' | 'reveal'
+export type GameMode = 'classic' | 'quick'
+
+export interface InvestigationOption {
+  id: string
+  title: string
+  description: string
+  kind: string
+}
+
+export interface GameEvent {
+  type: string
+  title: string
+  message: string
+  clue_id?: string
+}
 
 export interface CharacterInfo {
   id: string
@@ -39,6 +54,8 @@ export interface GameBootstrap {
   story_id: string
   topic?: string
   phase: GamePhase
+  mode?: GameMode
+  max_rounds?: number
   player: CharacterInfo
   characters: CharacterInfo[]
 }
@@ -46,9 +63,14 @@ export interface GameBootstrap {
 export interface GameStatus {
   game_id: string
   phase: GamePhase
+  mode: GameMode
+  is_quick_mode: boolean
   round: number
   max_rounds: number
+  progress: { current: number; total: number }
   investigation_count?: number
+  investigation_options: InvestigationOption[]
+  last_event: GameEvent | null
   player: CharacterInfo
   characters: CharacterInfo[]
   available_actions: string[]
@@ -74,11 +96,15 @@ export interface SpeakResponse {
 export interface InvestigateResponse {
   found: Clue[]
   clue_board: ClueBoard
+  investigation_options: InvestigationOption[]
+  event: GameEvent | null
 }
 
 export interface PhaseResponse {
   phase: GamePhase
   round?: number
+  investigation_options?: InvestigationOption[]
+  last_event?: GameEvent | null
 }
 
 export interface RevealInfo {

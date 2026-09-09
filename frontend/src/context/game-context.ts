@@ -5,6 +5,9 @@ import type {
   ChatMessage,
   Clue,
   GamePhase,
+  GameEvent,
+  GameMode,
+  InvestigationOption,
   RevealInfo,
   VoteResponse,
 } from '../api/types';
@@ -16,8 +19,11 @@ export interface GameState {
   player: CharacterInfo | null;
   characters: CharacterInfo[];
   phase: GamePhase;
+  mode: GameMode;
   round: number;
   maxRounds: number;
+  investigationOptions: InvestigationOption[];
+  lastEvent: GameEvent | null;
   clues: Clue[];
   accusationPoints: number;
   scenePublicClues: Clue[];
@@ -36,8 +42,8 @@ export interface GameState {
 
 export interface GameContextValue {
   state: GameState;
-  createGame: (topic: string, playerName?: string) => Promise<string>;
-  loadGame: (storyId: string) => Promise<string>;
+  createGame: (topic: string, playerName?: string, mode?: GameMode) => Promise<string>;
+  loadGame: (storyId: string, mode?: GameMode) => Promise<string>;
   resumeGame: (gameId: string) => Promise<void>;
   refreshStatus: () => Promise<boolean>;
   refreshClues: () => Promise<boolean>;
@@ -47,7 +53,7 @@ export interface GameContextValue {
   nextPhase: () => Promise<void>;
   startVoting: () => Promise<void>;
   returnToInvestigation: () => Promise<void>;
-  investigate: () => Promise<Clue[]>;
+  investigate: (leadId?: string) => Promise<Clue[]>;
   speak: (message: string) => Promise<void>;
   vote: (characterName: string) => Promise<VoteResponse>;
   accuse: (characterName: string) => Promise<AccuseResponse>;

@@ -7,6 +7,7 @@ import type {
   ClueBoard,
   CreateGameResponse,
   GameStatus,
+  GameMode,
   IntroductionResponse,
   InvestigateResponse,
   LoadGameResponse,
@@ -88,20 +89,20 @@ export const api = {
 
   // Games
   // 生成上限：后端内部有 1 次重试，5 分钟只兜"静默挂起"，不误杀慢但正常的生成
-  createGame: (topic: string, playerName?: string) =>
+  createGame: (topic: string, playerName?: string, mode: GameMode = 'classic') =>
     fetchApi<CreateGameResponse>(
       '/games',
       {
         method: 'POST',
-        body: JSON.stringify({ topic, player_name: playerName }),
+        body: JSON.stringify({ topic, player_name: playerName, mode }),
       },
       300_000,
     ),
 
-  loadGame: (storyId: string) =>
+  loadGame: (storyId: string, mode: GameMode = 'classic') =>
     fetchApi<LoadGameResponse>('/games/load', {
       method: 'POST',
-      body: JSON.stringify({ story_id: storyId }),
+      body: JSON.stringify({ story_id: storyId, mode }),
     }),
 
   getGameStatus: (gameId: string) =>
@@ -116,9 +117,10 @@ export const api = {
       body: JSON.stringify({ message: message ?? '' }),
     }),
 
-  investigate: (gameId: string) =>
+  investigate: (gameId: string, leadId?: string) =>
     fetchApi<InvestigateResponse>(`/games/${gameId}/investigate`, {
       method: 'POST',
+      body: JSON.stringify(leadId ? { lead_id: leadId } : {}),
     }),
 
   nextPhase: (gameId: string) =>

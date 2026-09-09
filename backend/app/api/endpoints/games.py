@@ -25,6 +25,7 @@ from app.api.schemas import (
     AccuseRequest,
     CreateGameRequest,
     IntroduceRequest,
+    InvestigateRequest,
     LoadGameRequest,
     SpeakRequest,
     VoteRequest,
@@ -58,7 +59,9 @@ async def create_game(
 ) -> dict:
     """创建新游戏"""
     try:
-        game_id, session = await _create_in_thread(manager, request.topic)
+        game_id, session = await _create_in_thread(
+            manager, request.topic, request.mode,
+        )
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
@@ -69,19 +72,21 @@ async def create_game(
         "story_id": session.archive.id,
         "topic": request.topic,
         "phase": session.game.state.phase,
+        "mode": session.game.state.mode,
+        "max_rounds": session.game.state.max_rounds,
         "player": session.get_player_info(),
         "characters": session.get_all_characters(),
     }
 
 
 async def _create_in_thread(
-    manager: SessionManager, topic: str
+    manager: SessionManager, topic: str, mode: str = "classic"
 ):
     """Run the blocking story generation in a worker thread."""
     import asyncio
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        None, lambda: manager.create_session(topic=topic),
+        None, lambda: manager.create_session(topic=topic, mode=mode),
     )
 
 
@@ -95,13 +100,17 @@ async def load_game(
     if not archive:
         raise HTTPException(status_code=404, detail="故事不存在")
     try:
-        game_id, session = manager.create_session(archive=archive)
+        game_id, session = manager.create_session(
+            archive=archive, mode=request.mode,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     return {
         "game_id": game_id,
         "story_id": session.archive.id,
         "phase": session.game.state.phase,
+        "mode": session.game.state.mode,
+        "max_rounds": session.game.state.max_rounds,
         "player": session.get_player_info(),
         "characters": session.get_all_characters(),
     }
@@ -169,6 +178,8 @@ async def advance_phase(
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
+        "investigation_options": session.get_investigation_options(),
+        "last_event": session.game.state.last_event,
     }
 
 
@@ -187,17 +198,31 @@ async def return_to_investigation(
         and bool(session.game.get_votes())
     )
 
+    if (
+        session.game.state.mode == "quick"
+        and session.game.state.phase == GamePhase.DISCUSSION.value
+    ):
+        if session.game.state.round >= session.game.state.max_rounds:
+            raise HTTPException(
+                status_code=400,
+                detail="速推模式已完成调查轮次，请进入投票",
+            )
+        session.game.state.round += 1
+
     session.game.set_phase(GamePhase.INVESTIGATION)
     # Discussion history survives — it is each side's memory of the case.
     # A fresh voting round after this needs clean ballots.
     if was_revote:
         session.game.reset_votes()
-    session.game.distribute_random_clues(session.human_player_id, 1)
+    if session.game.state.mode != "quick":
+        session.game.distribute_random_clues(session.human_player_id, 1)
     for char_id in session.ai_characters:
         session.game.distribute_random_clues(char_id, 1)
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
+        "investigation_options": session.get_investigation_options(),
+        "last_event": session.game.state.last_event,
     }
 
 
@@ -207,11 +232,21 @@ async def start_voting(
 ) -> dict:
     if session.game.state.phase != GamePhase.DISCUSSION.value:
         raise HTTPException(status_code=400, detail="当前不是讨论阶段")
+    if (
+        session.game.state.mode == "quick"
+        and session.game.state.round < session.game.state.max_rounds
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail=f"请完成第 {session.game.state.round + 1} 轮调查后再进入投票",
+        )
     session.game.set_phase(GamePhase.VOTING)
     session.game.reset_votes()
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
+        "investigation_options": session.get_investigation_options(),
+        "last_event": session.game.state.last_event,
     }
 
 
@@ -222,10 +257,11 @@ async def start_voting(
 
 @router.post("/{game_id}/investigate")
 async def investigate(
+    request: InvestigateRequest | None = None,
     session: GameSession = Depends(persist_session),
 ) -> dict:
-    """主动搜证：随机获得一条新线索"""
-    return session.investigate()
+    """主动搜证；速推模式支持选择调查方向。"""
+    return session.investigate(request.lead_id if request else None)
 
 
 @router.post("/{game_id}/speak")

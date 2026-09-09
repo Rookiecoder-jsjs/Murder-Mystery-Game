@@ -17,6 +17,7 @@ import type {
   Clue,
   ClueBoard,
   GamePhase,
+  GameMode,
   GameStatus,
   RevealInfo,
   VoteResponse,
@@ -37,6 +38,8 @@ type GameAction =
         player: CharacterInfo;
         characters: CharacterInfo[];
         phase: string;
+        mode?: GameMode;
+        maxRounds?: number;
       };
     }
   | {
@@ -66,8 +69,11 @@ const initialState: GameState = {
   player: null,
   characters: [],
   phase: 'introduction',
+  mode: 'classic',
   round: 1,
   maxRounds: 5,
+  investigationOptions: [],
+  lastEvent: null,
   clues: [],
   accusationPoints: 1,
   scenePublicClues: [],
@@ -103,6 +109,10 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         player: action.payload.player,
         characters: action.payload.characters,
         phase: action.payload.phase as GamePhase,
+        mode: action.payload.mode ?? 'classic',
+        maxRounds: action.payload.maxRounds ?? 5,
+        investigationOptions: [],
+        lastEvent: null,
       };
     case 'GAME_RESUMED': {
       const { gameId, status, clueBoard, history } = action.payload;
@@ -112,8 +122,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         player: status.player,
         characters: status.characters,
         phase: status.phase,
+        mode: status.mode,
         round: status.round,
         maxRounds: status.max_rounds,
+        investigationOptions: status.investigation_options,
+        lastEvent: status.last_event,
         availableActions: status.available_actions,
         clues: clueBoard.clues,
         accusationPoints: clueBoard.accusation_points,
@@ -178,11 +191,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const speakAbortRef = useRef<AbortController | null>(null);
 
   // 返回新建的 gameId，由页面负责导航到 /game/:gameId
-  const createGame = useCallback(async (topic: string, playerName?: string) => {
+  const createGame = useCallback(async (topic: string, playerName?: string, mode: GameMode = 'classic') => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const response = await api.createGame(topic, playerName);
+      const response = await api.createGame(topic, playerName, mode);
       dispatch({
         type: 'GAME_CREATED',
         payload: {
@@ -192,6 +205,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           player: response.player,
           characters: response.characters,
           phase: response.phase,
+          mode: response.mode,
+          maxRounds: response.max_rounds,
         },
       });
       return response.game_id;
@@ -203,11 +218,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const loadGame = useCallback(async (storyId: string) => {
+  const loadGame = useCallback(async (storyId: string, mode: GameMode = 'classic') => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const response = await api.loadGame(storyId);
+      const response = await api.loadGame(storyId, mode);
       dispatch({
         type: 'GAME_CREATED',
         payload: {
@@ -217,6 +232,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           player: response.player,
           characters: response.characters,
           phase: response.phase,
+          mode: response.mode,
+          maxRounds: response.max_rounds,
         },
       });
       return response.game_id;
@@ -260,8 +277,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
         type: 'SET_GAME_STATUS',
         payload: {
           phase: status.phase,
+          mode: status.mode,
           round: status.round,
           maxRounds: status.max_rounds,
+          investigationOptions: status.investigation_options,
+          lastEvent: status.last_event,
           availableActions: status.available_actions,
           player: status.player,
           characters: status.characters,
@@ -307,18 +327,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_CONNECTION_LOST', payload: lost });
   }, []);
 
-  const investigate = useCallback(async (): Promise<Clue[]> => {
+  const investigate = useCallback(async (leadId?: string): Promise<Clue[]> => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const result = await api.investigate(state.gameId);
+      const result = await api.investigate(state.gameId, leadId);
       dispatch({
         type: 'SET_CLUES',
         payload: {
           clues: result.clue_board.clues,
           accusationPoints: result.clue_board.accusation_points,
           scenePublicClues: result.clue_board.scene_public_clues,
+        },
+      });
+      dispatch({
+        type: 'SET_GAME_STATUS',
+        payload: {
+          investigationOptions: result.investigation_options,
+          lastEvent: result.event,
         },
       });
       return result.found;
@@ -363,6 +390,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     try {
       const result = await api.nextPhase(state.gameId);
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
+      dispatch({
+        type: 'SET_GAME_STATUS',
+        payload: {
+          investigationOptions: result.investigation_options ?? [],
+          lastEvent: result.last_event ?? null,
+        },
+      });
       if (result.round !== undefined) {
         dispatch({ type: 'SET_ROUND', payload: result.round });
       }
@@ -400,6 +434,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const result = await api.returnToInvestigation(state.gameId);
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
       dispatch({ type: 'SET_ROUND', payload: result.round ?? 1 });
+      dispatch({
+        type: 'SET_GAME_STATUS',
+        payload: {
+          investigationOptions: result.investigation_options ?? [],
+          lastEvent: result.last_event ?? null,
+        },
+      });
       await refreshClues();
       await refreshDiscussionHistory();
     } catch (error) {

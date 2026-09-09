@@ -240,6 +240,14 @@ powershell start.ps1   # Windows PowerShell
 3. 系统会分配你一个角色
 4. 按照游戏流程进行！
 
+### 速推模式
+
+新建案件时可以选择“速推模式”或“经典模式”：
+
+- 速推模式固定 3 轮调查；每轮从两个调查方向中选择一个，获得线索并触发案件突破事件，适合 10–15 分钟完成一局。
+- 经典模式保留自由调查和原有随机搜证流程，适合更完整的沉浸式体验。
+- 速推模式完成全部调查轮次后才能进入投票；未完成时可以从讨论返回下一轮搜证。
+
 > 💡 `npm run dev` 脚本会自动：
 > - 检测 Python / Node 依赖是否就绪（缺则打印修复命令并退出）
 > - 后端先启动，**等端口文件写入完成再起前端**（避免 Vite 代理竞态）
@@ -296,7 +304,7 @@ powershell start.ps1   # Windows PowerShell
 | `GET` | `/games/{id}` | 获取游戏状态 |
 | `GET` | `/games/{id}/clues` | 获取线索列表 |
 | `POST` | `/games/{id}/introduce` | 提交自我介绍（body 传 `message`，返回全部 AI 介绍） |
-| `POST` | `/games/{id}/investigate` | **主动搜证**（随机获得一条新线索） |
+| `POST` | `/games/{id}/investigate` | **主动搜证**；速推模式可传 `{"lead_id": "..."}` 选择调查方向 |
 | `POST` | `/games/{id}/speak` | 发送发言（批式，所有 AI 回复一次返回） |
 | `POST` | `/games/{id}/speak/stream` | **发送发言（SSE 流式，AI 完成一个推送一个）** |
 | `POST` | `/games/{id}/accuse` | 指认凶手 |
@@ -388,8 +396,8 @@ MurderMystery/
 │   ├── stories/              剧本存档
 │   ├── tests/                pytest 单元测试
 │   │   ├── conftest.py
-│   │   ├── test_game_manager.py      53 个测试
-│   │   └── test_session_service.py   9 个测试
+│   │   ├── test_game_manager.py      游戏规则与线索测试
+│   │   └── test_session_service.py   会话、持久化与速推模式测试
 │   ├── pytest.ini
 │   └── requirements.txt
 ├── frontend/
@@ -407,7 +415,7 @@ MurderMystery/
 ### 运行测试
 
 ```bash
-# 后端：62 个单元测试（< 1 秒）
+# 后端：运行完整 pytest 测试集
 npm run test:backend
 # 或
 cd backend && python -m pytest

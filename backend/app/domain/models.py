@@ -211,6 +211,9 @@ class GameState:
     story_id: str
     """Story ID"""
 
+    mode: str = "classic"
+    """Game mode: ``classic`` or the shorter ``quick`` mode."""
+
     phase: str = "introduction"
     """Current phase"""
 
@@ -249,6 +252,9 @@ class GameState:
 
     reveal_triggered: bool = False
     """Whether the reveal phase has been triggered"""
+
+    last_event: Optional[dict] = None
+    """Latest gameplay beat shown to the player."""
 
 
 @dataclass

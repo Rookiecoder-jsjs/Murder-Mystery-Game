@@ -7,6 +7,7 @@ import './DiscussionPanel.scss'
 
 export function DiscussionPanel() {
   const { state, speak, returnToInvestigation, startVoting } = useGame()
+  const quickModeNeedsAnotherRound = state.mode === 'quick' && state.round < state.maxRounds
   const [message, setMessage] = useState('')
   const portraits = useMemo(
     () => state.characters.map((item) => item.portrait_url || ''),
@@ -146,8 +147,10 @@ export function DiscussionPanel() {
       </View>
 
       <View className='discussion-panel__footer'>
-        <Button className='secondary-button' onClick={backToSearch}>返回搜证</Button>
-        <Button className='danger-button' onClick={enterVoting}>结束讨论 · 进入表决</Button>
+        <Button className='secondary-button' disabled={!quickModeNeedsAnotherRound && state.mode === 'quick'} onClick={backToSearch}>返回搜证</Button>
+        <Button className='danger-button' disabled={quickModeNeedsAnotherRound} onClick={enterVoting}>
+          {quickModeNeedsAnotherRound ? `还需 ${state.maxRounds - state.round} 轮` : '结束讨论 · 进入表决'}
+        </Button>
       </View>
     </View>
   )

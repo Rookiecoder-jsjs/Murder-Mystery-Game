@@ -49,18 +49,21 @@ def majority_vote(votes: list[str]) -> tuple[str, str]:
 class GameManager:
     """Murder mystery game manager."""
 
-    def __init__(self, archive: StoryArchive):
+    def __init__(self, archive: StoryArchive, mode: str = "classic"):
         """Initialize the game manager.
 
         Args:
             archive: The story archive containing characters and clues.
         """
         self.archive = archive
+        normalized_mode = mode if mode in {"classic", "quick"} else "classic"
         self.state = GameState(
             story_id=archive.id,
+            mode=normalized_mode,
             phase=GamePhase.INTRODUCTION.value,
             turn=0,
             round=1,
+            max_rounds=3 if normalized_mode == "quick" else 5,
         )
 
         for char in archive.characters:
@@ -213,6 +216,40 @@ class GameManager:
             scene_public=tuple(scene_public_entries),
         )
 
+    def get_available_clues(self, player_id: str) -> list[ClueData]:
+        """Return currently discoverable clues in archive order."""
+        return [entry.clue for entry in self.get_clue_board(player_id).available]
+
+    def _claim_clue(self, player_id: str, clue_id: str) -> Optional[ClueData]:
+        """Claim one currently available clue without changing counters."""
+        state = self.state.player_states.get(player_id)
+        if not state:
+            return None
+
+        entry = next(
+            (
+                item
+                for item in self.get_clue_board(player_id).available
+                if item.clue.id == clue_id
+            ),
+            None,
+        )
+        if entry is None:
+            return None
+
+        state.known_clues.append(entry.clue.id)
+        if entry.clue.holder_id == "scene":
+            entry.clue.reveal_to_all = True
+        return entry.clue
+
+    def distribute_clue(self, player_id: str, clue_id: str) -> list[ClueData]:
+        """Distribute a specific clue selected by the player."""
+        claimed = self._claim_clue(player_id, clue_id)
+        if claimed is None:
+            return []
+        self.state.investigation_count += 1
+        return [claimed]
+
     def distribute_random_clues(
         self,
         player_id: str,
@@ -245,14 +282,12 @@ class GameManager:
 
         distributed = []
         for entry in selected:
-            if entry.clue.id not in state.known_clues:
-                state.known_clues.append(entry.clue.id)
-                distributed.append(entry.clue)
+            claimed = self._claim_clue(player_id, entry.clue.id)
+            if claimed is not None:
+                distributed.append(claimed)
 
-                if entry.clue.holder_id == "scene":
-                    entry.clue.reveal_to_all = True
-
-        self.state.investigation_count += 1
+        if distributed:
+            self.state.investigation_count += 1
         return distributed
 
     def can_accuse(self, player_id: str) -> bool:

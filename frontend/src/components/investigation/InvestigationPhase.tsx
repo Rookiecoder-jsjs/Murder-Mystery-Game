@@ -1,6 +1,6 @@
 // Investigation Phase — 搜证、线索板、指认凶手
 import { useState } from 'react';
-import { Search, Eye, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Search, Eye, MessageSquare, AlertTriangle, Zap } from 'lucide-react';
 import { useGame } from '../../context/useGame';
 import { Button, Card, Badge, Modal, AccuseModal, useToast } from '../common';
 import { ClueCard } from './ClueCard';
@@ -16,11 +16,11 @@ export function InvestigationPhase() {
   const [showAccuseModal, setShowAccuseModal] = useState(false);
   const [isAccusing, setIsAccusing] = useState(false);
 
-  const handleInvestigate = async () => {
+  const handleInvestigate = async (leadId?: string) => {
     if (isInvestigating) return;
     setIsInvestigating(true);
     try {
-      const found = await investigate();
+      const found = await investigate(leadId);
       // 新线索只在网格中出现一次（带「新发现」徽标），不再另渲染一份卡片
       setFoundClueIds(found.map((c) => c.id));
       if (found.length > 0) {
@@ -75,12 +75,13 @@ export function InvestigationPhase() {
       <div className="investigation-actions">
         <Button
           variant="primary"
-          onClick={handleInvestigate}
+          onClick={() => handleInvestigate()}
           isLoading={isInvestigating}
           className="investigation-action"
+          disabled={state.mode === 'quick'}
         >
           <Search size={16} />
-          搜证
+          {state.mode === 'quick' ? '请选择调查方向' : '搜证'}
         </Button>
         <Button
           variant="secondary"
@@ -102,6 +103,44 @@ export function InvestigationPhase() {
           </Button>
         )}
       </div>
+
+      {state.mode === 'quick' && (
+        <div className="investigation-leads">
+          <div className="investigation-leads-header">
+            <div>
+              <span className="investigation-leads-kicker">QUICK CASE / ROUND {state.round}</span>
+              <h3><Zap size={16} /> 选择你的调查方向</h3>
+            </div>
+            <span className="investigation-leads-count">{state.investigationOptions.length} 个突破口</span>
+          </div>
+          <div className="investigation-leads-grid">
+            {state.investigationOptions.map((option) => (
+              <button
+                type="button"
+                key={option.id}
+                className="investigation-lead-card"
+                onClick={() => handleInvestigate(option.id)}
+                disabled={isInvestigating}
+              >
+                <span className="investigation-lead-card-index">LEAD / {option.kind.toUpperCase()}</span>
+                <strong>{option.title}</strong>
+                <span>{option.description}</span>
+                <em>{isInvestigating ? '正在调取…' : '调查此方向 →'}</em>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {state.lastEvent && (
+        <div className="investigation-event" role="status">
+          <span className="investigation-event-mark">!</span>
+          <div>
+            <strong>{state.lastEvent.title}</strong>
+            <p>{state.lastEvent.message}</p>
+          </div>
+        </div>
+      )}
 
       <div className="investigation-content">
         <Card className="investigation-clues-card">

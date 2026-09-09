@@ -15,6 +15,9 @@ import type {
   ChatMessage,
   Clue,
   GamePhase,
+  GameMode,
+  GameEvent,
+  InvestigationOption,
   RevealInfo,
   VoteResponse,
 } from '@/types/game'
@@ -28,8 +31,11 @@ export interface GameState {
   player: CharacterInfo | null
   characters: CharacterInfo[]
   phase: GamePhase
+  mode: GameMode
   round: number
   maxRounds: number
+  investigationOptions: InvestigationOption[]
+  lastEvent: GameEvent | null
   investigationCount: number
   clues: Clue[]
   scenePublicClues: Clue[]
@@ -52,8 +58,11 @@ const initialState: GameState = {
   player: null,
   characters: [],
   phase: 'introduction',
+  mode: 'classic',
   round: 1,
   maxRounds: 5,
+  investigationOptions: [],
+  lastEvent: null,
   investigationCount: 0,
   clues: [],
   scenePublicClues: [],
@@ -80,11 +89,11 @@ function reducer(state: GameState, action: Action): GameState {
 
 interface GameContextValue {
   state: GameState
-  createGame: (topic: string) => Promise<string>
-  loadGame: (storyId: string) => Promise<string>
+  createGame: (topic: string, mode?: GameMode) => Promise<string>
+  loadGame: (storyId: string, mode?: GameMode) => Promise<string>
   resumeGame: (gameId: string) => Promise<void>
   introduce: (message: string) => Promise<void>
-  investigate: () => Promise<Clue[]>
+  investigate: (leadId?: string) => Promise<Clue[]>
   nextPhase: () => Promise<void>
   returnToInvestigation: () => Promise<void>
   startVoting: () => Promise<void>
@@ -112,10 +121,10 @@ export function getLastGameId(): string {
 export function GameProvider({ children }: PropsWithChildren) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  const createGame = useCallback(async (topic: string) => {
+  const createGame = useCallback(async (topic: string, mode: GameMode = 'classic') => {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
-      const result = await gameApi.createGame(topic)
+      const result = await gameApi.createGame(topic, mode)
       persistLastGame(result.game_id)
       dispatch({
         type: 'PATCH',
@@ -126,6 +135,10 @@ export function GameProvider({ children }: PropsWithChildren) {
           player: result.player,
           characters: result.characters,
           phase: result.phase,
+          mode: result.mode || mode,
+          maxRounds: result.max_rounds || (mode === 'quick' ? 3 : 5),
+          investigationOptions: [],
+          lastEvent: null,
           round: 1,
           clues: [],
           scenePublicClues: [],
@@ -145,10 +158,10 @@ export function GameProvider({ children }: PropsWithChildren) {
     }
   }, [])
 
-  const loadGame = useCallback(async (storyId: string) => {
+  const loadGame = useCallback(async (storyId: string, mode: GameMode = 'classic') => {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
-      const result = await gameApi.loadGame(storyId)
+      const result = await gameApi.loadGame(storyId, mode)
       persistLastGame(result.game_id)
       dispatch({
         type: 'PATCH',
@@ -159,6 +172,10 @@ export function GameProvider({ children }: PropsWithChildren) {
           player: result.player,
           characters: result.characters,
           phase: result.phase,
+          mode: result.mode || mode,
+          maxRounds: result.max_rounds || (mode === 'quick' ? 3 : 5),
+          investigationOptions: [],
+          lastEvent: null,
           round: 1,
           clues: [],
           scenePublicClues: [],
@@ -192,8 +209,11 @@ export function GameProvider({ children }: PropsWithChildren) {
         payload: {
           gameId,
           phase: status.phase,
+          mode: status.mode,
           round: status.round,
           maxRounds: status.max_rounds,
+          investigationOptions: status.investigation_options,
+          lastEvent: status.last_event,
           investigationCount: status.investigation_count || 0,
           player: status.player,
           characters: status.characters,
@@ -241,17 +261,19 @@ export function GameProvider({ children }: PropsWithChildren) {
     }
   }, [requireGameId, state.player?.name])
 
-  const investigate = useCallback(async () => {
+  const investigate = useCallback(async (leadId?: string) => {
     const gameId = requireGameId()
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
-      const result = await gameApi.investigate(gameId)
+      const result = await gameApi.investigate(gameId, leadId)
       dispatch({
         type: 'PATCH',
         payload: {
           clues: result.clue_board.clues,
           scenePublicClues: result.clue_board.scene_public_clues,
           accusationPoints: result.clue_board.accusation_points,
+          investigationOptions: result.investigation_options,
+          lastEvent: result.event,
           investigationCount: state.investigationCount + 1,
         },
       })
@@ -269,7 +291,15 @@ export function GameProvider({ children }: PropsWithChildren) {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
       const result = await gameApi.nextPhase(gameId)
-      dispatch({ type: 'PATCH', payload: { phase: result.phase, round: result.round || state.round } })
+      dispatch({
+        type: 'PATCH',
+        payload: {
+          phase: result.phase,
+          round: result.round || state.round,
+          investigationOptions: result.investigation_options || [],
+          lastEvent: result.last_event || null,
+        },
+      })
     } catch (error) {
       dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
       throw error
@@ -294,6 +324,8 @@ export function GameProvider({ children }: PropsWithChildren) {
           clues: clueBoard.clues,
           scenePublicClues: clueBoard.scene_public_clues,
           accusationPoints: clueBoard.accusation_points,
+          investigationOptions: phase.investigation_options || [],
+          lastEvent: phase.last_event || null,
         },
       })
     } catch (error) {
@@ -309,7 +341,15 @@ export function GameProvider({ children }: PropsWithChildren) {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
       const result = await gameApi.startVoting(gameId)
-      dispatch({ type: 'PATCH', payload: { phase: result.phase, round: result.round || state.round } })
+      dispatch({
+        type: 'PATCH',
+        payload: {
+          phase: result.phase,
+          round: result.round || state.round,
+          investigationOptions: result.investigation_options || [],
+          lastEvent: result.last_event || null,
+        },
+      })
     } catch (error) {
       dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
       throw error

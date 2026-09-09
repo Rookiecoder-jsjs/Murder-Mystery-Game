@@ -108,12 +108,14 @@ def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
     ``asdict`` flattens nested dataclasses to dicts; restore them here so
     callers can rely on real ``PlayerState`` objects after a restart.
     """
+    mode = raw.get("mode", "classic")
     state = GameState(
         story_id=raw["story_id"],
+        mode=mode,
         phase=raw.get("phase", "introduction"),
         turn=raw.get("turn", 0),
         round=raw.get("round", 1),
-        max_rounds=raw.get("max_rounds", 5),
+        max_rounds=raw.get("max_rounds", 3 if mode == "quick" else 5),
         investigation_count=raw.get("investigation_count", 0),
         min_investigation_rounds=raw.get("min_investigation_rounds", 2),
         eliminated_id=raw.get("eliminated_id"),
@@ -122,6 +124,7 @@ def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
         game_ended=raw.get("game_ended", False),
         winner=raw.get("winner"),
         reveal_triggered=raw.get("reveal_triggered", False),
+        last_event=raw.get("last_event"),
     )
     for char in archive.characters:
         ps_raw = raw.get("player_states", {}).get(char.id)
@@ -152,9 +155,10 @@ class GameSession:
         archive: StoryArchive,
         human_player_id: str,
         roleplay_client: OpenAI,
+        mode: str = "classic",
     ) -> None:
         self.archive = archive
-        self.game = GameManager(archive)
+        self.game = GameManager(archive, mode=mode)
         self.human_player_id = human_player_id
         self.roleplay_client = roleplay_client
         self.roleplay_config = get_config().roleplay
@@ -197,6 +201,7 @@ class GameSession:
             "game_id": game_id,
             "story_id": self.archive.id,
             "human_player_id": self.human_player_id,
+            "mode": self.game.state.mode,
             "state": asdict(self.game.state),
             "revealed_clue_ids": [
                 c.id for c in self.archive.clues if c.reveal_to_all
@@ -219,7 +224,9 @@ class GameSession:
         """Reconstruct a session from a snapshot and its archive."""
         session = cls.__new__(cls)
         session.archive = archive
-        session.game = GameManager(archive)
+        snapshot_state = snapshot.get("state", {})
+        mode = snapshot.get("mode", snapshot_state.get("mode", "classic"))
+        session.game = GameManager(archive, mode=mode)
         session.human_player_id = snapshot["human_player_id"]
         session.roleplay_client = roleplay_client
         session.roleplay_config = get_config().roleplay
@@ -228,7 +235,9 @@ class GameSession:
         for clue in archive.clues:
             clue.reveal_to_all = clue.id in revealed_ids or clue.reveal_to_all
 
-        session.game.state = _restore_state(snapshot["state"], archive)
+        state_snapshot = dict(snapshot["state"])
+        state_snapshot.setdefault("mode", mode)
+        session.game.state = _restore_state(state_snapshot, archive)
 
         human_char = session.game.get_character(session.human_player_id)
         persona = (
@@ -329,6 +338,12 @@ class GameSession:
             actions = ["view_clues", "investigate", "discuss", "accuse"]
         elif phase == "discussion":
             actions = ["speak", "view_clues", "investigate", "accuse", "vote", "return_investigation"]
+            if (
+                self.game.state.mode == "quick"
+                and self.game.state.round < self.game.state.max_rounds
+            ):
+                actions.remove("vote")
+                actions.remove("investigate")
         elif phase == "voting":
             actions = ["vote"]
         elif phase == "reveal":
@@ -336,12 +351,20 @@ class GameSession:
         return {
             "game_id": self.archive.id,
             "phase": phase,
+            "mode": self.game.state.mode,
+            "is_quick_mode": self.game.state.mode == "quick",
             "round": self.game.state.round,
             "max_rounds": self.game.state.max_rounds,
+            "progress": {
+                "current": min(self.game.state.round, self.game.state.max_rounds),
+                "total": self.game.state.max_rounds,
+            },
             "player": self.get_player_info(),
             "characters": self.get_all_characters(),
             "available_actions": actions,
             "investigation_count": self.game.state.investigation_count,
+            "investigation_options": self.get_investigation_options(),
+            "last_event": self.game.state.last_event,
         }
 
     def get_reveal_info(self) -> Dict[str, Any]:
@@ -412,8 +435,47 @@ class GameSession:
             "new_phase": self.game.state.phase,
         }
 
-    def investigate(self) -> Dict[str, Any]:
-        """Active investigation: draw one new clue for the player.
+    def get_investigation_options(self) -> List[Dict[str, str]]:
+        """Build short-mode investigation choices without exposing answers."""
+        if (
+            self.game.state.mode != "quick"
+            or self.game.current_phase != GamePhase.INVESTIGATION
+        ):
+            return []
+
+        type_labels = {
+            "physical": "物证",
+            "testimony": "证词",
+            "document": "文书",
+        }
+        options = []
+        for clue in self.game.get_available_clues(self.human_player_id)[:2]:
+            label = type_labels.get(clue.type, "线索")
+            source = "案发现场" if clue.holder_id == "scene" else "相关人物口供"
+            options.append({
+                "id": clue.id,
+                "title": f"追查{label}",
+                "description": f"从{source}寻找新的突破，可能改写当前时间线。",
+                "kind": clue.type,
+            })
+        return options
+
+    @staticmethod
+    def _event_for_clue(clue) -> Dict[str, str]:
+        messages = {
+            "physical": "现场出现新的物证，案发过程需要重新核对。",
+            "testimony": "一份证词露出新的切口，相关人物值得继续追问。",
+            "document": "一份记录被重新翻出，某人的行动轨迹出现变化。",
+        }
+        return {
+            "type": "clue_breakthrough",
+            "title": "案件出现突破",
+            "message": messages.get(clue.type, "新的证据让案件向前推进了一步。"),
+            "clue_id": clue.id,
+        }
+
+    def investigate(self, lead_id: Optional[str] = None) -> Dict[str, Any]:
+        """Active investigation: draw a clue, optionally selected by the player.
 
         Usable in the investigation phase and mid-discussion; errors out
         when nothing remains to find.
@@ -423,9 +485,18 @@ class GameSession:
         ):
             raise HTTPException(status_code=400, detail="当前阶段不能搜证")
 
-        found = self.game.distribute_random_clues(self.human_player_id, 1)
+        if self.game.state.mode == "quick":
+            options = self.get_investigation_options()
+            selected_id = lead_id or (options[0]["id"] if options else None)
+            if not selected_id or selected_id not in {item["id"] for item in options}:
+                raise HTTPException(status_code=400, detail="请选择当前可调查的方向")
+            found = self.game.distribute_clue(self.human_player_id, selected_id)
+        else:
+            found = self.game.distribute_random_clues(self.human_player_id, 1)
         if not found:
             raise HTTPException(status_code=400, detail="已经没有更多线索了")
+        event = self._event_for_clue(found[0]) if self.game.state.mode == "quick" else None
+        self.game.state.last_event = event
         return {
             "found": [
                 {
@@ -437,6 +508,8 @@ class GameSession:
                 for c in found
             ],
             "clue_board": self.get_clue_board(),
+            "investigation_options": self.get_investigation_options(),
+            "event": event,
         }
 
     def accuse(self, character_name: str) -> Dict[str, Any]:
@@ -604,6 +677,7 @@ class SessionManager:
         self,
         topic: Optional[str] = None,
         archive: Optional[StoryArchive] = None,
+        mode: str = "classic",
     ) -> tuple[str, GameSession]:
         """Create a new game session.
 
@@ -618,7 +692,7 @@ class SessionManager:
 
         char_ids = [c.id for c in archive.characters]
         human_id = random.choice(char_ids)
-        session = GameSession(archive, human_id, self._roleplay_client)
+        session = GameSession(archive, human_id, self._roleplay_client, mode=mode)
         game_id = str(uuid.uuid4())
         self._sessions[game_id] = session
         self._store.save(session.to_snapshot(game_id))
