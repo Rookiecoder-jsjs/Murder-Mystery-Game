@@ -77,6 +77,19 @@ class TestInit:
         assert "clue_b" in gm.state.player_states["char_2"].known_clues
         assert gm.distribute_clue("char_2", "clue_b") == []
 
+    def test_quick_mode_has_one_investigation_action_per_round(self, sample_archive):
+        gm = GameManager(sample_archive, mode="quick")
+        gm.set_phase(GamePhase.INVESTIGATION)
+
+        assert gm.state.investigation_actions_remaining == 1
+        assert gm.consume_investigation_action() is True
+        assert gm.state.investigation_actions_remaining == 0
+        assert gm.consume_investigation_action() is False
+
+        gm.set_phase(GamePhase.DISCUSSION)
+        gm.set_phase(GamePhase.INVESTIGATION)
+        assert gm.state.investigation_actions_remaining == 1
+
 
 # ---------- Phase transitions ----------
 
@@ -123,6 +136,29 @@ class TestPhaseTransitions:
         # Re-entering discussion (via set_phase) resets round to 1
         gm.set_phase(GamePhase.DISCUSSION)
         assert gm.state.round == 1
+
+    def test_returning_from_investigation_preserves_quick_round(self, sample_archive):
+        gm = GameManager(sample_archive, mode="quick")
+        gm.set_phase(GamePhase.INVESTIGATION)
+        gm.state.round = 2
+
+        gm.next_phase()
+
+        assert gm.current_phase == GamePhase.DISCUSSION
+        assert gm.state.round == 2
+
+    def test_return_to_discussion_preserves_round_without_search(self, sample_archive):
+        gm = GameManager(sample_archive, mode="quick")
+        gm.set_phase(GamePhase.VOTING)
+        gm.state.round = 3
+        gm.state.investigation_actions_remaining = 0
+        gm.submit_vote("char_2", "char_3")
+
+        gm.return_to_discussion()
+
+        assert gm.current_phase == GamePhase.DISCUSSION
+        assert gm.state.round == 3
+        assert gm.state.investigation_actions_remaining == 0
 
     def test_set_phase_directly(self, sample_archive):
         gm = GameManager(sample_archive)

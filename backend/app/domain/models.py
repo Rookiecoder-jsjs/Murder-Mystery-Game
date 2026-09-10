@@ -70,6 +70,12 @@ class ClueData:
     required_clue_id: Optional[str] = None
     """ID of another clue that must be obtained first to unlock this one"""
 
+    lead_title: Optional[str] = None
+    """Player-facing title for the investigation direction that finds this clue."""
+
+    lead_description: Optional[str] = None
+    """Player-facing description of the investigation direction."""
+
 
 @dataclass
 class ScriptCharacter:
@@ -228,6 +234,13 @@ class GameState:
 
     investigation_count: int = 0
     """Number of times investigation has been done"""
+
+    investigation_actions_remaining: Optional[int] = None
+    """Remaining investigation actions in the current round.
+
+    ``None`` keeps classic mode's existing unrestricted investigation behavior;
+    quick mode uses one action per round.
+    """
 
     min_investigation_rounds: int = 2
     """Minimum number of investigation rounds before voting"""

@@ -120,7 +120,9 @@ CASE_PROMPT_TEMPLATE = """创建一个复杂的剧本杀案件，满足以下要
             "type": "physical/testimony/document",
             "holder_id": "持有者ID（角色或scene）",
             "reveal_to_all": false,
-            "required_clue_id": null
+            "required_clue_id": null,
+            "lead_title": "调查方向标题（可选）",
+            "lead_description": "调查方向描述（可选）"
         }}
     ],
     "truth": "完整的真相叙述，包括时间线、动机、手法（300字以上）"
@@ -344,7 +346,9 @@ def parse_case_to_archive(
             type=clue_dict.get("type", "physical"),
             holder_id=clue_dict.get("holder_id", "scene"),
             reveal_to_all=clue_dict.get("reveal_to_all", False),
-            required_clue_id=clue_dict.get("required_clue_id")
+            required_clue_id=clue_dict.get("required_clue_id"),
+            lead_title=clue_dict.get("lead_title"),
+            lead_description=clue_dict.get("lead_description"),
         )
         clues.append(clue)
 

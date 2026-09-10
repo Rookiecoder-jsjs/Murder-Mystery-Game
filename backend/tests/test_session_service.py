@@ -14,8 +14,15 @@ import json
 from dataclasses import asdict
 
 import pytest
+from fastapi import HTTPException
 
 from app.core.phases import GamePhase
+from app.api.endpoints.games import (
+    advance_phase,
+    return_to_discussion,
+    return_to_investigation,
+    start_voting,
+)
 from app.domain.models import PlayerState
 from app.services.session_service import (
     GameSession,
@@ -114,6 +121,99 @@ class _FakeStoryService:
 
 
 class TestSnapshotRoundTrip:
+    def test_quick_mode_round_trip_requires_each_investigation(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.INVESTIGATION)
+
+        for expected_round in range(1, 4):
+            option = session.get_game_status()["investigation_options"][0]
+            result = session.investigate(option["id"])
+            assert result["investigation_actions_remaining"] == 0
+
+            phase = asyncio.run(advance_phase(session))
+            assert phase["phase"] == GamePhase.DISCUSSION.value
+            assert phase["round"] == expected_round
+
+            if expected_round < 3:
+                next_investigation = asyncio.run(return_to_investigation(session))
+                assert next_investigation["phase"] == GamePhase.INVESTIGATION.value
+                assert next_investigation["round"] == expected_round + 1
+                assert next_investigation["investigation_actions_remaining"] == 1
+
+        voting = asyncio.run(start_voting(session))
+        assert voting["phase"] == GamePhase.VOTING.value
+        assert voting["round"] == 3
+
+    def test_quick_mode_cannot_skip_investigation_from_discussion(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.DISCUSSION)
+
+        with pytest.raises(HTTPException, match="返回搜证"):
+            asyncio.run(advance_phase(session))
+
+        assert session.game.current_phase == GamePhase.DISCUSSION
+        assert session.game.state.round == 1
+
+    def test_quick_mode_voting_cannot_open_extra_investigation(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.VOTING)
+        session.game.state.round = 3
+
+        with pytest.raises(HTTPException, match="只能返回讨论"):
+            asyncio.run(return_to_investigation(session))
+
+        assert session.game.current_phase == GamePhase.VOTING
+
+    def test_quick_mode_final_discussion_exposes_only_valid_actions(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.DISCUSSION)
+        session.game.state.round = 3
+
+        actions = session.get_game_status()["available_actions"]
+
+        assert "vote" in actions
+        assert "investigate" not in actions
+        assert "return_investigation" not in actions
+
+    def test_failed_ballot_returns_to_discussion_without_search(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.VOTING)
+        session.game.state.round = 3
+        session.game.state.investigation_actions_remaining = 0
+        session.game.submit_vote("char_2", "char_3")
+
+        result = asyncio.run(return_to_discussion(session))
+
+        assert result["phase"] == GamePhase.DISCUSSION.value
+        assert result["round"] == 3
+        assert result["investigation_actions_remaining"] == 0
+        assert session.game.state.votes_record == []
+
     def test_quick_mode_state_and_investigation_options(self, sample_archive):
         session = GameSession(
             sample_archive,
@@ -127,13 +227,18 @@ class TestSnapshotRoundTrip:
 
         assert status["mode"] == "quick"
         assert status["max_rounds"] == 3
+        assert status["investigation_actions_remaining"] == 1
         assert len(status["investigation_options"]) == 2
 
         result = session.investigate(status["investigation_options"][0]["id"])
 
         assert result["found"]
         assert result["event"]["title"]
+        assert result["investigation_actions_remaining"] == 0
         assert result["investigation_options"]
+
+        with pytest.raises(HTTPException, match="调查行动已用完"):
+            session.investigate(status["investigation_options"][1]["id"])
 
     def test_quick_mode_survives_snapshot_restore(self, sample_archive):
         session = GameSession(
@@ -150,6 +255,22 @@ class TestSnapshotRoundTrip:
 
         assert restored.game.state.mode == "quick"
         assert restored.game.state.max_rounds == 3
+
+    def test_quick_mode_action_budget_survives_snapshot_restore(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+            mode="quick",
+        )
+        session.game.set_phase(GamePhase.INVESTIGATION)
+        session.investigate(session.get_game_status()["investigation_options"][0]["id"])
+
+        restored = GameSession.from_snapshot(
+            session.to_snapshot("g1"), sample_archive, StubRoleplayClient()
+        )
+
+        assert restored.game.state.investigation_actions_remaining == 0
 
     def test_restore_yields_typed_player_states(self, sample_archive):
         game_id = "g1"

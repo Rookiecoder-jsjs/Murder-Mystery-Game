@@ -54,6 +54,11 @@ export const gameApi = {
     { method: 'POST' },
   ),
 
+  returnToDiscussion: (gameId: string) => request<PhaseResponse>(
+    `/games/${gameId}/return-to-discussion`,
+    { method: 'POST' },
+  ),
+
   startVoting: (gameId: string) => request<PhaseResponse>(`/games/${gameId}/start-voting`, {
     method: 'POST',
   }),

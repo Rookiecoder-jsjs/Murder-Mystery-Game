@@ -64,6 +64,9 @@ class GameManager:
             turn=0,
             round=1,
             max_rounds=3 if normalized_mode == "quick" else 5,
+            investigation_actions_remaining=(
+                1 if normalized_mode == "quick" else None
+            ),
         )
 
         for char in archive.characters:
@@ -147,8 +150,14 @@ class GameManager:
         next_phase = GamePhase.next(current_phase)
         self.state.phase = next_phase.value
         self.state.turn = 0
-        if next_phase == GamePhase.DISCUSSION:
+        # A quick-mode investigation loop increments ``round`` before
+        # returning here. Preserve that round when moving back into
+        # discussion; only a new discussion entered directly by callers
+        # should reset its round explicitly via ``set_phase``.
+        if next_phase == GamePhase.DISCUSSION and current_phase != GamePhase.INVESTIGATION:
             self.state.round = 1
+        if next_phase == GamePhase.INVESTIGATION and self.state.mode == "quick":
+            self.state.investigation_actions_remaining = 1
         return next_phase
 
     def set_phase(self, phase: GamePhase) -> None:
@@ -161,6 +170,31 @@ class GameManager:
         self.state.turn = 0
         if phase == GamePhase.DISCUSSION:
             self.state.round = 1
+        if phase == GamePhase.INVESTIGATION and self.state.mode == "quick":
+            self.state.investigation_actions_remaining = 1
+
+    def consume_investigation_action(self) -> bool:
+        """Consume one quick-mode investigation action.
+
+        Classic mode intentionally returns ``True`` without a counter so old
+        games keep their unrestricted investigation behavior.
+        """
+        remaining = self.state.investigation_actions_remaining
+        if remaining is None:
+            return True
+        if remaining < 1:
+            return False
+        self.state.investigation_actions_remaining = remaining - 1
+        return True
+
+    def return_to_discussion(self) -> None:
+        """Return from a failed ballot without starting another investigation.
+
+        The current round is preserved so a failed final ballot does not
+        accidentally grant the player another investigation action.
+        """
+        self.state.phase = GamePhase.DISCUSSION.value
+        self.state.turn = 0
 
     def get_clue_board(self, player_id: str) -> ClueBoard:
         """Get the complete clue board for a player.

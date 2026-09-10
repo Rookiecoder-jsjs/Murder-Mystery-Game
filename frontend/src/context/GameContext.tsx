@@ -72,6 +72,7 @@ const initialState: GameState = {
   mode: 'classic',
   round: 1,
   maxRounds: 5,
+  investigationActionsRemaining: null,
   investigationOptions: [],
   lastEvent: null,
   clues: [],
@@ -125,6 +126,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         mode: status.mode,
         round: status.round,
         maxRounds: status.max_rounds,
+        investigationActionsRemaining: status.investigation_actions_remaining ?? null,
         investigationOptions: status.investigation_options,
         lastEvent: status.last_event,
         availableActions: status.available_actions,
@@ -280,6 +282,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           mode: status.mode,
           round: status.round,
           maxRounds: status.max_rounds,
+          investigationActionsRemaining: status.investigation_actions_remaining ?? null,
           investigationOptions: status.investigation_options,
           lastEvent: status.last_event,
           availableActions: status.available_actions,
@@ -345,6 +348,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         type: 'SET_GAME_STATUS',
         payload: {
           investigationOptions: result.investigation_options,
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.event,
         },
       });
@@ -394,6 +398,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         type: 'SET_GAME_STATUS',
         payload: {
           investigationOptions: result.investigation_options ?? [],
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.last_event ?? null,
         },
       });
@@ -438,6 +443,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         type: 'SET_GAME_STATUS',
         payload: {
           investigationOptions: result.investigation_options ?? [],
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.last_event ?? null,
         },
       });
@@ -450,6 +456,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, [state.gameId, refreshClues, refreshDiscussionHistory]);
+
+  const returnToDiscussion = useCallback(async () => {
+    if (!state.gameId) throw new ApiError('游戏尚未开始');
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    try {
+      const result = await api.returnToDiscussion(state.gameId);
+      dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
+      dispatch({ type: 'SET_ROUND', payload: result.round ?? 1 });
+      dispatch({
+        type: 'SET_GAME_STATUS',
+        payload: {
+          investigationOptions: result.investigation_options ?? [],
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
+          lastEvent: result.last_event ?? null,
+        },
+      });
+      await refreshDiscussionHistory();
+    } catch (error) {
+      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [state.gameId, refreshDiscussionHistory]);
 
   const speak = useCallback(
     async (message: string) => {
@@ -590,6 +621,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         nextPhase,
         startVoting,
         returnToInvestigation,
+        returnToDiscussion,
         investigate,
         speak,
         vote,

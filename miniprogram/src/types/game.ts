@@ -69,6 +69,7 @@ export interface GameStatus {
   max_rounds: number
   progress: { current: number; total: number }
   investigation_count?: number
+  investigation_actions_remaining?: number | null
   investigation_options: InvestigationOption[]
   last_event: GameEvent | null
   player: CharacterInfo
@@ -97,12 +98,14 @@ export interface InvestigateResponse {
   found: Clue[]
   clue_board: ClueBoard
   investigation_options: InvestigationOption[]
+  investigation_actions_remaining?: number | null
   event: GameEvent | null
 }
 
 export interface PhaseResponse {
   phase: GamePhase
   round?: number
+  investigation_actions_remaining?: number | null
   investigation_options?: InvestigationOption[]
   last_event?: GameEvent | null
 }

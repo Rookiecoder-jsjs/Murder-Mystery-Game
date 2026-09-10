@@ -15,6 +15,10 @@ export function InvestigationPhase() {
   const [foundClueIds, setFoundClueIds] = useState<string[]>([]);
   const [showAccuseModal, setShowAccuseModal] = useState(false);
   const [isAccusing, setIsAccusing] = useState(false);
+  const quickInvestigationComplete =
+    state.mode === 'quick' && state.investigationActionsRemaining === 0;
+  const canEnterDiscussion =
+    state.mode !== 'quick' || state.investigationActionsRemaining === 0;
 
   const handleInvestigate = async (leadId?: string) => {
     if (isInvestigating) return;
@@ -87,6 +91,7 @@ export function InvestigationPhase() {
           variant="secondary"
           onClick={handleTransitionToDiscussion}
           isLoading={isTransitioning}
+          disabled={!canEnterDiscussion}
           className="investigation-action"
         >
           <MessageSquare size={16} />
@@ -111,7 +116,11 @@ export function InvestigationPhase() {
               <span className="investigation-leads-kicker">QUICK CASE / ROUND {state.round}</span>
               <h3><Zap size={16} /> 选择你的调查方向</h3>
             </div>
-            <span className="investigation-leads-count">{state.investigationOptions.length} 个突破口</span>
+            <span className="investigation-leads-count">
+              {quickInvestigationComplete
+                ? '本轮调查已完成'
+                : `剩余 ${state.investigationActionsRemaining ?? '不限'} 次调查`}
+            </span>
           </div>
           <div className="investigation-leads-grid">
             {state.investigationOptions.map((option) => (
@@ -120,7 +129,7 @@ export function InvestigationPhase() {
                 key={option.id}
                 className="investigation-lead-card"
                 onClick={() => handleInvestigate(option.id)}
-                disabled={isInvestigating}
+                disabled={isInvestigating || quickInvestigationComplete}
               >
                 <span className="investigation-lead-card-index">LEAD / {option.kind.toUpperCase()}</span>
                 <strong>{option.title}</strong>

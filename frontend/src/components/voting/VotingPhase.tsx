@@ -7,7 +7,7 @@ import type { VoteResponse } from '../../api/types';
 import './VotingPhase.css';
 
 export function VotingPhase() {
-  const { state, vote, refreshStatus, returnToInvestigation, nextPhase } =
+  const { state, vote, refreshStatus, returnToDiscussion } =
     useGame();
   const { notify } = useToast();
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
@@ -42,11 +42,10 @@ export function VotingPhase() {
     }
   };
 
-  // 平票/票数不足：回到搜证再进入讨论
+  // 平票/票数不足：直接回到讨论，不开启新的搜证轮次
   const handleReturnToDiscussion = async () => {
     try {
-      await returnToInvestigation();
-      await nextPhase();
+      await returnToDiscussion();
     } catch (err) {
       notify(err instanceof Error ? err.message : '返回讨论失败', 'error');
     }

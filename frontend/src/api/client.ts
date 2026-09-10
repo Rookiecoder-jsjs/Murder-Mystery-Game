@@ -133,6 +133,11 @@ export const api = {
       method: 'POST',
     }),
 
+  returnToDiscussion: (gameId: string) =>
+    fetchApi<PhaseResponse>(`/games/${gameId}/return-to-discussion`, {
+      method: 'POST',
+    }),
+
   startVoting: (gameId: string) =>
     fetchApi<PhaseResponse>(`/games/${gameId}/start-voting`, {
       method: 'POST',

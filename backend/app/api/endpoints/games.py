@@ -168,7 +168,24 @@ async def player_introduce(
 async def advance_phase(
     session: GameSession = Depends(persist_session),
 ) -> dict:
+    if (
+        session.game.state.phase == GamePhase.INVESTIGATION.value
+        and session.game.state.mode == "quick"
+        and session.game.state.investigation_actions_remaining
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="请先完成本轮调查，再进入讨论",
+        )
     if session.game.state.phase == GamePhase.DISCUSSION.value:
+        if (
+            session.game.state.mode == "quick"
+            and session.game.state.round < session.game.state.max_rounds
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="请返回搜证完成下一轮调查",
+            )
         if session.game.state.round >= session.game.state.max_rounds:
             session.game.next_phase()
         else:
@@ -178,6 +195,9 @@ async def advance_phase(
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
+        "investigation_actions_remaining": (
+            session.game.state.investigation_actions_remaining
+        ),
         "investigation_options": session.get_investigation_options(),
         "last_event": session.game.state.last_event,
     }
@@ -192,6 +212,15 @@ async def return_to_investigation(
         GamePhase.VOTING.value,
     ]:
         raise HTTPException(status_code=400, detail="只能在讨论或投票阶段返回搜证")
+
+    if (
+        session.game.state.mode == "quick"
+        and session.game.state.phase == GamePhase.VOTING.value
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="速推模式投票未通过后只能返回讨论",
+        )
 
     was_revote = (
         session.game.state.phase == GamePhase.VOTING.value
@@ -221,6 +250,30 @@ async def return_to_investigation(
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
+        "investigation_actions_remaining": (
+            session.game.state.investigation_actions_remaining
+        ),
+        "investigation_options": session.get_investigation_options(),
+        "last_event": session.game.state.last_event,
+    }
+
+
+@router.post("/{game_id}/return-to-discussion")
+async def return_to_discussion(
+    session: GameSession = Depends(persist_session),
+) -> dict:
+    """Return from an inconclusive ballot without opening another search."""
+    if session.game.state.phase != GamePhase.VOTING.value:
+        raise HTTPException(status_code=400, detail="当前不是投票阶段")
+
+    session.game.reset_votes()
+    session.game.return_to_discussion()
+    return {
+        "phase": session.game.state.phase,
+        "round": session.game.state.round,
+        "investigation_actions_remaining": (
+            session.game.state.investigation_actions_remaining
+        ),
         "investigation_options": session.get_investigation_options(),
         "last_event": session.game.state.last_event,
     }
@@ -245,6 +298,9 @@ async def start_voting(
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,
+        "investigation_actions_remaining": (
+            session.game.state.investigation_actions_remaining
+        ),
         "investigation_options": session.get_investigation_options(),
         "last_event": session.game.state.last_event,
     }

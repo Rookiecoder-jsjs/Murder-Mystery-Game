@@ -245,6 +245,7 @@ powershell start.ps1   # Windows PowerShell
 新建案件时可以选择“速推模式”或“经典模式”：
 
 - 速推模式固定 3 轮调查；每轮从两个调查方向中选择一个，获得线索并触发案件突破事件，适合 10–15 分钟完成一局。
+- 速推模式每轮只能执行一次调查行动；完成调查后才能进入讨论，避免通过重复搜证跳过推理决策。
 - 经典模式保留自由调查和原有随机搜证流程，适合更完整的沉浸式体验。
 - 速推模式完成全部调查轮次后才能进入投票；未完成时可以从讨论返回下一轮搜证。
 
@@ -311,6 +312,7 @@ powershell start.ps1   # Windows PowerShell
 | `POST` | `/games/{id}/vote` | 投票 |
 | `POST` | `/games/{id}/start-voting` | 进入投票阶段 |
 | `POST` | `/games/{id}/return-to-investigation` | 返回搜证 |
+| `POST` | `/games/{id}/return-to-discussion` | 投票未达成结果时直接返回讨论，不开启新一轮搜证 |
 | `GET` | `/games/{id}/reveal` | 获取真相揭示 |
 | `GET` | `/games/{id}/discussion-history` | 讨论历史 |
 

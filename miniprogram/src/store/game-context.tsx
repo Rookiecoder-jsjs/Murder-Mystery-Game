@@ -34,6 +34,7 @@ export interface GameState {
   mode: GameMode
   round: number
   maxRounds: number
+  investigationActionsRemaining: number | null
   investigationOptions: InvestigationOption[]
   lastEvent: GameEvent | null
   investigationCount: number
@@ -61,6 +62,7 @@ const initialState: GameState = {
   mode: 'classic',
   round: 1,
   maxRounds: 5,
+  investigationActionsRemaining: null,
   investigationOptions: [],
   lastEvent: null,
   investigationCount: 0,
@@ -96,6 +98,7 @@ interface GameContextValue {
   investigate: (leadId?: string) => Promise<Clue[]>
   nextPhase: () => Promise<void>
   returnToInvestigation: () => Promise<void>
+  returnToDiscussion: () => Promise<void>
   startVoting: () => Promise<void>
   speak: (message: string) => Promise<void>
   vote: (characterName: string) => Promise<VoteResponse>
@@ -140,6 +143,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           investigationOptions: [],
           lastEvent: null,
           round: 1,
+          investigationActionsRemaining: null,
           clues: [],
           scenePublicClues: [],
           introductions: [],
@@ -177,6 +181,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           investigationOptions: [],
           lastEvent: null,
           round: 1,
+          investigationActionsRemaining: null,
           clues: [],
           scenePublicClues: [],
           introductions: [],
@@ -212,6 +217,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           mode: status.mode,
           round: status.round,
           maxRounds: status.max_rounds,
+          investigationActionsRemaining: status.investigation_actions_remaining ?? null,
           investigationOptions: status.investigation_options,
           lastEvent: status.last_event,
           investigationCount: status.investigation_count || 0,
@@ -273,6 +279,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           scenePublicClues: result.clue_board.scene_public_clues,
           accusationPoints: result.clue_board.accusation_points,
           investigationOptions: result.investigation_options,
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.event,
           investigationCount: state.investigationCount + 1,
         },
@@ -296,6 +303,7 @@ export function GameProvider({ children }: PropsWithChildren) {
         payload: {
           phase: result.phase,
           round: result.round || state.round,
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           investigationOptions: result.investigation_options || [],
           lastEvent: result.last_event || null,
         },
@@ -321,11 +329,35 @@ export function GameProvider({ children }: PropsWithChildren) {
         payload: {
           phase: phase.phase,
           round: phase.round || state.round,
+          investigationActionsRemaining: phase.investigation_actions_remaining ?? null,
           clues: clueBoard.clues,
           scenePublicClues: clueBoard.scene_public_clues,
           accusationPoints: clueBoard.accusation_points,
           investigationOptions: phase.investigation_options || [],
           lastEvent: phase.last_event || null,
+        },
+      })
+    } catch (error) {
+      dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
+      throw error
+    } finally {
+      dispatch({ type: 'PATCH', payload: { isLoading: false } })
+    }
+  }, [requireGameId, state.round])
+
+  const returnToDiscussion = useCallback(async () => {
+    const gameId = requireGameId()
+    dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
+    try {
+      const result = await gameApi.returnToDiscussion(gameId)
+      dispatch({
+        type: 'PATCH',
+        payload: {
+          phase: result.phase,
+          round: result.round || state.round,
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
+          investigationOptions: result.investigation_options || [],
+          lastEvent: result.last_event || null,
         },
       })
     } catch (error) {
@@ -347,6 +379,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           phase: result.phase,
           round: result.round || state.round,
           investigationOptions: result.investigation_options || [],
+          investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.last_event || null,
         },
       })
@@ -469,6 +502,7 @@ export function GameProvider({ children }: PropsWithChildren) {
     investigate,
     nextPhase,
     returnToInvestigation,
+    returnToDiscussion,
     startVoting,
     speak,
     vote,
@@ -484,6 +518,7 @@ export function GameProvider({ children }: PropsWithChildren) {
     investigate,
     nextPhase,
     returnToInvestigation,
+    returnToDiscussion,
     startVoting,
     speak,
     vote,

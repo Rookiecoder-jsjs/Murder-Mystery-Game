@@ -7,7 +7,7 @@ import { showError, showNotice } from '@/utils/feedback'
 import './VotingPanel.scss'
 
 export function VotingPanel() {
-  const { state, vote, returnToInvestigation } = useGame()
+  const { state, vote, returnToDiscussion } = useGame()
   const [selectedId, setSelectedId] = useState('')
   const [resultText, setResultText] = useState('')
   const suspects = useMemo(
@@ -40,9 +40,9 @@ export function VotingPanel() {
     }
   }
 
-  const backToSearch = async () => {
+  const backToDiscussion = async () => {
     try {
-      await returnToInvestigation()
+      await returnToDiscussion()
     } catch (error) {
       showError(error)
     }
@@ -95,7 +95,7 @@ export function VotingPanel() {
       </View>
 
       <View className='voting-panel__footer'>
-        <Button className='secondary-button' onClick={backToSearch}>返回搜证</Button>
+        <Button className='secondary-button' onClick={backToDiscussion}>返回讨论</Button>
         <Button className='danger-button' disabled={!selected} onClick={submitVote}>
           {selected ? `投给 ${selected.name}` : '选择一名嫌疑人'}
         </Button>

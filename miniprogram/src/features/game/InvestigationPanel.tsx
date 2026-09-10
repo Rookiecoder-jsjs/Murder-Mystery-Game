@@ -13,6 +13,10 @@ export function InvestigationPanel() {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const quickInvestigationComplete =
+    state.mode === 'quick' && state.investigationActionsRemaining === 0
+  const canEnterDiscussion =
+    state.mode !== 'quick' || state.investigationActionsRemaining === 0
 
   const suspects = useMemo(
     () => state.characters.filter((item) => item.id !== state.player?.id),
@@ -100,14 +104,18 @@ export function InvestigationPanel() {
               <Text className='field-label'>QUICK CASE · ROUND {state.round}</Text>
               <Text className='investigation-panel__leads-title'>选择调查方向</Text>
             </View>
-            <Text>{state.investigationOptions.length} 个突破口</Text>
+            <Text>
+              {quickInvestigationComplete
+                ? '本轮调查已完成'
+                : `剩余 ${state.investigationActionsRemaining ?? '不限'} 次调查`}
+            </Text>
           </View>
           <View className='investigation-panel__lead-list'>
             {state.investigationOptions.map((option) => (
               <Button
                 key={option.id}
                 className='investigation-panel__lead'
-                disabled={state.isLoading}
+                disabled={state.isLoading || quickInvestigationComplete}
                 onClick={() => search(option.id)}
               >
                 <Text className='investigation-panel__lead-kind'>{option.kind.toUpperCase()}</Text>
@@ -174,7 +182,11 @@ export function InvestigationPanel() {
         >
           直接指控
         </Button>
-        <Button className='primary-button' onClick={enterDiscussion}>带着线索进入讨论</Button>
+        <Button
+          className='primary-button'
+          disabled={!canEnterDiscussion}
+          onClick={enterDiscussion}
+        >带着线索进入讨论</Button>
       </View>
 
       <SuspectPicker

@@ -22,6 +22,7 @@ export interface GameState {
   mode: GameMode;
   round: number;
   maxRounds: number;
+  investigationActionsRemaining: number | null;
   investigationOptions: InvestigationOption[];
   lastEvent: GameEvent | null;
   clues: Clue[];
@@ -53,6 +54,7 @@ export interface GameContextValue {
   nextPhase: () => Promise<void>;
   startVoting: () => Promise<void>;
   returnToInvestigation: () => Promise<void>;
+  returnToDiscussion: () => Promise<void>;
   investigate: (leadId?: string) => Promise<Clue[]>;
   speak: (message: string) => Promise<void>;
   vote: (characterName: string) => Promise<VoteResponse>;

@@ -117,6 +117,10 @@ def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
         round=raw.get("round", 1),
         max_rounds=raw.get("max_rounds", 3 if mode == "quick" else 5),
         investigation_count=raw.get("investigation_count", 0),
+        investigation_actions_remaining=raw.get(
+            "investigation_actions_remaining",
+            1 if mode == "quick" else None,
+        ),
         min_investigation_rounds=raw.get("min_investigation_rounds", 2),
         eliminated_id=raw.get("eliminated_id"),
         votes_record=list(raw.get("votes_record", [])),
@@ -336,14 +340,19 @@ class GameSession:
             actions = ["introduce"]
         elif phase == "investigation":
             actions = ["view_clues", "investigate", "discuss", "accuse"]
-        elif phase == "discussion":
-            actions = ["speak", "view_clues", "investigate", "accuse", "vote", "return_investigation"]
             if (
                 self.game.state.mode == "quick"
-                and self.game.state.round < self.game.state.max_rounds
+                and self.game.state.investigation_actions_remaining == 0
             ):
-                actions.remove("vote")
                 actions.remove("investigate")
+        elif phase == "discussion":
+            actions = ["speak", "view_clues", "investigate", "accuse", "vote", "return_investigation"]
+            if self.game.state.mode == "quick":
+                actions.remove("investigate")
+                if self.game.state.round < self.game.state.max_rounds:
+                    actions.remove("vote")
+                else:
+                    actions.remove("return_investigation")
         elif phase == "voting":
             actions = ["vote"]
         elif phase == "reveal":
@@ -363,6 +372,9 @@ class GameSession:
             "characters": self.get_all_characters(),
             "available_actions": actions,
             "investigation_count": self.game.state.investigation_count,
+            "investigation_actions_remaining": (
+                self.game.state.investigation_actions_remaining
+            ),
             "investigation_options": self.get_investigation_options(),
             "last_event": self.game.state.last_event,
         }
@@ -451,11 +463,22 @@ class GameSession:
         options = []
         for clue in self.game.get_available_clues(self.human_player_id)[:2]:
             label = type_labels.get(clue.type, "线索")
-            source = "案发现场" if clue.holder_id == "scene" else "相关人物口供"
+            source = "案发现场"
+            if clue.holder_id != "scene":
+                source_character = self.game.get_character(clue.holder_id)
+                source = (
+                    f"{source_character.name}的线索"
+                    if source_character
+                    else "相关人物口供"
+                )
+            title = clue.lead_title or f"追查{label} · {source}"
+            description = clue.lead_description or (
+                f"围绕{source}核对新的{label}，寻找能改变当前时间线的证据。"
+            )
             options.append({
                 "id": clue.id,
-                "title": f"追查{label}",
-                "description": f"从{source}寻找新的突破，可能改写当前时间线。",
+                "title": title,
+                "description": description,
                 "kind": clue.type,
             })
         return options
@@ -469,8 +492,10 @@ class GameSession:
         }
         return {
             "type": "clue_breakthrough",
-            "title": "案件出现突破",
-            "message": messages.get(clue.type, "新的证据让案件向前推进了一步。"),
+            "title": clue.lead_title or "案件出现突破",
+            "message": clue.lead_description or messages.get(
+                clue.type, "新的证据让案件向前推进了一步。"
+            ),
             "clue_id": clue.id,
         }
 
@@ -485,6 +510,15 @@ class GameSession:
         ):
             raise HTTPException(status_code=400, detail="当前阶段不能搜证")
 
+        if (
+            self.game.state.mode == "quick"
+            and self.game.state.investigation_actions_remaining == 0
+        ):
+            raise HTTPException(
+                status_code=400,
+                detail="本轮调查行动已用完，请进入讨论",
+            )
+
         if self.game.state.mode == "quick":
             options = self.get_investigation_options()
             selected_id = lead_id or (options[0]["id"] if options else None)
@@ -495,6 +529,11 @@ class GameSession:
             found = self.game.distribute_random_clues(self.human_player_id, 1)
         if not found:
             raise HTTPException(status_code=400, detail="已经没有更多线索了")
+        if not self.game.consume_investigation_action():
+            raise HTTPException(
+                status_code=400,
+                detail="本轮调查行动已用完，请进入讨论",
+            )
         event = self._event_for_clue(found[0]) if self.game.state.mode == "quick" else None
         self.game.state.last_event = event
         return {
@@ -509,6 +548,9 @@ class GameSession:
             ],
             "clue_board": self.get_clue_board(),
             "investigation_options": self.get_investigation_options(),
+            "investigation_actions_remaining": (
+                self.game.state.investigation_actions_remaining
+            ),
             "event": event,
         }
 
