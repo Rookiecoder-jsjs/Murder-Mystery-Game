@@ -22,6 +22,7 @@ export function ClueCard({ clue, featured = false }: { clue: Clue; featured?: bo
       <Text className='clue-card__content'>{clue.content}</Text>
       <View className='clue-card__foot'>
         <Text>来源 · {clue.holder_name}</Text>
+        <Text>{clue.related_time ? `时间 ${clue.related_time}` : `${clue.relations?.length || 0} 条关联`}</Text>
         {clue.is_revealed && <Text className='clue-card__public'>公开</Text>}
       </View>
     </View>

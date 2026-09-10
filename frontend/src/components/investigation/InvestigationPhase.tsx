@@ -4,6 +4,7 @@ import { Search, Eye, MessageSquare, AlertTriangle, Zap } from 'lucide-react';
 import { useGame } from '../../context/useGame';
 import { Button, Card, Badge, Modal, AccuseModal, useToast } from '../common';
 import { ClueCard } from './ClueCard';
+import { EvidenceChain } from './EvidenceChain';
 import './InvestigationPhase.css';
 
 export function InvestigationPhase() {
@@ -203,6 +204,8 @@ export function InvestigationPhase() {
           </Card>
         )}
       </div>
+
+      <EvidenceChain clues={[...state.clues, ...state.scenePublicClues]} />
 
       {/* 线索详情 */}
       <Modal

@@ -15,6 +15,7 @@ import type {
   RevealInfo,
   Story,
   VoteResponse,
+  DeductionResponse,
 } from './types';
 
 const API_BASE = '';
@@ -223,6 +224,20 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ character_name: characterName }),
     }),
+
+  submitDeduction: (
+    gameId: string,
+    targetId: string,
+    evidenceIds: string[],
+    reason: string,
+  ) => fetchApi<DeductionResponse>(`/games/${gameId}/deduction`, {
+    method: 'POST',
+    body: JSON.stringify({
+      target_id: targetId,
+      evidence_ids: evidenceIds,
+      reason,
+    }),
+  }),
 
   accuse: (gameId: string, characterName: string) =>
     fetchApi<AccuseResponse>(`/games/${gameId}/accuse`, {

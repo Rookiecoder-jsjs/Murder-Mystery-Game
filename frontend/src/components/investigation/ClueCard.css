@@ -124,3 +124,9 @@
   letter-spacing: 0.06em;
   color: var(--paper-ink-muted);
 }
+
+.clue-card-meta {
+  color: var(--paper-ink-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}

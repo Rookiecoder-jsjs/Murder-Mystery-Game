@@ -53,6 +53,9 @@ export function ClueCard({ clue, isNew = false, onClick }: ClueCardProps) {
       <p className="clue-card-content">{clue.content}</p>
       <div className="clue-card-footer">
         <span className="clue-card-holder">持有者：{clue.holder_name}</span>
+        <span className="clue-card-meta">
+          {clue.related_time ? `时间 ${clue.related_time}` : `${clue.relations?.length ?? 0} 条关联`}
+        </span>
       </div>
     </div>
   );

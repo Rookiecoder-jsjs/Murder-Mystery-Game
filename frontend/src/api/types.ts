@@ -33,6 +33,25 @@ export interface Clue {
   type: 'physical' | 'testimony' | 'document';
   holder_name: string;
   is_revealed: boolean;
+  reliability?: number;
+  related_character_names?: string[];
+  related_time?: string;
+  relations?: ClueRelation[];
+}
+
+export interface ClueRelation {
+  target_id: string;
+  type: 'supports' | 'contradiction' | 'timeline' | string;
+  label: string;
+}
+
+export interface FinalDeduction {
+  target_id: string;
+  evidence_ids: string[];
+  reason: string;
+  score: number;
+  feedback: string[];
+  chain_complete: boolean;
 }
 
 export interface ChatMessage {
@@ -83,12 +102,14 @@ export interface GameStatus {
   player: CharacterInfo;
   characters: CharacterInfo[];
   available_actions: string[];
+  final_deduction?: FinalDeduction | null;
 }
 
 export interface ClueBoard {
   clues: Clue[];
   accusation_points: number;
   scene_public_clues: Clue[];
+  final_deduction?: FinalDeduction | null;
 }
 
 export interface IntroductionResponse {
@@ -117,6 +138,8 @@ export interface PhaseResponse {
   investigation_options?: InvestigationOption[];
   last_event?: GameEvent | null;
 }
+
+export type DeductionResponse = FinalDeduction;
 
 export interface VoteResponse {
   votes: Record<string, string>;

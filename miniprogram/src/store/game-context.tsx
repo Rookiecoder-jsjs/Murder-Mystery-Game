@@ -20,6 +20,7 @@ import type {
   InvestigationOption,
   RevealInfo,
   VoteResponse,
+  FinalDeduction,
 } from '@/types/game'
 
 const LAST_GAME_KEY = 'murder_mystery_last_game_id'
@@ -44,6 +45,7 @@ export interface GameState {
   introductions: ChatMessage[]
   discussionHistory: ChatMessage[]
   availableActions: string[]
+  finalDeduction: FinalDeduction | null
   revealInfo: RevealInfo | null
   winner: string | null
   gameEnded: boolean
@@ -72,6 +74,7 @@ const initialState: GameState = {
   introductions: [],
   discussionHistory: [],
   availableActions: [],
+  finalDeduction: null,
   revealInfo: null,
   winner: null,
   gameEnded: false,
@@ -102,6 +105,7 @@ interface GameContextValue {
   startVoting: () => Promise<void>
   speak: (message: string) => Promise<void>
   vote: (characterName: string) => Promise<VoteResponse>
+  submitDeduction: (targetId: string, evidenceIds: string[], reason: string) => Promise<FinalDeduction>
   accuse: (characterName: string) => Promise<AccuseResponse>
   loadReveal: (gameId?: string) => Promise<RevealInfo>
   resetGame: () => void
@@ -151,6 +155,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           revealInfo: null,
           winner: null,
           gameEnded: false,
+          finalDeduction: null,
         },
       })
       return result.game_id
@@ -189,6 +194,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           revealInfo: null,
           winner: null,
           gameEnded: false,
+          finalDeduction: null,
         },
       })
       return result.game_id
@@ -224,6 +230,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           player: status.player,
           characters: status.characters,
           availableActions: status.available_actions,
+          finalDeduction: status.final_deduction ?? clueBoard.final_deduction ?? null,
           clues: clueBoard.clues,
           scenePublicClues: clueBoard.scene_public_clues,
           accusationPoints: clueBoard.accusation_points,
@@ -358,6 +365,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           investigationOptions: result.investigation_options || [],
           lastEvent: result.last_event || null,
+          finalDeduction: null,
         },
       })
     } catch (error) {
@@ -381,6 +389,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           investigationOptions: result.investigation_options || [],
           investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.last_event || null,
+          finalDeduction: null,
         },
       })
     } catch (error) {
@@ -436,6 +445,25 @@ export function GameProvider({ children }: PropsWithChildren) {
           revealInfo: result.reveal || null,
         },
       })
+      return result
+    } catch (error) {
+      dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
+      throw error
+    } finally {
+      dispatch({ type: 'PATCH', payload: { isLoading: false } })
+    }
+  }, [requireGameId])
+
+  const submitDeduction = useCallback(async (
+    targetId: string,
+    evidenceIds: string[],
+    reason: string,
+  ) => {
+    const gameId = requireGameId()
+    dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
+    try {
+      const result = await gameApi.submitDeduction(gameId, targetId, evidenceIds, reason)
+      dispatch({ type: 'PATCH', payload: { finalDeduction: result } })
       return result
     } catch (error) {
       dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
@@ -506,6 +534,7 @@ export function GameProvider({ children }: PropsWithChildren) {
     startVoting,
     speak,
     vote,
+    submitDeduction,
     accuse,
     loadReveal,
     resetGame,
@@ -522,6 +551,7 @@ export function GameProvider({ children }: PropsWithChildren) {
     startVoting,
     speak,
     vote,
+    submitDeduction,
     accuse,
     loadReveal,
     resetGame,

@@ -12,6 +12,7 @@ import type {
   SpeakResponse,
   Story,
   VoteResponse,
+  FinalDeduction,
 } from '@/types/game'
 
 export const gameApi = {
@@ -73,6 +74,16 @@ export const gameApi = {
     method: 'POST',
     data: { character_name: characterName },
     timeout: 180_000,
+  }),
+
+  submitDeduction: (
+    gameId: string,
+    targetId: string,
+    evidenceIds: string[],
+    reason: string,
+  ) => request<FinalDeduction>(`/games/${gameId}/deduction`, {
+    method: 'POST',
+    data: { target_id: targetId, evidence_ids: evidenceIds, reason },
   }),
 
   accuse: (gameId: string, characterName: string) => request<AccuseResponse>(

@@ -24,6 +24,7 @@ from app.api.dependencies import (
 from app.api.schemas import (
     AccuseRequest,
     CreateGameRequest,
+    DeductionRequest,
     IntroduceRequest,
     InvestigateRequest,
     LoadGameRequest,
@@ -405,7 +406,25 @@ async def vote(
 ) -> dict:
     if session.game.state.phase != GamePhase.VOTING.value:
         raise HTTPException(status_code=400, detail="当前不是投票阶段")
+    if session.game.state.final_deduction is None:
+        raise HTTPException(status_code=400, detail="请先封存最终推理")
     result = await session.vote_async(request.character_name)
     if result["game_ended"]:
         return {**result, "reveal": session.get_reveal_info()}
     return result
+
+
+@router.post("/{game_id}/deduction")
+async def submit_deduction(
+    request: DeductionRequest,
+    session: GameSession = Depends(persist_session),
+) -> dict:
+    """封存投票前的证据链推理。"""
+    try:
+        return session.submit_deduction(
+            request.target_id,
+            request.evidence_ids,
+            request.reason,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error

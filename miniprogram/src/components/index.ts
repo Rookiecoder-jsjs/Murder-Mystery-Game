@@ -1,6 +1,7 @@
 export { CaseHeader } from './CaseHeader'
 export { CharacterDossier } from './CharacterDossier'
 export { ClueCard } from './ClueCard'
+export { EvidenceChain } from './EvidenceChain'
 export { LoadingOverlay } from './LoadingOverlay'
 export { PhaseTimeline } from './PhaseTimeline'
 export { PortraitFrame } from './PortraitFrame'

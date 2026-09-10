@@ -76,6 +76,21 @@ class ClueData:
     lead_description: Optional[str] = None
     """Player-facing description of the investigation direction."""
 
+    importance: str = "supporting"
+    """Internal evidence weight: core, supporting, or red_herring."""
+
+    reliability: float = 0.8
+    """How trustworthy this clue is before cross-checking."""
+
+    related_characters: list[str] = field(default_factory=list)
+    """Character IDs connected to this clue."""
+
+    related_time: str = ""
+    """Optional time marker used by the evidence timeline."""
+
+    relations: list[dict[str, str]] = field(default_factory=list)
+    """Links to other clues: [{target_id, type, label}]."""
+
 
 @dataclass
 class ScriptCharacter:
@@ -268,6 +283,9 @@ class GameState:
 
     last_event: Optional[dict] = None
     """Latest gameplay beat shown to the player."""
+
+    final_deduction: Optional[dict] = None
+    """The player's sealed pre-vote deduction, if submitted."""
 
 
 @dataclass

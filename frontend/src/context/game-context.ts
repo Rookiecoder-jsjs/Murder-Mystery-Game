@@ -10,6 +10,7 @@ import type {
   InvestigationOption,
   RevealInfo,
   VoteResponse,
+  FinalDeduction,
 } from '../api/types';
 
 export interface GameState {
@@ -30,6 +31,7 @@ export interface GameState {
   scenePublicClues: Clue[];
   discussionHistory: ChatMessage[];
   availableActions: string[];
+  finalDeduction: FinalDeduction | null;
   gameEnded: boolean;
   winner: string | null;
   revealInfo: RevealInfo | null;
@@ -58,6 +60,11 @@ export interface GameContextValue {
   investigate: (leadId?: string) => Promise<Clue[]>;
   speak: (message: string) => Promise<void>;
   vote: (characterName: string) => Promise<VoteResponse>;
+  submitDeduction: (
+    targetId: string,
+    evidenceIds: string[],
+    reason: string,
+  ) => Promise<FinalDeduction>;
   accuse: (characterName: string) => Promise<AccuseResponse>;
   loadReveal: () => Promise<void>;
   resetGame: () => void;

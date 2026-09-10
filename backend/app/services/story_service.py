@@ -122,7 +122,14 @@ CASE_PROMPT_TEMPLATE = """创建一个复杂的剧本杀案件，满足以下要
             "reveal_to_all": false,
             "required_clue_id": null,
             "lead_title": "调查方向标题（可选）",
-            "lead_description": "调查方向描述（可选）"
+            "lead_description": "调查方向描述（可选）",
+            "importance": "core/supporting/red_herring",
+            "reliability": 0.8,
+            "related_characters": ["关联角色ID"],
+            "related_time": "时间标记（可选）",
+            "relations": [
+                {{"target_id": "关联线索ID", "type": "supports/contradiction/timeline", "label": "关系说明"}}
+            ]
         }}
     ],
     "truth": "完整的真相叙述，包括时间线、动机、手法（300字以上）"
@@ -349,6 +356,11 @@ def parse_case_to_archive(
             required_clue_id=clue_dict.get("required_clue_id"),
             lead_title=clue_dict.get("lead_title"),
             lead_description=clue_dict.get("lead_description"),
+            importance=clue_dict.get("importance", "supporting"),
+            reliability=float(clue_dict.get("reliability", 0.8)),
+            related_characters=list(clue_dict.get("related_characters") or []),
+            related_time=clue_dict.get("related_time", ""),
+            relations=list(clue_dict.get("relations") or []),
         )
         clues.append(clue)
 

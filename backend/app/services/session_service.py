@@ -129,6 +129,7 @@ def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
         winner=raw.get("winner"),
         reveal_triggered=raw.get("reveal_triggered", False),
         last_event=raw.get("last_event"),
+        final_deduction=raw.get("final_deduction"),
     )
     for char in archive.characters:
         ps_raw = raw.get("player_states", {}).get(char.id)
@@ -309,6 +310,10 @@ class GameSession:
 
     def get_clue_board(self) -> Dict[str, Any]:
         board = self.game.get_clue_board(self.human_player_id)
+        visible_ids = {
+            entry.clue.id
+            for entry in (*board.owned, *board.scene_public)
+        }
 
         def clue_to_info(entry):
             holder_name = "场景"
@@ -316,12 +321,30 @@ class GameSession:
                 holder = self.game.get_character(entry.clue.holder_id)
                 if holder:
                     holder_name = holder.name
+            relations = [
+                {
+                    "target_id": relation.get("target_id", ""),
+                    "type": relation.get("type", "supports"),
+                    "label": relation.get("label", "存在关联"),
+                }
+                for relation in entry.clue.relations
+                if relation.get("target_id") in visible_ids
+            ]
+            related_character_names = [
+                self._char_name(char_id)
+                for char_id in entry.clue.related_characters
+                if self.game.get_character(char_id)
+            ]
             return {
                 "id": entry.clue.id,
                 "content": entry.clue.content,
                 "type": entry.clue.type,
                 "holder_name": holder_name,
                 "is_revealed": entry.status == "scene_public",
+                "reliability": max(0, min(1, entry.clue.reliability)),
+                "related_character_names": related_character_names,
+                "related_time": entry.clue.related_time,
+                "relations": relations,
             }
 
         clues = [clue_to_info(e) for e in board.owned]
@@ -331,6 +354,7 @@ class GameSession:
             "clues": clues,
             "accusation_points": human_state.accusation_points,
             "scene_public_clues": scene_public,
+            "final_deduction": self.game.state.final_deduction,
         }
 
     def get_game_status(self) -> Dict[str, Any]:
@@ -377,6 +401,7 @@ class GameSession:
             ),
             "investigation_options": self.get_investigation_options(),
             "last_event": self.game.state.last_event,
+            "final_deduction": self.game.state.final_deduction,
         }
 
     def get_reveal_info(self) -> Dict[str, Any]:
@@ -553,6 +578,20 @@ class GameSession:
             ),
             "event": event,
         }
+
+    def submit_deduction(
+        self,
+        target_id: str,
+        evidence_ids: list[str],
+        reason: str,
+    ) -> Dict[str, Any]:
+        """Validate and persist the human player's final deduction."""
+        return self.game.submit_deduction(
+            self.human_player_id,
+            target_id,
+            evidence_ids,
+            reason,
+        )
 
     def accuse(self, character_name: str) -> Dict[str, Any]:
         target_id = self.game.get_character_id_by_name(character_name)

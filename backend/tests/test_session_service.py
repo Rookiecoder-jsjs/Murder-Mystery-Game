@@ -17,10 +17,13 @@ import pytest
 from fastapi import HTTPException
 
 from app.core.phases import GamePhase
+from app.api.schemas import DeductionRequest, VoteRequest
 from app.api.endpoints.games import (
     advance_phase,
     return_to_discussion,
     return_to_investigation,
+    submit_deduction,
+    vote as vote_endpoint,
     start_voting,
 )
 from app.domain.models import PlayerState
@@ -121,6 +124,46 @@ class _FakeStoryService:
 
 
 class TestSnapshotRoundTrip:
+    def test_vote_endpoint_requires_sealed_deduction(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+        )
+        session.game.set_phase(GamePhase.VOTING)
+
+        with pytest.raises(HTTPException, match="封存最终推理"):
+            asyncio.run(vote_endpoint(
+                VoteRequest(character_name="Alice"),
+                session,
+            ))
+
+    def test_deduction_survives_snapshot_restore(self, sample_archive):
+        session = GameSession(
+            sample_archive,
+            "char_2",
+            StubRoleplayClient(),
+        )
+        session.game.set_phase(GamePhase.VOTING)
+        session.game.state.player_states["char_2"].known_clues = [
+            "clue_a", "clue_b",
+        ]
+        asyncio.run(submit_deduction(
+            DeductionRequest(
+                target_id="char_1",
+                evidence_ids=["clue_a", "clue_b"],
+                reason="两条线索在时间线上互相矛盾",
+            ),
+            session,
+        ))
+
+        restored = GameSession.from_snapshot(
+            session.to_snapshot("g1"), sample_archive, StubRoleplayClient()
+        )
+
+        assert restored.game.state.final_deduction is not None
+        assert restored.game.state.final_deduction["target_id"] == "char_1"
+
     def test_quick_mode_round_trip_requires_each_investigation(self, sample_archive):
         session = GameSession(
             sample_archive,

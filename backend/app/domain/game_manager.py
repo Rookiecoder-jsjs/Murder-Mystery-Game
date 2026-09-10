@@ -196,6 +196,97 @@ class GameManager:
         self.state.phase = GamePhase.DISCUSSION.value
         self.state.turn = 0
 
+    def submit_deduction(
+        self,
+        player_id: str,
+        target_id: str,
+        evidence_ids: list[str],
+        reason: str,
+    ) -> dict:
+        """Seal the player's evidence-backed conclusion before voting.
+
+        The score is deliberately explainable rather than predictive: it
+        rewards links between the selected evidence and the target, while
+        leaving the final vote as the player's decision.
+        """
+        if self.current_phase != GamePhase.VOTING:
+            raise ValueError("只能在投票阶段提交最终推理")
+
+        player = self.state.player_states.get(player_id)
+        if not player or not player.is_alive:
+            raise ValueError("当前角色无法提交推理")
+
+        target = self.state.player_states.get(target_id)
+        if not target or not target.is_alive or target_id == player_id:
+            raise ValueError("推理目标必须是其他存活角色")
+
+        unique_evidence_ids = list(dict.fromkeys(evidence_ids))
+        if len(unique_evidence_ids) < 2 or len(unique_evidence_ids) > 3:
+            raise ValueError("请选择2到3条证据")
+        if len(reason.strip()) < 8:
+            raise ValueError("请补充至少8个字的推理理由")
+
+        visible_ids = set(player.known_clues)
+        visible_ids.update(
+            clue.id
+            for clue in self.get_revealed_clues()
+            if clue.holder_id == "scene"
+        )
+        if not set(unique_evidence_ids).issubset(visible_ids):
+            raise ValueError("只能使用你已经掌握或公开的证据")
+
+        selected = [
+            self.get_clue(clue_id)
+            for clue_id in unique_evidence_ids
+        ]
+        selected = [clue for clue in selected if clue is not None]
+        target_hits = sum(
+            target_id in clue.related_characters for clue in selected
+        )
+        selected_set = set(unique_evidence_ids)
+        linked_pairs = sum(
+            1
+            for clue in selected
+            for relation in clue.relations
+            if relation.get("target_id") in selected_set
+        )
+        contradiction_count = sum(
+            1
+            for clue in selected
+            for relation in clue.relations
+            if relation.get("type") == "contradiction"
+        )
+        core_count = sum(clue.importance == "core" for clue in selected)
+
+        score = min(
+            100,
+            40
+            + target_hits * 20
+            + linked_pairs * 15
+            + contradiction_count * 10
+            + core_count * 10,
+        )
+        feedback = ["证据已封存，投票时请继续核对时间线。"]
+        if target_hits:
+            feedback.append("至少一条证据直接关联你的怀疑对象。")
+        else:
+            feedback.append("当前证据尚未直接指向该角色，注意补足人物关联。")
+        if linked_pairs:
+            feedback.append("你已经建立了证据之间的关系链。")
+        if contradiction_count:
+            feedback.append("关系链中包含矛盾点，可作为质询依据。")
+
+        deduction = {
+            "target_id": target_id,
+            "evidence_ids": unique_evidence_ids,
+            "reason": reason.strip(),
+            "score": score,
+            "feedback": feedback,
+            "chain_complete": bool(target_hits or linked_pairs),
+        }
+        self.state.final_deduction = deduction
+        return deduction
+
     def get_clue_board(self, player_id: str) -> ClueBoard:
         """Get the complete clue board for a player.
 
@@ -431,6 +522,7 @@ class GameManager:
     def reset_votes(self) -> None:
         """Clear all recorded votes (start of a fresh voting round)."""
         self.state.votes_record = []
+        self.state.final_deduction = None
         for state in self.state.player_states.values():
             state.vote = None
 

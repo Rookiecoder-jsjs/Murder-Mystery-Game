@@ -3,7 +3,7 @@
 ![Art Deco Noir Style](https://img.shields.io/badge/Style-Art%20Deco%20Noir-gold?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge)
-![Tests](https://img.shields.io/badge/Tests-65%20passed-brightgreen?style=for-the-badge)
+![Tests](https://img.shields.io/badge/Tests-102%20passed-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)
 
 一个基于 OpenAI 兼容大模型 API 的 AI 剧本杀游戏。玩家可以与 AI 角色进行实时对话、调查线索、讨论案情、指认凶手，体验完整的剧本杀游戏流程。
@@ -22,6 +22,7 @@
 - **三类线索** - 物证（Physical）、证词（Testimony）、文书（Document）
 - **主动搜证** - 搜证阶段点击「搜证」按钮随机获得新线索
 - **线索解锁链** - 部分线索需先获得前置线索才会出现
+- **证据链** - 线索支持人物、时间和矛盾关系，形成可追踪的推理链
 - **线索详情** - 点击查看完整线索内容
 
 ### 💬 讨论系统
@@ -34,6 +35,7 @@
 ### ⚖️ 指认与投票
 - **指认凶手** - 随时可以指认凶手（每局只有一次机会）
 - **投票表决** - 所有玩家投票选出凶手
+- **最终推理封存** - 投票前必须锁定 2～3 条证据并提交推理理由
 - **平票处理** - 平票时进入再讨论环节
 
 ### 💾 会话持久化
@@ -310,6 +312,7 @@ powershell start.ps1   # Windows PowerShell
 | `POST` | `/games/{id}/speak/stream` | **发送发言（SSE 流式，AI 完成一个推送一个）** |
 | `POST` | `/games/{id}/accuse` | 指认凶手 |
 | `POST` | `/games/{id}/vote` | 投票 |
+| `POST` | `/games/{id}/deduction` | 封存投票前的证据链推理 |
 | `POST` | `/games/{id}/start-voting` | 进入投票阶段 |
 | `POST` | `/games/{id}/return-to-investigation` | 返回搜证 |
 | `POST` | `/games/{id}/return-to-discussion` | 投票未达成结果时直接返回讨论，不开启新一轮搜证 |

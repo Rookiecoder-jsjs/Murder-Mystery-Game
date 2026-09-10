@@ -21,6 +21,7 @@ import type {
   GameStatus,
   RevealInfo,
   VoteResponse,
+  FinalDeduction,
 } from '../api/types';
 import { GameContext, type GameState } from './game-context';
 
@@ -54,7 +55,15 @@ type GameAction =
   | { type: 'SET_GAME_STATUS'; payload: Partial<GameState> }
   | { type: 'SET_PHASE'; payload: GamePhase }
   | { type: 'SET_ROUND'; payload: number }
-  | { type: 'SET_CLUES'; payload: { clues: Clue[]; accusationPoints: number; scenePublicClues: Clue[] } }
+  | {
+      type: 'SET_CLUES';
+      payload: {
+        clues: Clue[];
+        accusationPoints: number;
+        scenePublicClues: Clue[];
+        finalDeduction?: GameState['finalDeduction'];
+      };
+    }
   | { type: 'ADD_DISCUSSION_MESSAGES'; payload: ChatMessage[] }
   | { type: 'SET_DISCUSSION_HISTORY'; payload: ChatMessage[] }
   | { type: 'SET_INTRODUCTIONS'; payload: ChatMessage[] }
@@ -80,6 +89,7 @@ const initialState: GameState = {
   scenePublicClues: [],
   discussionHistory: [],
   availableActions: [],
+  finalDeduction: null,
   gameEnded: false,
   winner: null,
   revealInfo: null,
@@ -130,6 +140,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         investigationOptions: status.investigation_options,
         lastEvent: status.last_event,
         availableActions: status.available_actions,
+        finalDeduction: status.final_deduction ?? clueBoard.final_deduction ?? null,
         clues: clueBoard.clues,
         accusationPoints: clueBoard.accusation_points,
         scenePublicClues: clueBoard.scene_public_clues,
@@ -286,6 +297,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           investigationOptions: status.investigation_options,
           lastEvent: status.last_event,
           availableActions: status.available_actions,
+          finalDeduction: status.final_deduction ?? null,
           player: status.player,
           characters: status.characters,
           connectionLost: false,
@@ -307,6 +319,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           clues: clueBoard.clues,
           accusationPoints: clueBoard.accusation_points,
           scenePublicClues: clueBoard.scene_public_clues,
+          finalDeduction: clueBoard.final_deduction ?? null,
         },
       });
       return true;
@@ -423,6 +436,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       if (result.round !== undefined) {
         dispatch({ type: 'SET_ROUND', payload: result.round });
       }
+      dispatch({ type: 'SET_GAME_STATUS', payload: { finalDeduction: null } });
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
@@ -471,6 +485,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           investigationOptions: result.investigation_options ?? [],
           investigationActionsRemaining: result.investigation_actions_remaining ?? null,
           lastEvent: result.last_event ?? null,
+          finalDeduction: null,
         },
       });
       await refreshDiscussionHistory();
@@ -563,6 +578,34 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [state.gameId],
   );
 
+  const submitDeduction = useCallback(
+    async (
+      targetId: string,
+      evidenceIds: string[],
+      reason: string,
+    ): Promise<FinalDeduction> => {
+      if (!state.gameId) throw new ApiError('游戏尚未开始');
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'SET_ERROR', payload: null });
+      try {
+        const result = await api.submitDeduction(
+          state.gameId,
+          targetId,
+          evidenceIds,
+          reason,
+        );
+        dispatch({ type: 'SET_GAME_STATUS', payload: { finalDeduction: result } });
+        return result;
+      } catch (error) {
+        dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+        throw error;
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [state.gameId],
+  );
+
   const accuse = useCallback(
     async (characterName: string): Promise<AccuseResponse> => {
       if (!state.gameId) throw new ApiError('游戏尚未开始');
@@ -625,6 +668,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         investigate,
         speak,
         vote,
+        submitDeduction,
         accuse,
         loadReveal,
         resetGame,

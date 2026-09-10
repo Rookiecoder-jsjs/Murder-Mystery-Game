@@ -1,7 +1,7 @@
 import Taro from '@tarojs/taro'
 import { Button, Text, View } from '@tarojs/components'
 import { useMemo, useState } from 'react'
-import { ClueCard, SuspectPicker } from '@/components'
+import { ClueCard, EvidenceChain, SuspectPicker } from '@/components'
 import { useGame } from '@/store/game-context'
 import type { Clue } from '@/types/game'
 import { showError, showNotice } from '@/utils/feedback'
@@ -173,6 +173,8 @@ export function InvestigationPanel() {
           )}
         </View>
       </View>
+
+      <EvidenceChain clues={[...state.clues, ...state.scenePublicClues]} />
 
       <View className='investigation-panel__footer'>
         <Button

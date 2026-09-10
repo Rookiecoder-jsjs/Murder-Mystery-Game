@@ -349,6 +349,54 @@ class TestVoting:
         assert gm.state.votes_record == []
         assert all(ps.vote is None for ps in gm.state.player_states.values())
 
+    def test_submit_deduction_scores_evidence_chain(self, sample_archive):
+        sample_archive.clues[0].related_characters = ["char_1"]
+        sample_archive.clues[1].relations = [{
+            "target_id": "clue_a",
+            "type": "contradiction",
+            "label": "时间冲突",
+        }]
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        gm.state.player_states["char_2"].known_clues = ["clue_a", "clue_b"]
+
+        deduction = gm.submit_deduction(
+            "char_2",
+            "char_1",
+            ["clue_a", "clue_b"],
+            "门禁记录和证词在时间线上互相矛盾",
+        )
+
+        assert deduction["target_id"] == "char_1"
+        assert deduction["chain_complete"] is True
+        assert deduction["score"] >= 70
+        assert gm.state.final_deduction == deduction
+
+    def test_submit_deduction_rejects_unknown_evidence(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        gm.state.player_states["char_2"].known_clues = ["clue_a"]
+
+        with pytest.raises(ValueError, match="只能使用"):
+            gm.submit_deduction(
+                "char_2",
+                "char_1",
+                ["clue_a", "clue_b"],
+                "这两条证据需要一起核对时间线",
+            )
+
+    def test_reset_votes_clears_previous_deduction(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        gm.state.player_states["char_2"].known_clues = ["clue_a", "clue_b"]
+        gm.submit_deduction(
+            "char_2", "char_1", ["clue_a", "clue_b"], "两条线索形成完整证据链",
+        )
+
+        gm.reset_votes()
+
+        assert gm.state.final_deduction is None
+
     def test_can_vote_only_in_voting_phase(self, sample_archive):
         gm = GameManager(sample_archive)
         assert gm.can_vote("char_1") is False

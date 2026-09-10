@@ -1,5 +1,5 @@
 // Voting Phase — 投票、等待计票、结果展示
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Vote, AlertTriangle, Check, ArrowLeft } from 'lucide-react';
 import { useGame } from '../../context/useGame';
 import { Button, Card, Avatar, Modal, useToast } from '../common';
@@ -7,7 +7,7 @@ import type { VoteResponse } from '../../api/types';
 import './VotingPhase.css';
 
 export function VotingPhase() {
-  const { state, vote, refreshStatus, returnToDiscussion } =
+  const { state, vote, refreshStatus, returnToDiscussion, submitDeduction } =
     useGame();
   const { notify } = useToast();
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
@@ -15,6 +15,25 @@ export function VotingPhase() {
   const [elapsed, setElapsed] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [voteResult, setVoteResult] = useState<VoteResponse | null>(null);
+  const [selectedEvidenceIds, setSelectedEvidenceIds] = useState<string[]>([]);
+  const [deductionReason, setDeductionReason] = useState('');
+  const [isSubmittingDeduction, setIsSubmittingDeduction] = useState(false);
+  const [deductionSubmitted, setDeductionSubmitted] = useState(false);
+
+  const evidence = useMemo(
+    () => [...state.clues, ...state.scenePublicClues],
+    [state.clues, state.scenePublicClues],
+  );
+  const selectedTarget = state.characters.find(
+    (character) => character.name === selectedCharacter,
+  );
+  const deductionMatchesTarget =
+    state.finalDeduction?.target_id === selectedTarget?.id;
+  const deductionReady = deductionSubmitted || (
+    deductionMatchesTarget
+    && selectedEvidenceIds.length === 0
+    && deductionReason.trim().length === 0
+  );
 
   // 等待计票的计时提示
   useEffect(() => {
@@ -25,7 +44,7 @@ export function VotingPhase() {
   }, [isVoting]);
 
   const handleVote = async () => {
-    if (!selectedCharacter || isVoting) return;
+    if (!selectedCharacter || isVoting || !deductionReady) return;
     setIsVoting(true);
     setShowConfirmModal(false);
     try {
@@ -40,6 +59,41 @@ export function VotingPhase() {
     } finally {
       setIsVoting(false);
     }
+  };
+
+  const toggleEvidence = (clueId: string) => {
+    setSelectedEvidenceIds((current) => {
+      if (current.includes(clueId)) return current.filter((id) => id !== clueId);
+      if (current.length >= 3) return current;
+      return [...current, clueId];
+    });
+    setDeductionSubmitted(false);
+  };
+
+  const handleSubmitDeduction = async () => {
+    if (!selectedTarget || selectedEvidenceIds.length < 2 || deductionReason.trim().length < 8) {
+      notify('请选择嫌疑人、至少两条证据，并补充推理理由', 'error');
+      return;
+    }
+    setIsSubmittingDeduction(true);
+    try {
+      await submitDeduction(
+        selectedTarget.id,
+        selectedEvidenceIds,
+        deductionReason,
+      );
+      setDeductionSubmitted(true);
+      notify('推理已封存，可以落票', 'success');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : '推理封存失败', 'error');
+    } finally {
+      setIsSubmittingDeduction(false);
+    }
+  };
+
+  const handleSelectCharacter = (name: string) => {
+    setSelectedCharacter(name);
+    setDeductionSubmitted(false);
   };
 
   // 平票/票数不足：直接回到讨论，不开启新的搜证轮次
@@ -103,7 +157,7 @@ export function VotingPhase() {
                     className={`voting-character-card ${
                       selectedCharacter === char.name ? 'selected' : ''
                     }`}
-                    onClick={() => setSelectedCharacter(char.name)}
+                    onClick={() => handleSelectCharacter(char.name)}
                     hoverable
                   >
                     <Avatar
@@ -140,6 +194,64 @@ export function VotingPhase() {
             </Button>
           </div>
         </>
+      )}
+
+      {!voteResult && (
+        <Card className="voting-deduction-card">
+          <div className="voting-deduction-header">
+            <div>
+              <span className="voting-deduction-kicker">FINAL DEDUCTION / EVIDENCE LOCK</span>
+              <h3>封存你的推理</h3>
+            </div>
+            <span>{selectedEvidenceIds.length} / 3 条证据</span>
+          </div>
+          <p className="voting-deduction-hint">
+            先锁定两到三条证据，再说明它们如何指向你的嫌疑人。完成后才能落票。
+          </p>
+          <div className="voting-evidence-grid">
+            {evidence.map((clue) => {
+              const selected = selectedEvidenceIds.includes(clue.id);
+              return (
+                <button
+                  type="button"
+                  key={clue.id}
+                  className={`voting-evidence-chip ${selected ? 'is-selected' : ''}`}
+                  onClick={() => toggleEvidence(clue.id)}
+                >
+                  <span>{selected ? '✓' : '+'}</span>
+                  <strong>{clue.content}</strong>
+                </button>
+              );
+            })}
+          </div>
+          <textarea
+            className="voting-deduction-reason"
+            value={deductionReason}
+            onChange={(event) => {
+              setDeductionReason(event.target.value);
+              setDeductionSubmitted(false);
+            }}
+            placeholder="例如：门禁记录与 Alice 的证词在案发时间上冲突……"
+            maxLength={500}
+            rows={3}
+          />
+          <div className="voting-deduction-footer">
+            <span>{deductionSubmitted || deductionMatchesTarget ? '推理已封存' : '尚未封存推理'}</span>
+            <Button
+              variant="secondary"
+              onClick={handleSubmitDeduction}
+              isLoading={isSubmittingDeduction}
+              disabled={!selectedTarget || selectedEvidenceIds.length < 2 || deductionReason.trim().length < 8}
+            >
+              封存推理
+            </Button>
+          </div>
+          {deductionMatchesTarget && state.finalDeduction?.feedback && (
+            <div className="voting-deduction-feedback">
+              {state.finalDeduction.feedback.map((item) => <span key={item}>· {item}</span>)}
+            </div>
+          )}
+        </Card>
       )}
 
       {/* 投票未结束（平局/票数不足）的结果展示 */}
@@ -188,7 +300,7 @@ export function VotingPhase() {
             <Button variant="ghost" onClick={() => setShowConfirmModal(false)}>
               取消
             </Button>
-            <Button variant="danger" onClick={handleVote}>
+            <Button variant="danger" onClick={handleVote} disabled={!deductionReady}>
               落笔表决
             </Button>
           </div>

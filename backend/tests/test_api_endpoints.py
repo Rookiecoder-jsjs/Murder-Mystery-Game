@@ -9,7 +9,12 @@ from __future__ import annotations
 import inspect
 
 from app.api.endpoints.games import speak_stream
-from app.api.schemas import CreateGameRequest, InvestigateRequest, LoadGameRequest
+from app.api.schemas import (
+    CreateGameRequest,
+    DeductionRequest,
+    InvestigateRequest,
+    LoadGameRequest,
+)
 
 
 def test_speak_stream_declares_game_id_param():
@@ -29,3 +34,14 @@ def test_quick_mode_api_contract():
     assert create.mode == "quick"
     assert load.mode == "quick"
     assert investigate.lead_id == "clue-1"
+
+
+def test_deduction_request_contract():
+    request = DeductionRequest(
+        target_id="char_1",
+        evidence_ids=["clue_a", "clue_b"],
+        reason="两条线索在时间线上互相矛盾",
+    )
+
+    assert request.target_id == "char_1"
+    assert len(request.evidence_ids) == 2

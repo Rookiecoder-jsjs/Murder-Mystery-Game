@@ -42,3 +42,11 @@ class SpeakRequest(BaseModel):
 
 class VoteRequest(BaseModel):
     character_name: str = Field(..., max_length=100, description="投票的角色名字")
+
+
+class DeductionRequest(BaseModel):
+    target_id: str = Field(..., min_length=1, max_length=100, description="推理目标角色ID")
+    evidence_ids: list[str] = Field(
+        ..., min_length=2, max_length=3, description="用于支撑推理的线索ID"
+    )
+    reason: str = Field(..., min_length=8, max_length=500, description="推理理由")
