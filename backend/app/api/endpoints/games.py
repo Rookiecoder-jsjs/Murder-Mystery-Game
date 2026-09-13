@@ -169,6 +169,13 @@ async def advance_phase(
     session: GameSession = Depends(persist_session),
 ) -> dict:
     if session.game.state.phase == GamePhase.DISCUSSION.value:
+        if session.game.state.mode == "quick":
+            # 速推模式的讨论阶段由「返回搜证」「进入投票」驱动；
+            # 走这里的经典逻辑会误加调查轮计数
+            raise HTTPException(
+                status_code=400,
+                detail="速推模式请使用「返回搜证」或「进入投票」推进",
+            )
         if session.game.state.round >= session.game.state.max_rounds:
             session.game.next_phase()
         else:
@@ -214,10 +221,14 @@ async def return_to_investigation(
     # A fresh voting round after this needs clean ballots.
     if was_revote:
         session.game.reset_votes()
-    if session.game.state.mode != "quick":
+    quick_mode = session.game.state.mode == "quick"
+    if not quick_mode:
         session.game.distribute_random_clues(session.human_player_id, 1)
     for char_id in session.ai_characters:
-        session.game.distribute_random_clues(char_id, 1)
+        # 速推模式：场景线索留给玩家当调查方向，AI 只抽人物持有的线索
+        session.game.distribute_random_clues(
+            char_id, 1, exclude_scene=quick_mode,
+        )
     return {
         "phase": session.game.state.phase,
         "round": session.game.state.round,

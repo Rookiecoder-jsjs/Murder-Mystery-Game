@@ -143,6 +143,23 @@ class StoryArchive:
     story_content: str
     """Complete story text (background, relationships, truth)"""
 
+    def __post_init__(self) -> None:
+        """Normalize holder_id drift at the archive boundary.
+
+        LLM generation sometimes emits scene variants like ``"scene_01"``
+        instead of the exact ``"scene"`` literal — left as-is they slip
+        past the scene-clue reveal/reserve logic (which matches the
+        literal) and leak scene clues as private AI knowledge. Anything
+        that is neither ``"scene"`` nor a known character ID is treated
+        as scene-held.
+        """
+        if not self.characters:
+            return
+        char_ids = {c.id for c in self.characters}
+        for clue in self.clues:
+            if clue.holder_id != "scene" and clue.holder_id not in char_ids:
+                clue.holder_id = "scene"
+
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
         return {

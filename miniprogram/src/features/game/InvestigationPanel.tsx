@@ -13,6 +13,7 @@ export function InvestigationPanel() {
   const [pickerOpen, setPickerOpen] = useState(false)
   const [selectedId, setSelectedId] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [transitioning, setTransitioning] = useState(false)
 
   const suspects = useMemo(
     () => state.characters.filter((item) => item.id !== state.player?.id),
@@ -32,10 +33,14 @@ export function InvestigationPanel() {
   }
 
   const enterDiscussion = async () => {
+    if (transitioning) return
+    setTransitioning(true)
     try {
       await nextPhase()
     } catch (error) {
       showError(error)
+    } finally {
+      setTransitioning(false)
     }
   }
 
@@ -174,7 +179,13 @@ export function InvestigationPanel() {
         >
           直接指控
         </Button>
-        <Button className='primary-button' onClick={enterDiscussion}>带着线索进入讨论</Button>
+        <Button
+          className='primary-button'
+          disabled={transitioning}
+          onClick={enterDiscussion}
+        >
+          带着线索进入讨论
+        </Button>
       </View>
 
       <SuspectPicker

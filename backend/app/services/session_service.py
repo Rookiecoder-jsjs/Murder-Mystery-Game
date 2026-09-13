@@ -33,7 +33,11 @@ from app.agents.roleplay_character import RoleplayCharacter
 from app.core.config import get_config
 from app.core.logging import get_logger
 from app.core.phases import GamePhase
-from app.domain.game_manager import GameManager
+from app.domain.game_manager import (
+    GameManager,
+    max_rounds_for_mode,
+    normalize_mode,
+)
 from app.domain.models import GameState, PlayerState, StoryArchive
 
 
@@ -108,14 +112,17 @@ def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
     ``asdict`` flattens nested dataclasses to dicts; restore them here so
     callers can rely on real ``PlayerState`` objects after a restart.
     """
-    mode = raw.get("mode", "classic")
+    # 与 GameManager.__init__ 共用同一规范化：坏快照不得让恢复后的
+    # 游戏静默偏离创建时的模式；max_rounds 也按规范化后的 mode 重新
+    # 推导，被一并写坏的上限会自愈
+    mode = normalize_mode(raw.get("mode", "classic"))
     state = GameState(
         story_id=raw["story_id"],
         mode=mode,
         phase=raw.get("phase", "introduction"),
         turn=raw.get("turn", 0),
         round=raw.get("round", 1),
-        max_rounds=raw.get("max_rounds", 3 if mode == "quick" else 5),
+        max_rounds=max_rounds_for_mode(mode),
         investigation_count=raw.get("investigation_count", 0),
         min_investigation_rounds=raw.get("min_investigation_rounds", 2),
         eliminated_id=raw.get("eliminated_id"),
@@ -183,11 +190,19 @@ class GameSession:
         self._distribute_initial_clues()
 
     def _distribute_initial_clues(self) -> None:
-        self.game.distribute_random_clues(self.human_player_id, 1)
+        # 速推模式：场景线索留给玩家当调查方向，开局随机抽取
+        # （玩家与 AI 都是）不能碰它们——否则开局即公开一条方向，
+        # 并把它泄露进所有 AI 的上下文
+        exclude_scene = self.game.state.mode == "quick"
+        self.game.distribute_random_clues(
+            self.human_player_id, 1, exclude_scene=exclude_scene,
+        )
         for char_id in self.ai_characters:
             board = self.game.get_clue_board(char_id)
             if board.available:
-                self.game.distribute_random_clues(char_id, 1)
+                self.game.distribute_random_clues(
+                    char_id, 1, exclude_scene=exclude_scene,
+                )
 
     # -- persistence ---------------------------------------------------------
 
@@ -338,12 +353,15 @@ class GameSession:
             actions = ["view_clues", "investigate", "discuss", "accuse"]
         elif phase == "discussion":
             actions = ["speak", "view_clues", "investigate", "accuse", "vote", "return_investigation"]
-            if (
-                self.game.state.mode == "quick"
-                and self.game.state.round < self.game.state.max_rounds
-            ):
-                actions.remove("vote")
-                actions.remove("investigate")
+            if self.game.state.mode == "quick":
+                # 动作列表必须与真实可调用的端点一致：
+                # - round < max：可返回搜证，还不能进投票；
+                # - round >= max：可进投票，返回搜证会被端点拒绝。
+                # investigate 讨论期始终可调用（方向见 investigation_options）。
+                if self.game.state.round >= self.game.state.max_rounds:
+                    actions.remove("return_investigation")
+                else:
+                    actions.remove("vote")
         elif phase == "voting":
             actions = ["vote"]
         elif phase == "reveal":
@@ -436,10 +454,17 @@ class GameSession:
         }
 
     def get_investigation_options(self) -> List[Dict[str, str]]:
-        """Build short-mode investigation choices without exposing answers."""
+        """Build short-mode investigation choices without exposing answers.
+
+        Available in both the investigation phase and mid-discussion —
+        the phase guard must mirror ``investigate()`` so advertised
+        actions are actually callable.
+        """
         if (
             self.game.state.mode != "quick"
-            or self.game.current_phase != GamePhase.INVESTIGATION
+            or self.game.current_phase not in (
+                GamePhase.INVESTIGATION, GamePhase.DISCUSSION,
+            )
         ):
             return []
 
@@ -487,8 +512,10 @@ class GameSession:
 
         if self.game.state.mode == "quick":
             options = self.get_investigation_options()
-            selected_id = lead_id or (options[0]["id"] if options else None)
-            if not selected_id or selected_id not in {item["id"] for item in options}:
+            if not options:
+                raise HTTPException(status_code=400, detail="已经没有更多线索了")
+            selected_id = lead_id or options[0]["id"]
+            if selected_id not in {item["id"] for item in options}:
                 raise HTTPException(status_code=400, detail="请选择当前可调查的方向")
             found = self.game.distribute_clue(self.human_player_id, selected_id)
         else:

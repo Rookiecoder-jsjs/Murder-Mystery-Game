@@ -21,6 +21,25 @@ from app.domain.models import (
 )
 
 
+VALID_MODES = {"classic", "quick"}
+"""All supported game modes."""
+
+
+def normalize_mode(mode: str) -> str:
+    """Map unknown mode values onto the classic default.
+
+    Shared by ``GameManager.__init__`` and snapshot restore so a
+    corrupted or future-unknown mode can never silently run as
+    something the game wasn't created with.
+    """
+    return mode if mode in VALID_MODES else "classic"
+
+
+def max_rounds_for_mode(mode: str) -> int:
+    """Round cap for a mode (quick counts investigation rounds)."""
+    return 3 if mode == "quick" else 5
+
+
 def majority_vote(votes: list[str]) -> tuple[str, str]:
     """Count votes and return the player with most votes.
 
@@ -56,14 +75,14 @@ class GameManager:
             archive: The story archive containing characters and clues.
         """
         self.archive = archive
-        normalized_mode = mode if mode in {"classic", "quick"} else "classic"
+        mode = normalize_mode(mode)
         self.state = GameState(
             story_id=archive.id,
-            mode=normalized_mode,
+            mode=mode,
             phase=GamePhase.INTRODUCTION.value,
             turn=0,
             round=1,
-            max_rounds=3 if normalized_mode == "quick" else 5,
+            max_rounds=max_rounds_for_mode(mode),
         )
 
         for char in archive.characters:
@@ -143,24 +162,29 @@ class GameManager:
         Returns:
             The new current phase.
         """
-        current_phase = self.current_phase
-        next_phase = GamePhase.next(current_phase)
-        self.state.phase = next_phase.value
-        self.state.turn = 0
-        if next_phase == GamePhase.DISCUSSION:
-            self.state.round = 1
-        return next_phase
+        nxt = GamePhase.next(self.current_phase)
+        self.set_phase(nxt)
+        return nxt
 
     def set_phase(self, phase: GamePhase) -> None:
         """Set the current phase directly.
+
+        Single owner of the transition policy (turn reset,
+        discussion-entry round semantics, transient banner clearing) so
+        the next_phase path and direct-set paths can never drift apart.
 
         Args:
             phase: The phase to set.
         """
         self.state.phase = phase.value
         self.state.turn = 0
-        if phase == GamePhase.DISCUSSION:
+        if phase == GamePhase.DISCUSSION and self.state.mode != "quick":
+            # 经典模式：round 计讨论发言轮次，进入讨论时归 1。
+            # 速推模式：round 计调查轮次，必须原样带入讨论，否则
+            # return-to-investigation 的累加会被清空，投票门槛永不可达。
             self.state.round = 1
+        # 突发事件横幅只属于触发它的那一刻，阶段推进后不再展示
+        self.state.last_event = None
 
     def get_clue_board(self, player_id: str) -> ClueBoard:
         """Get the complete clue board for a player.
@@ -254,6 +278,7 @@ class GameManager:
         self,
         player_id: str,
         count: int = 1,
+        exclude_scene: bool = False,
     ) -> list[ClueData]:
         """Randomly distribute clues to a player.
 
@@ -264,6 +289,9 @@ class GameManager:
         Args:
             player_id: The player's character ID.
             count: Number of clues to distribute.
+            exclude_scene: Skip scene-held clues. Quick mode reserves
+                them as the human's investigation leads — an AI claiming
+                one reveals it publicly and shrinks the lead options.
 
         Returns:
             List of distributed clues.
@@ -274,6 +302,11 @@ class GameManager:
 
         board = self.get_clue_board(player_id)
         available = list(board.available)
+        if exclude_scene:
+            available = [
+                entry for entry in available
+                if entry.clue.holder_id != "scene"
+            ]
 
         if not available:
             return []
@@ -338,7 +371,7 @@ class GameManager:
 
         if target_id == self.killer_id:
             char = self.get_character(target_id)
-            self.state.phase = GamePhase.REVEAL.value
+            self.set_phase(GamePhase.REVEAL)
             self.state.game_ended = True
             self.state.winner = "good"
             return True, (
@@ -348,7 +381,7 @@ class GameManager:
         else:
             char = self.get_character(target_id)
             killer = self.get_character(self.killer_id)
-            self.state.phase = GamePhase.REVEAL.value
+            self.set_phase(GamePhase.REVEAL)
             self.state.game_ended = True
             self.state.winner = "killer"
             return False, (
@@ -492,7 +525,7 @@ class GameManager:
             char = self.get_character(winner)
 
             if winner == self.killer_id:
-                self.state.phase = GamePhase.REVEAL.value
+                self.set_phase(GamePhase.REVEAL)
                 self.state.game_ended = True
                 self.state.winner = "good"
                 return True, (
@@ -501,7 +534,7 @@ class GameManager:
                     f"凶手是{char.name}！好人胜利！"
                 )
             else:
-                self.state.phase = GamePhase.REVEAL.value
+                self.set_phase(GamePhase.REVEAL)
                 self.state.game_ended = True
                 self.state.winner = "killer"
                 return True, (
@@ -516,7 +549,7 @@ class GameManager:
 
     def force_reveal(self) -> None:
         """Force the game into the reveal phase."""
-        self.state.phase = GamePhase.REVEAL.value
+        self.set_phase(GamePhase.REVEAL)
         self.state.game_ended = True
 
     def add_discussion(self, player_id: str, message: str) -> None:

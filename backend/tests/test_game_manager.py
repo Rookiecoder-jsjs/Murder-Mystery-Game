@@ -112,6 +112,20 @@ class TestPhaseTransitions:
         gm.next_phase()
         assert gm.state.turn == 0
 
+    def test_quick_mode_round_survives_discussion_entry(self, sample_archive):
+        """速推模式的 round 计调查轮次：进入讨论不得清零，否则
+        start_voting 的 round >= max_rounds 门槛永不可达（死锁）。"""
+        gm = GameManager(sample_archive, mode="quick")
+        gm.set_phase(GamePhase.INVESTIGATION)
+        gm.state.round = 2
+
+        gm.next_phase()  # -> discussion
+        assert gm.current_phase == GamePhase.DISCUSSION
+        assert gm.state.round == 2
+
+        gm.set_phase(GamePhase.INVESTIGATION)
+        assert gm.state.round == 2
+
     def test_next_phase_into_discussion_resets_round(self, sample_archive):
         gm = GameManager(sample_archive)
         gm.next_phase()  # -> investigation
@@ -204,6 +218,24 @@ class TestClueBoard:
         sample_archive.clues = [scene_only]
         gm = GameManager(sample_archive)
         gm.distribute_random_clues("char_2", count=1)
+        assert scene_only.reveal_to_all is True
+
+    def test_distribute_random_clues_exclude_scene(self, sample_archive):
+        """exclude_scene 抽取永不认领场景线索（速推模式把它们留给
+        玩家当调查方向）；关闭排除时维持原行为——抽到即公开。"""
+        from app.domain.models import ClueData
+        scene_only = ClueData(
+            id="clue_only_scene", content="x", type="physical",
+            holder_id="scene", reveal_to_all=False,
+        )
+        sample_archive.clues = [scene_only]
+
+        gm = GameManager(sample_archive, mode="quick")
+        assert gm.distribute_random_clues("char_2", 1, exclude_scene=True) == []
+        assert scene_only.reveal_to_all is False
+
+        found = gm.distribute_random_clues("char_2", 1, exclude_scene=False)
+        assert [c.id for c in found] == ["clue_only_scene"]
         assert scene_only.reveal_to_all is True
 
     def test_distribute_no_available_returns_empty(self, sample_archive):
@@ -450,3 +482,73 @@ class TestDiscussionAndSummary:
         gm.force_reveal()
         assert gm.current_phase == GamePhase.REVEAL
         assert gm.state.game_ended is True
+
+
+# ---------- Archive normalization / last_event lifecycle ----------
+
+class TestArchiveNormalization:
+    def _archive_with_holder(self, holder_id: str):
+        from app.domain.models import (
+            CaseData, ClueData, ScriptCharacter, StoryArchive,
+        )
+        return StoryArchive(
+            id="story-x", created_at="2026-01-01 00:00:00", topic="t",
+            title="t",
+            case=CaseData(
+                title="t", background="b", victim="v",
+                crime="c", true_killer="char_1", motive="m",
+            ),
+            characters=[
+                ScriptCharacter(
+                    id="char_1", name="甲",
+                    public_identity="侦探", secret="s",
+                ),
+                ScriptCharacter(
+                    id="char_2", name="乙",
+                    public_identity="医生", secret="s",
+                ),
+            ],
+            clues=[
+                ClueData(id="c1", content="x", type="physical",
+                         holder_id=holder_id),
+                ClueData(id="c2", content="x", type="testimony",
+                         holder_id="char_2"),
+                ClueData(id="c3", content="x", type="document",
+                         holder_id="scene"),
+            ],
+            story_content="真相",
+        )
+
+    def test_scene_holder_drift_normalized(self):
+        """LLM 可能漂移出 'scene_01' 之类的 holder_id（已发布档案中
+        出现过）——不归一化会让场景线索的公开/保留逻辑被静默绕过。"""
+        archive = self._archive_with_holder("scene_01")
+        assert archive.clues[0].holder_id == "scene"
+        # 正常路径不受影响
+        assert archive.clues[1].holder_id == "char_2"
+        assert archive.clues[2].holder_id == "scene"
+
+
+class TestLastEventLifecycle:
+    def test_game_end_paths_clear_last_event(self, sample_archive):
+        """横幅只属于触发它的那一刻：指认/票决/强制揭示进入 REVEAL
+        时同样不得滞留（与 next_phase/set_phase 的不变量一致）。"""
+        gm = GameManager(sample_archive)
+        gm.state.last_event = {"title": "案件出现突破"}
+        gm.accuse("char_2", "char_3")  # 误指 → REVEAL
+        assert gm.state.last_event is None
+
+        gm2 = GameManager(sample_archive)
+        gm2.set_phase(GamePhase.VOTING)
+        for src, tgt in [("char_1", "char_2"), ("char_3", "char_2"),
+                         ("char_4", "char_2"), ("char_2", "char_1")]:
+            gm2.submit_vote(src, tgt)
+        gm2.state.last_event = {"title": "案件出现突破"}
+        gm2.check_voting_result()  # 3 票淘汰 char_2（非凶手）→ REVEAL
+        assert gm2.current_phase == GamePhase.REVEAL
+        assert gm2.state.last_event is None
+
+        gm3 = GameManager(sample_archive)
+        gm3.state.last_event = {"title": "案件出现突破"}
+        gm3.force_reveal()
+        assert gm3.state.last_event is None

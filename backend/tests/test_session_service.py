@@ -14,6 +14,7 @@ import json
 from dataclasses import asdict
 
 import pytest
+from fastapi import HTTPException
 
 from app.core.phases import GamePhase
 from app.domain.models import PlayerState
@@ -275,6 +276,19 @@ class TestRestoreState:
             c.id for c in sample_archive.characters
         }
 
+    def test_restore_derives_max_rounds_from_mode(self, sample_archive):
+        """坏快照可能连 max_rounds 一起写坏——恢复时按规范化后的
+        mode 重新推导，与 GameManager.__init__ 保持一致。"""
+        raw = {"story_id": sample_archive.id, "mode": "garbage", "max_rounds": 3}
+        state = _restore_state(raw, sample_archive)
+        assert state.mode == "classic"
+        assert state.max_rounds == 5
+
+        raw_quick = {
+            "story_id": sample_archive.id, "mode": "quick", "max_rounds": 99,
+        }
+        assert _restore_state(raw_quick, sample_archive).max_rounds == 3
+
 
 # ---------- vote fallback (deadlock guard) ----------
 
@@ -355,3 +369,83 @@ class TestSnapshotDefensiveCopy:
         assert snap["ai_memories"]["char_3"] == [
             {"role": "assistant", "message": "已发言"}
         ]
+
+
+# ---------- quick-mode phase guards ----------
+
+
+class TestQuickModeInvestigation:
+    def _session(self, sample_archive):
+        session = GameSession(
+            sample_archive, "char_2", StubRoleplayClient(), mode="quick",
+        )
+        return session
+
+    def test_options_available_in_discussion(self, sample_archive):
+        """讨论阶段 available_actions 会明示 investigate——
+        options 列表必须同步支持，否则按钮点了必 400。"""
+        session = self._session(sample_archive)
+        session.game.set_phase(GamePhase.DISCUSSION)
+
+        assert session.get_investigation_options()
+
+    def test_investigate_during_discussion(self, sample_archive):
+        session = self._session(sample_archive)
+        session.game.set_phase(GamePhase.DISCUSSION)
+        options = session.get_investigation_options()
+
+        result = session.investigate(options[0]["id"])
+
+        assert result["found"]
+        assert result["event"]["title"]
+
+    def test_investigate_with_empty_pool_reports_exhausted(self, sample_archive):
+        session = self._session(sample_archive)
+        session.game.set_phase(GamePhase.INVESTIGATION)
+        for clue_id in ("clue_a", "clue_b", "clue_c", "clue_d"):
+            session.game.distribute_clue("char_2", clue_id)
+        session.game.distribute_clue("char_2", "clue_locked")  # 解锁后一并拿走
+        assert session.get_investigation_options() == []
+
+        with pytest.raises(HTTPException) as exc:
+            session.investigate()
+
+        assert "已经没有更多线索" in exc.value.detail
+
+    def test_restore_state_normalizes_invalid_mode(self, sample_archive):
+        raw = {"story_id": sample_archive.id, "mode": "garbage"}
+
+        state = _restore_state(raw, sample_archive)
+
+        assert state.mode == "classic"
+        assert state.max_rounds == 5
+
+    def test_last_event_cleared_on_phase_change(self, sample_archive):
+        """突发事件横幅只跟随触发它的搜证，进入下一阶段后不再滞留。"""
+        session = self._session(sample_archive)
+        session.game.set_phase(GamePhase.INVESTIGATION)
+        options = session.get_investigation_options()
+        session.investigate(options[0]["id"])
+        assert session.game.state.last_event is not None
+
+        session.game.set_phase(GamePhase.DISCUSSION)
+
+        assert session.game.state.last_event is None
+
+    def test_status_actions_match_callable_endpoints(self, sample_archive):
+        """available_actions 必须与真实可调用的端点一致：
+        round < max 可搜证/可返回搜证但不可进投票；
+        round == max 可进投票但返回搜证已被端点拒绝。"""
+        session = self._session(sample_archive)
+        session.game.set_phase(GamePhase.DISCUSSION)
+
+        status = session.get_game_status()
+        assert "investigate" in status["available_actions"]
+        assert "return_investigation" in status["available_actions"]
+        assert "vote" not in status["available_actions"]
+
+        session.game.state.round = session.game.state.max_rounds
+        status = session.get_game_status()
+        assert "investigate" in status["available_actions"]
+        assert "return_investigation" not in status["available_actions"]
+        assert "vote" in status["available_actions"]
