@@ -1,6 +1,6 @@
 // Sidebar — 桌面端固定栏；≤768px 由 GameLayout 变为抽屉（不再整体消失）
 
-import { Users, MessageSquare, Lightbulb, X } from 'lucide-react';
+import { Users, MessageSquare, Lightbulb, ScrollText, X } from 'lucide-react';
 import { useGame } from '../../context/useGame';
 import { Avatar, Badge } from '../common';
 import './Sidebar.css';
@@ -20,6 +20,32 @@ export function Sidebar({ drawerOpen, onClose }: SidebarProps) {
         <button className="sidebar-close" onClick={onClose} aria-label="关闭侧边栏">
           <X size={16} />
         </button>
+      </div>
+
+      <div className="sidebar-section">
+        <h3 className="sidebar-section-title">
+          <ScrollText size={14} />
+          案情速览
+        </h3>
+        {state.caseBrief ? (
+          <div className="sidebar-case">
+            <div className="sidebar-case-row">
+              <span className="sidebar-case-label">死者</span>
+              <span className="sidebar-case-value">{state.caseBrief.victim}</span>
+            </div>
+            <div className="sidebar-case-row">
+              <span className="sidebar-case-label">时间</span>
+              <span className="sidebar-case-value">{state.caseBrief.time || '不详'}</span>
+            </div>
+            <div className="sidebar-case-row">
+              <span className="sidebar-case-label">地点</span>
+              <span className="sidebar-case-value">{state.caseBrief.location || '不详'}</span>
+            </div>
+            <p className="sidebar-case-note">{state.caseBrief.crime}</p>
+          </div>
+        ) : (
+          <p className="sidebar-case-empty">暂无案情信息</p>
+        )}
       </div>
 
       <div className="sidebar-section">

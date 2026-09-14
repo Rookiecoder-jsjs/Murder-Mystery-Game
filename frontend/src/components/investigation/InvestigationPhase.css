@@ -1,4 +1,4 @@
-/* Investigation Phase — 证据墙：碳桌 + 装饰红绳 + 拍立得交错倾斜 */
+/* Investigation Phase — 搜证幕：戏单 + 装饰金线 + 交错倾斜的道具牌 */
 
 .investigation-phase {
   width: min(100%, 1100px);
@@ -10,7 +10,7 @@
   overflow-y: auto;
 }
 
-/* 档案头：左上对齐 + 图钉 + 红绳（与报案一致，打破居中柱） */
+/* 幕次头：左上对齐 + 台红菱形 + 金细线（统一幕次头样式） */
 .investigation-header {
   display: flex;
   flex-direction: column;
@@ -23,11 +23,10 @@
 
 .investigation-header::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  width: 8px;
+  height: 8px;
+  background: var(--color-seal);
+  transform: rotate(45deg);
   position: absolute;
   top: 0;
   left: 2px;
@@ -38,11 +37,9 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 4px;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--c-string-line);
-  opacity: 0.85;
+  top: 3px;
+  height: 1px;
+  background: var(--c-accent-line);
   pointer-events: none;
 }
 
@@ -73,11 +70,13 @@
   gap: var(--space-3);
 }
 
+/* 快进调查方向：旧戏单面板 */
 .investigation-leads {
   margin: var(--space-5) 0;
   padding: var(--space-5);
   border: 1px solid var(--paper-line);
   background: linear-gradient(135deg, var(--paper-2), var(--paper-1));
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-paper);
 }
 
@@ -125,6 +124,7 @@
   gap: var(--space-2);
   padding: var(--space-4);
   border: 1px solid var(--paper-line);
+  border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.28);
   color: var(--paper-ink);
   text-align: left;
@@ -167,6 +167,7 @@
   font-style: normal;
 }
 
+/* 突发事件横幅：金线左签 */
 .investigation-event {
   display: flex;
   align-items: flex-start;
@@ -175,6 +176,7 @@
   padding: var(--space-4);
   border-left: 3px solid var(--color-accent);
   background: var(--paper-2);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--paper-ink);
 }
 
@@ -186,7 +188,7 @@
   place-items: center;
   border-radius: 50%;
   background: var(--color-accent);
-  color: var(--paper-1);
+  color: var(--color-accent-ink);
   font-weight: 800;
 }
 
@@ -203,16 +205,15 @@
   gap: var(--space-4);
 }
 
-/* 证据墙上一条横贯红绳（装饰性，移动端随 .string-line 隐藏） */
+/* 戏单上一条横贯金线（装饰性，移动端隐藏） */
 .investigation-content::before {
   content: '';
   position: absolute;
   left: 10%;
   right: 10%;
   top: 64px;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--c-string-line);
+  height: 1px;
+  background: var(--c-accent-line);
   transform: rotate(-0.6deg);
   pointer-events: none;
 }
@@ -264,7 +265,7 @@
   letter-spacing: 0.04em;
 }
 
-/* 证据墙网格：拍立得交错倾斜 */
+/* 道具牌网格：交错倾斜 */
 .investigation-clues-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
@@ -283,7 +284,7 @@
   --paper-tilt: 0.8deg;
 }
 
-/* 线索详情（弹窗内容落在浅纸上则换墨色，保持默认深底即可） */
+/* 线索详情（弹窗内容落在深色作用域，保持默认深底即可） */
 .investigation-clue-detail {
   display: flex;
   flex-direction: column;

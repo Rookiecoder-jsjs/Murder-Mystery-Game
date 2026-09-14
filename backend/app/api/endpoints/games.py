@@ -76,6 +76,7 @@ async def create_game(
         "max_rounds": session.game.state.max_rounds,
         "player": session.get_player_info(),
         "characters": session.get_all_characters(),
+        "case_brief": session.get_case_brief(),
     }
 
 
@@ -113,6 +114,7 @@ async def load_game(
         "max_rounds": session.game.state.max_rounds,
         "player": session.get_player_info(),
         "characters": session.get_all_characters(),
+        "case_brief": session.get_case_brief(),
     }
 
 

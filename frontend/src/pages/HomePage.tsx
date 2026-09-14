@@ -103,10 +103,11 @@ export function HomePage() {
     <div className="home-page">
       <div className="home-content stage-paper">
         <div className="case-cover">
-          <p className="case-cover-kicker">名案档案馆 · 卷宗登记</p>
+          <div className="marquee-lights case-cover-lights" aria-hidden="true" />
+          <p className="case-cover-kicker">午夜剧场 · 今夜开演</p>
           <h1 className="home-logo font-display">剧本杀</h1>
           <p className="home-tagline">
-            沉浸式推理体验 · 多智能体协作 · 真相只有一个
+            一人入戏 · 众 AI 同台 · 真相只有一个
           </p>
           <div className="case-cover-string" aria-hidden="true" />
           <span className="seal case-cover-seal" aria-hidden="true">
@@ -118,14 +119,14 @@ export function HomePage() {
             <div className="home-gendesk" role="status">
               <div className="home-gendesk-kicker">
                 <span className="home-gendesk-lamp" aria-hidden="true" />
-                名案档案馆 · 卷宗调取
+                午夜剧场 · 正在装台
               </div>
 
               <p className="home-gendesk-stage">
-                {elapsed < 40 ? '卷壹 · 构思案情' : '卷贰 · 撰写卷宗'}
+                {elapsed < 40 ? '第一幕 · 构思剧情' : '第二幕 · 誊写戏本'}
               </p>
               <h2 className="home-gendesk-title">
-                {elapsed < 40 ? '正在推演人物与诡计' : '正在誊录本案卷宗'}
+                {elapsed < 40 ? '正在推演人物与诡计' : '正在誊写本案戏本'}
                 <span className="home-gendesk-caret" aria-hidden="true" />
               </h2>
               <p className="home-gendesk-topic">本案主题 ·{topic}</p>
@@ -162,7 +163,7 @@ export function HomePage() {
           <Card className="home-create-card" variant="gold-border">
             <div className="home-create-header">
               <Sparkles size={20} className="home-create-icon" />
-              <h2>新案登记</h2>
+              <h2>今夜新剧</h2>
             </div>
 
             <div className="home-mode-picker" role="group" aria-label="选择游戏模式">
@@ -205,7 +206,7 @@ export function HomePage() {
                   className="home-create-btn"
                 >
                   <Play size={16} />
-                  提交登记
+                  揭幕开演
                 </Button>
               </div>
 
@@ -217,7 +218,7 @@ export function HomePage() {
               )}
 
               <div className="home-examples">
-                <span className="home-examples-label">试试这些主题：</span>
+                <span className="home-examples-label">备选剧目：</span>
                 <div className="home-examples-list">
                   {EXAMPLE_TOPICS.map((t) => (
                     <button
@@ -238,7 +239,7 @@ export function HomePage() {
         >
           <div className="home-section-header">
             <BookOpen size={18} />
-            <h3>旧案卷宗</h3>
+            <h3>保留剧目</h3>
           </div>
 
           {isLoadingStories ? (

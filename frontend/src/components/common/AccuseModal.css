@@ -1,4 +1,4 @@
-/* AccuseModal — 拘捕令：整面浅纸 + 粗双线框 + 朱红章文案 */
+/* AccuseModal — 指认判决书：整面戏单纸 + 粗双线框 + 台红印章文案 */
 
 .accuse-modal {
   display: flex;
@@ -69,7 +69,6 @@
 }
 
 .accuse-suspect-name {
-  font-size: var(--text-sm);
   font-weight: 700;
   font-family: var(--font-display);
   font-size: var(--text-lg);
@@ -82,7 +81,7 @@
   line-height: 1.5;
 }
 
-/* 圈定标记：朱红印章点 */
+/* 圈定标记：台红印章点 */
 .accuse-selected-badge {
   display: inline-flex;
   align-items: center;

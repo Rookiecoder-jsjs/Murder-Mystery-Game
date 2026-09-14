@@ -47,6 +47,16 @@ export interface Story {
   created_at: string;
 }
 
+/** 公开案情简报（不含动机/真凶等谜底字段） */
+export interface CaseBrief {
+  title: string;
+  background: string;
+  victim: string;
+  crime: string;
+  location: string;
+  time: string;
+}
+
 export interface CreateGameResponse {
   game_id: string;
   story_id: string;
@@ -56,6 +66,7 @@ export interface CreateGameResponse {
   max_rounds?: number;
   player: CharacterInfo;
   characters: CharacterInfo[];
+  case_brief?: CaseBrief;
 }
 
 export interface LoadGameResponse {
@@ -66,6 +77,7 @@ export interface LoadGameResponse {
   max_rounds?: number;
   player: CharacterInfo;
   characters: CharacterInfo[];
+  case_brief?: CaseBrief;
 }
 
 export interface GameStatus {
@@ -80,6 +92,7 @@ export interface GameStatus {
   last_event: GameEvent | null;
   player: CharacterInfo;
   characters: CharacterInfo[];
+  case_brief: CaseBrief;
   available_actions: string[];
 }
 

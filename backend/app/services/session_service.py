@@ -318,6 +318,22 @@ class GameSession:
             result.append(info)
         return result
 
+    def get_case_brief(self) -> Dict[str, Any]:
+        """Public case synopsis — what a player may know before play starts.
+
+        刻意排除 ``motive`` 与 ``true_killer``：动机与真凶是谜底，
+        只在落幕揭晓时经 ``get_reveal_info`` 下发。
+        """
+        case = self.archive.case
+        return {
+            "title": case.title,
+            "background": case.background,
+            "victim": case.victim,
+            "crime": case.crime,
+            "location": case.location,
+            "time": case.time,
+        }
+
     def get_clue_board(self) -> Dict[str, Any]:
         board = self.game.get_clue_board(self.human_player_id)
 
@@ -379,6 +395,7 @@ class GameSession:
             },
             "player": self.get_player_info(),
             "characters": self.get_all_characters(),
+            "case_brief": self.get_case_brief(),
             "available_actions": actions,
             "investigation_count": self.game.state.investigation_count,
             "investigation_options": self.get_investigation_options(),

@@ -1,17 +1,17 @@
 /* ==========================================================================
-   案卷质感复用件集：纸面、胶带、印章、红绳、图钉、口供头、黑场、交错、书架
+   午夜剧场质感复用件集：戏单纸面、跑马灯、印章、幕布黑场、交错、书架
    全站通用，组件按需挂类（类名全局命名空间）。
    ========================================================================== */
 
-/* ---------- 纸面卡片（浅色证物/档案的底） ---------- */
+/* ---------- 戏单卡片（浅色节目单的底） ---------- */
 .paper-card {
   position: relative;
   background:
-    linear-gradient(135deg, rgba(255, 250, 235, 0.35), transparent 30%),
+    linear-gradient(135deg, rgba(255, 251, 240, 0.35), transparent 30%),
     var(--paper-1);
   color: var(--paper-ink);
-  border: 1px solid var(--paper-edge);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--paper-line);
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-paper);
   transform: rotate(var(--paper-tilt, 0deg));
   overflow: hidden;
@@ -54,32 +54,44 @@
   z-index: 1;
 }
 
-/* ---------- 胶带（贴在纸卡外沿的小块） ---------- */
-.tape {
-  position: absolute;
-  width: 64px;
-  height: 20px;
-  background: rgba(240, 226, 190, 0.65);
-  border-left: 1px dashed rgba(120, 100, 60, 0.35);
-  border-right: 1px dashed rgba(120, 100, 60, 0.35);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
-  opacity: 0.9;
+/* ---------- 跑马灯灯珠带（海报/横幅顶缘） ---------- */
+.marquee-lights {
+  height: 8px;
+  background-image:
+    radial-gradient(circle 1.8px at center, var(--bulb) 96%, transparent),
+    radial-gradient(circle 1.8px at center, var(--bulb-dim) 96%, transparent);
+  background-size: 36px 8px;
+  background-position: 0 0, 18px 0;
+  background-repeat: repeat-x;
+  animation: marquee-chase 1.2s steps(2) infinite;
   pointer-events: none;
 }
 
-.tape--top {
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-2deg);
+/* ---------- 菱形分隔饰线（deco 分节符：— ◆ —） ---------- */
+.deco-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--c-accent-line-strong);
 }
 
-.tape--corner {
-  top: -8px;
-  right: 24px;
-  transform: rotate(38deg);
+.deco-rule::before,
+.deco-rule::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
 }
 
-/* ---------- 印章 · 圆章（朱红双环） ---------- */
+.deco-rule::before {
+  /* 起端小菱形 */
+  flex: 0 0 6px;
+  height: 6px;
+  background: currentColor;
+  transform: rotate(45deg);
+}
+
+/* ---------- 印章 · 圆章（台口红双环） ---------- */
 .seal {
   --seal-angle: -8deg;
   display: inline-flex;
@@ -112,7 +124,7 @@
   animation: seal-stamp 480ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
 }
 
-/* ---------- 方印（线索编号 / 批示字） ---------- */
+/* ---------- 方印（编号 / 批示字） ---------- */
 .stamp {
   display: inline-block;
   padding: 0.08em 0.45em;
@@ -128,7 +140,7 @@
   user-select: none;
 }
 
-/* 朱红批示章（新 / 凶 等） */
+/* 台红批示章（新 / 凶 等） */
 .stamp--seal {
   color: var(--color-seal);
   border-style: double;
@@ -136,32 +148,7 @@
   font-weight: 600;
 }
 
-/* ---------- 红绳与图钉（装饰性证据线，移动端隐藏） ---------- */
-.string-line {
-  border-top: 2px solid var(--color-string);
-  border-radius: var(--radius-pill);
-  opacity: 0.85;
-  pointer-events: none;
-}
-
-.pin {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 35% 30%, #d9624a, #b5432e 55%, #7a2b1c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  display: inline-block;
-}
-
-@media (max-width: 767.98px) {
-  .string-line,
-  .pin {
-    display: none;
-  }
-}
-
-/* ---------- 口供记录头（打字机单据感） ---------- */
+/* ---------- 口供记录头（票根等宽感） ---------- */
 .record-head {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -184,12 +171,12 @@
   border-color: var(--paper-line);
 }
 
-/* ---------- 阶段黑场（细缝曝光转场） ---------- */
+/* ---------- 大幕黑场（细缝曝光转场） ---------- */
 .curtain {
   position: fixed;
   inset: 0;
   z-index: var(--z-curtain);
-  background: #050302;
+  background: #070406;
   pointer-events: none;
   animation: curtain-reveal var(--transition-slow) ease forwards;
 }
@@ -216,25 +203,25 @@
   color: var(--color-text-faint);
 }
 
-/* ---------- 纸面主舞台（暖纸重型化）：一张摊开的卷宗 ---------- */
+/* ---------- 戏单主舞台：一张对折的演出节目单 ---------- */
 .stage-paper {
   position: relative;
   background-color: var(--paper-1);
-  /* 中心微亮 + 边缘暗角 + 纸屑噪点（三层背景一次合成，滚动不抖动） */
+  /* 中缝微亮 + 折痕压暗 + 纸屑噪点（三层背景一次合成，滚动不抖动） */
   background-image:
-    radial-gradient(120% 90% at 50% 0%, rgba(255, 252, 240, 0.5), transparent 55%),
-    radial-gradient(130% 100% at 50% 115%, rgba(90, 72, 44, 0.16), transparent 62%),
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 252, 240, 0.55), transparent 55%),
+    radial-gradient(130% 100% at 50% 115%, rgba(90, 62, 40, 0.16), transparent 62%),
     var(--texture-noise);
   background-size: auto, auto, 200px 200px;
   color: var(--paper-ink);
-  /* 纸缘从深炭桌面"浮起" */
+  /* 纸缘从深色观众席"浮起" */
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-paper), 0 1px 0 rgba(255, 252, 240, 0.08) inset;
 }
 
-/* 纸舞台内再次强调的行（如顶部铜线装饰），由各屏自行挂载 */
+/* 戏单顶部装订金线，由各屏自行挂载 */
 .stage-paper-line {
-  border-top: 3px solid var(--color-brass);
+  border-top: 3px solid var(--color-accent);
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
@@ -246,7 +233,7 @@
   border-color: var(--paper-line);
 }
 
-/* ---------- 旧卷宗书架 ---------- */
+/* ---------- 保留剧目书架 ---------- */
 .shelf {
   position: relative;
   display: flex;

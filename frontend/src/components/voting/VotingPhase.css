@@ -1,4 +1,4 @@
-/* Voting Phase — 表决单：浅纸规则卡 + 角色册页 + 朱红勾章 + 唱票等待 */
+/* Voting Phase — 表决幕：戏单规则卡 + 卡司册页 + 台红勾章 + 唱票等待 */
 
 .voting-phase {
   width: min(100%, 900px);
@@ -10,7 +10,7 @@
   overflow-y: auto;
 }
 
-/* 档案头：左上对齐 + 图钉 + 红绳（统一档案头样式） */
+/* 幕次头：左上对齐 + 台红菱形 + 金细线（统一幕次头样式） */
 .voting-header {
   display: flex;
   flex-direction: column;
@@ -23,11 +23,10 @@
 
 .voting-header::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  width: 8px;
+  height: 8px;
+  background: var(--color-seal);
+  transform: rotate(45deg);
   position: absolute;
   top: 0;
   left: 2px;
@@ -38,11 +37,9 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 4px;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--c-string-line);
-  opacity: 0.85;
+  top: 3px;
+  height: 1px;
+  background: var(--c-accent-line);
   pointer-events: none;
 }
 
@@ -66,7 +63,7 @@
   letter-spacing: 0.08em;
 }
 
-/* 表决规则：纸上的旧纸说明单（加深一档 + 朱红左条） */
+/* 表决规则：纸上的旧纸说明单（加深一档 + 台红左条） */
 .voting-instructions {
   background: var(--paper-2);
   border-color: var(--paper-line);
@@ -167,7 +164,7 @@
   padding: var(--space-5) var(--space-4) var(--space-4);
 }
 
-/* 圈定：朱红勾章 */
+/* 圈定：台红勾章 */
 .voting-character-card.selected {
   background: var(--c-danger-bg-faint);
   border-color: var(--color-seal);

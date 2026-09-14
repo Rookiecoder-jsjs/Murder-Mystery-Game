@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import type {
   AccuseResponse,
+  CaseBrief,
   CharacterInfo,
   ChatMessage,
   Clue,
@@ -16,6 +17,7 @@ export interface GameState {
   gameId: string | null;
   storyId: string | null;
   topic: string;
+  caseBrief: CaseBrief | null;
   player: CharacterInfo | null;
   characters: CharacterInfo[];
   phase: GamePhase;

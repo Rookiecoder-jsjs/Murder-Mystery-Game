@@ -1,4 +1,4 @@
-/* Button — 黄铜铭牌 / 朱红图章，无发光 */
+/* Button — 足光金牌匾 / 幕布红丝绒，利落直角 */
 
 .btn {
   display: inline-flex;
@@ -9,8 +9,8 @@
   font-size: var(--text-base);
   font-weight: 600;
   line-height: 1.2;
-  letter-spacing: 0.06em;
-  border-radius: var(--radius-md);
+  letter-spacing: 0.08em;
+  border-radius: var(--radius-sm);
   padding: 0.6em 1.3em;
   box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.35);
   transition: background-color var(--transition-normal),
@@ -25,7 +25,7 @@
   box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.35);
 }
 
-/* 主按钮：黄铜底 */
+/* 主按钮：足光金牌匾 */
 .btn-primary {
   background: var(--color-accent);
   color: var(--color-accent-ink);
@@ -35,10 +35,10 @@
   background: var(--color-accent-bright);
 }
 
-/* 危险/关键行动：朱红图章底 */
+/* 关键行动：幕布红丝绒 */
 .btn-danger,
 .btn-secondary {
-  background: var(--color-seal);
+  background: var(--color-danger);
   color: #f7eee0;
 }
 
@@ -47,7 +47,7 @@
   background: var(--color-danger-bright);
 }
 
-/* 幽灵按钮：炭底铜线 */
+/* 幽灵按钮：黑底金线 */
 .btn-ghost {
   background: transparent;
   color: var(--color-text-muted);

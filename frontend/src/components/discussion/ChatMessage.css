@@ -1,5 +1,5 @@
-/* ChatMessage — 口供记录切片：mono 记录头 + 宋体供词 + 红绳左签；
-   玩家供词为浅纸反白，AI 口供为深底档案格 */
+/* ChatMessage — 舞台对白切片：mono 记录头 + 宋体台词 + 金线左签；
+   玩家台词为墨槽反白，AI 台词为旧纸格 */
 
 .chat-message {
   display: flex;
@@ -17,13 +17,13 @@
   min-width: 0;
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--color-string);
-  border-radius: 2px;
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-4) var(--space-3);
   box-shadow: var(--shadow-sm);
 }
 
-/* 记录头：打字机小字 */
+/* 记录头：等宽小字 */
 .chat-message-header {
   display: flex;
   align-items: baseline;
@@ -54,9 +54,9 @@
   word-break: break-word;
 }
 
-/* 玩家供词：纸舞台上的深反白（墨槽），与 AI 旧纸格形成最强对比 + 朱红签名 */
+/* 玩家台词：纸舞台上的深反白（墨槽），与 AI 旧纸格形成最强对比 + 台红签名 */
 .chat-message-player {
-  --color-seal: #d04030;   /* 墨槽上的签名朱红要更亮（纸面 token 已加深） */
+  --color-seal: #d84858;   /* 墨槽上的签名台红要更亮（纸面 token 已加深） */
 }
 
 .chat-message-player .chat-message-content {

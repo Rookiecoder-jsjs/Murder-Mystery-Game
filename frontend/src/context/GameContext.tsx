@@ -12,6 +12,7 @@ import { api, ApiError } from '../api/client';
 import { useToast } from '../components/common';
 import type {
   AccuseResponse,
+  CaseBrief,
   CharacterInfo,
   ChatMessage,
   Clue,
@@ -35,6 +36,7 @@ type GameAction =
         gameId: string;
         storyId: string;
         topic: string;
+        caseBrief?: CaseBrief | null;
         player: CharacterInfo;
         characters: CharacterInfo[];
         phase: string;
@@ -66,6 +68,7 @@ const initialState: GameState = {
   gameId: null,
   storyId: null,
   topic: '',
+  caseBrief: null,
   player: null,
   characters: [],
   phase: 'introduction',
@@ -106,6 +109,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         gameId: action.payload.gameId,
         storyId: action.payload.storyId,
         topic: action.payload.topic,
+        caseBrief: action.payload.caseBrief ?? null,
         player: action.payload.player,
         characters: action.payload.characters,
         phase: action.payload.phase as GamePhase,
@@ -119,6 +123,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return {
         ...state,
         gameId,
+        caseBrief: status.case_brief ?? null,
         player: status.player,
         characters: status.characters,
         phase: status.phase,
@@ -202,6 +207,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           gameId: response.game_id,
           storyId: response.story_id,
           topic: response.topic,
+          caseBrief: response.case_brief,
           player: response.player,
           characters: response.characters,
           phase: response.phase,
@@ -229,6 +235,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           gameId: response.game_id,
           storyId: response.story_id,
           topic: '',
+          caseBrief: response.case_brief,
           player: response.player,
           characters: response.characters,
           phase: response.phase,
@@ -285,6 +292,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
           availableActions: status.available_actions,
           player: status.player,
           characters: status.characters,
+          // 简报只在到达时覆盖，避免旧后端缺字段时把已有值刷成 undefined
+          ...(status.case_brief ? { caseBrief: status.case_brief } : {}),
           connectionLost: false,
         },
       });

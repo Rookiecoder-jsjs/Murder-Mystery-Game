@@ -1,21 +1,21 @@
-/* Modal — 档案抽屉形：深炭工具弹层（即使渲染在纸舞台内部，也回退深炭 token）
-   弹层语义 = 桌面上的工具抽屉，不属于纸面卷宗，故在此重建深炭作用域 */
+/* Modal — 后台道具间：深色工具弹层（即使渲染在纸舞台内部，也回退深色 token）
+   弹层语义 = 后台的道具抽屉，不属于戏单纸面，故在此重建深色作用域 */
 
 .modal-overlay {
-  /* 深炭 token 作用域：隔离 .stage-paper 的纸面继承 */
-  --color-surface: #16130f;
-  --color-surface-raised: #1d1913;
-  --color-border: #2b251c;
-  --color-border-strong: #3a3327;
-  --color-text: #e8ddc8;
-  --color-text-muted: #a99c82;
-  --color-text-faint: #7a7263;
-  --color-accent: #b08d4a;
-  --color-accent-bright: #c9a75d;
-  --color-danger: #9e2b23;
-  --color-danger-bright: #c23a2a;
-  --color-seal: #c23a2a;
-  --color-scrim: rgba(10, 8, 6, 0.78);
+  /* 深色 token 作用域：隔离 .stage-paper 的纸面继承 */
+  --color-surface: #1a1216;
+  --color-surface-raised: #241a1f;
+  --color-border: #33232b;
+  --color-border-strong: #463039;
+  --color-text: #f0e7d8;
+  --color-text-muted: #b5a48f;
+  --color-text-faint: #857468;
+  --color-accent: #b9873e;
+  --color-accent-bright: #d9ab5f;
+  --color-danger: #93202f;
+  --color-danger-bright: #c73a4a;
+  --color-seal: #c73a4a;
+  --color-scrim: rgba(12, 6, 9, 0.82);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
@@ -35,7 +35,7 @@
   width: 100%;
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   max-height: min(85vh, 85dvh);
   display: flex;
@@ -56,7 +56,7 @@
   max-width: 900px;
 }
 
-/* 顶部纸签横条：浅纸底 + 墨字标题 + 红图钉 */
+/* 顶部戏单签条：奶油纸底 + 墨字标题 + 金菱形 */
 .modal-header {
   display: flex;
   align-items: center;
@@ -70,11 +70,10 @@
 
 .modal-header::before {
   content: '';
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+  width: 8px;
+  height: 8px;
   background: var(--color-seal);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  transform: rotate(45deg);
   flex-shrink: 0;
 }
 

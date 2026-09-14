@@ -449,3 +449,31 @@ class TestQuickModeInvestigation:
         assert "investigate" in status["available_actions"]
         assert "return_investigation" not in status["available_actions"]
         assert "vote" in status["available_actions"]
+
+
+# ---------- case brief (public synopsis, spoiler-free) ----------
+
+
+class TestCaseBrief:
+    """案情简报只下发公开字段，动机与真凶是谜底，绝不进常规载荷。"""
+
+    def test_status_brief_has_public_fields_only(self, sample_archive):
+        session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+
+        brief = session.get_game_status()["case_brief"]
+
+        assert brief["title"] == "测试案件"
+        assert brief["background"] == "案件背景"
+        assert brief["victim"] == "受害者"
+        assert brief["crime"] == "受害者被害"
+        assert "motive" not in brief
+        assert "true_killer" not in brief
+
+    def test_reveal_still_carries_truth(self, sample_archive):
+        """谜底仍走 reveal 通道（对照：简报裁剪不影响揭晓完整性）。"""
+        session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+
+        reveal = session.get_reveal_info()
+
+        assert reveal["case_info"]["motive"] == "动机"
+        assert reveal["case_info"]["true_killer"] == "char_1"

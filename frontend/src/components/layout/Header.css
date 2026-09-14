@@ -1,4 +1,4 @@
-/* Header — 64px 品牌 + 阶段 + 玩家身份（炭底 + 底部黄铜缝线） */
+/* Header — 64px 檐幕：品牌 + 幕次指示 + 玩家身份（幕布黑 + 底部金缝线） */
 
 .header {
   height: var(--header-h);
@@ -13,7 +13,7 @@
   z-index: var(--z-header);
 }
 
-/* 首饰缝线：黄铜细线 */
+/* 檐幕下缘：金细线 */
 .header::after {
   content: '';
   position: absolute;
@@ -55,7 +55,7 @@
   min-width: 0;
 }
 
-/* 品牌：书法体铜字 */
+/* 品牌：书法题字金字 */
 .header-title {
   font-family: var(--font-display);
   font-weight: 400;

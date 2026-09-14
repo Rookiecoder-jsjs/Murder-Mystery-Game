@@ -1,6 +1,6 @@
 /* ==========================================================================
    全局基础：reset、排版、表单、滚动条、关键帧、无障碍
-   案卷·证据墙：碳桌 + 暖纸白晕光 + 全屏纸屑噪点
+   午夜剧场：观众席黑 + 顶光足光 + 两侧丝绒幕布红 + 全屏微噪点
    ========================================================================== */
 
 * {
@@ -24,27 +24,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 桌面灯光：顶部暖纸白微光（纸面反射）+ 四周碳桌暗角（纸面像从桌面亮起） */
+/* 舞台灯光：顶部暖金顶光 + 底部台口压暗 + 左右两侧丝绒幕布暗红 */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(110vh 70vh at 50% -5%, rgba(232, 221, 200, 0.07), transparent 60%),
-    radial-gradient(120vh 90vh at 50% 120%, #0b0a08, transparent 65%),
-    radial-gradient(90vh 90vh at 8% 100%, rgba(0, 0, 0, 0.35), transparent 55%);
+    radial-gradient(110vh 70vh at 50% -8%, rgba(245, 212, 137, 0.09), transparent 58%),
+    radial-gradient(120vh 90vh at 50% 120%, #08050a, transparent 66%),
+    radial-gradient(55vw 120vh at -6% 50%, var(--velvet-red), transparent 62%),
+    radial-gradient(55vw 120vh at 106% 50%, var(--velvet-red), transparent 62%);
   pointer-events: none;
   z-index: -1;
 }
 
-/* 纸屑氛围：全屏噪点叠加 */
+/* 座椅尘埃：全屏微噪点叠加 */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   background-image: var(--texture-noise);
   background-size: 200px 200px;
-  opacity: 0.4;
+  opacity: 0.32;
   mix-blend-mode: overlay;
   pointer-events: none;
   z-index: -1;
@@ -64,7 +65,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text);
 }
 
-/* 书法体只用于卷宗题款/首页大字（.font-display），不全局套用 */
+/* 题字书法体只用于戏单题名/落幕大字（.font-display），不全局套用 */
 .font-display {
   font-family: var(--font-display);
   font-weight: 400;
@@ -142,7 +143,7 @@ input::placeholder, textarea::placeholder {
   background: var(--color-accent);
 }
 
-/* ===== 选区（朱红墨迹） ===== */
+/* ===== 选区（幕布红） ===== */
 ::selection {
   background: var(--color-danger);
   color: var(--color-text);
@@ -164,10 +165,15 @@ input::placeholder, textarea::placeholder {
   50% { opacity: 0.45; }
 }
 
-/* 纸面眩光：取代旧 shimmer，hover 时一道高光扫过 */
+/* 纸面眩光：hover 时一道高光扫过 */
 @keyframes paper-sheen {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+/* 跑马灯灯珠巡游 */
+@keyframes marquee-chase {
+  to { background-position: 36px 0, 54px 0; }
 }
 
 /* 印章盖落：1.25 落 1，带微震 */
@@ -186,7 +192,7 @@ input::placeholder, textarea::placeholder {
   100% { transform: translateY(0) rotate(var(--paper-tilt, 0deg)); }
 }
 
-/* 阶段黑场：合拢 → 细缝 → 开合，总时长随 --transition-slow */
+/* 大幕黑场：合拢 → 细缝 → 开合，总时长随 --transition-slow */
 @keyframes curtain-reveal {
   0%, 7% { opacity: 1; clip-path: inset(0 0 0 0); }
   32% { opacity: 1; clip-path: inset(49.5% 0 49.5% 0); }

@@ -1,4 +1,4 @@
-/* Discussion Phase — 提审室：顶栏纸签 + 口供流 + 供词纸输入 */
+/* Discussion Phase — 对质场：顶栏戏单签 + 台词流 + 台词墨槽输入 */
 
 .discussion-phase {
   flex: 1;
@@ -7,7 +7,7 @@
   flex-direction: column;
 }
 
-/* 顶部纸签横条（纸舞台上加深一档，与主纸区分） */
+/* 顶部戏单签横条（纸舞台上加深一档，与主纸区分） */
 .discussion-topbar {
   display: flex;
   align-items: center;
@@ -16,7 +16,7 @@
   gap: var(--space-2) var(--space-4);
   padding: var(--space-3) var(--space-6);
   background: var(--paper-2);
-  border-bottom: 2px solid var(--paper-ink-muted);
+  border-bottom: 2px solid var(--color-border-strong);
   color: var(--paper-ink);
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
@@ -48,7 +48,7 @@
   gap: var(--space-2);
 }
 
-/* 纸签上的 ghost 按钮重新着墨 */
+/* 戏单签上的 ghost 按钮重新着墨 */
 .discussion-topbar .btn-ghost {
   color: var(--paper-ink-muted);
   border-color: var(--paper-line);
@@ -104,7 +104,7 @@
   margin-inline: auto;
 }
 
-/* 供词墨槽（纸舞台深反白：墨色底 + 纸白字） */
+/* 台词墨槽（纸舞台深反白：墨色底 + 纸白字） */
 .discussion-input {
   flex: 1;
   min-width: 0;

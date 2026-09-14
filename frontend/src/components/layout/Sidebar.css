@@ -1,12 +1,12 @@
-/* Sidebar — 办案日志档案：人物档案页 + 统计；移动端抽屉 */
+/* Sidebar — 后台演员休息室：卡司名册 + 统计；移动端抽屉 */
 
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
   background: var(--color-surface);
   border-right: 1px solid var(--color-border-strong);
-  /* 档案架压在纸面上：右侧暖棕投影 */
-  box-shadow: 6px 0 18px -6px rgba(0, 0, 0, 0.45);
+  /* 后台压在戏单上：右侧暖黑投影 */
+  box-shadow: 6px 0 18px -6px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
   padding: var(--space-4);
   display: flex;
@@ -26,7 +26,7 @@
   gap: var(--space-3);
 }
 
-/* 分区标题：打字机小签 + 朱红图钉点 */
+/* 分区标题：等宽小签 + 金色菱形 */
 .sidebar-section-title {
   display: flex;
   align-items: center;
@@ -41,11 +41,10 @@
 
 .sidebar-section-title::before {
   content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--color-seal);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  width: 6px;
+  height: 6px;
+  background: var(--color-accent);
+  transform: rotate(45deg);
   flex-shrink: 0;
 }
 
@@ -60,7 +59,7 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-2);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   transition: background-color var(--transition-fast),
     border-color var(--transition-fast);
@@ -70,7 +69,7 @@
   background: var(--color-surface-raised);
 }
 
-/* 玩家档案页：铜线框 + 微铜底 */
+/* 玩家卡司页：金线框 + 微金底 */
 .sidebar-character.is-player {
   border-color: var(--c-accent-line);
   background: var(--c-accent-bg-faint);
@@ -165,4 +164,54 @@
     color: var(--color-text);
     background: var(--color-surface-raised);
   }
+}
+
+/* ===== 案情速览（后台案情板） ===== */
+.sidebar-case {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-raised);
+}
+
+.sidebar-case-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.sidebar-case-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+}
+
+.sidebar-case-value {
+  color: var(--color-text);
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-case-note {
+  font-size: var(--text-2xs);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--color-border);
+}
+
+.sidebar-case-empty {
+  font-size: var(--text-xs);
+  color: var(--color-text-faint);
 }

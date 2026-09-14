@@ -108,7 +108,7 @@ export function InvestigationPhase() {
         <div className="investigation-leads">
           <div className="investigation-leads-header">
             <div>
-              <span className="investigation-leads-kicker">QUICK CASE / ROUND {state.round}</span>
+              <span className="investigation-leads-kicker">QUICK STAGE / ROUND {state.round}</span>
               <h3><Zap size={16} /> 选择你的调查方向</h3>
             </div>
             <span className="investigation-leads-count">{state.investigationOptions.length} 个突破口</span>

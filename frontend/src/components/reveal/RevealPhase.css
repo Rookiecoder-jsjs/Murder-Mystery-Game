@@ -1,4 +1,4 @@
-/* Reveal Phase — 结案卷宗：封面式头 + 大印章 + 真凶朱红章 */
+/* Reveal Phase — 落幕：戏单式真相卷 + 大印章 + 真凶台红章 */
 
 .reveal-phase {
   width: min(100%, 800px);
@@ -16,7 +16,7 @@
   padding: var(--space-12) 0;
 }
 
-/* 结案档案头：左上对齐 + 图钉 + 红绳（与其余阶段统一） */
+/* 幕次头：左上对齐 + 台红菱形 + 金细线（统一幕次头样式） */
 .reveal-header {
   position: relative;
   display: flex;
@@ -29,11 +29,10 @@
 
 .reveal-header::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  width: 8px;
+  height: 8px;
+  background: var(--color-seal);
+  transform: rotate(45deg);
   position: absolute;
   top: 0;
   left: 2px;
@@ -44,11 +43,9 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 4px;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--c-string-line);
-  opacity: 0.85;
+  top: 3px;
+  height: 1px;
+  background: var(--c-accent-line);
   pointer-events: none;
 }
 
@@ -75,7 +72,7 @@
   margin-top: var(--space-4);
 }
 
-/* 结案大印章 */
+/* 落幕大印章 */
 .reveal-seal-row {
   margin-top: var(--space-2);
 }
@@ -148,7 +145,7 @@
   color: var(--color-text);
 }
 
-/* 真凶行：朱红大字 + 盖「凶」章 */
+/* 真凶行：台红大字 + 盖「凶」章 */
 .reveal-killer {
   display: inline-flex;
   align-items: center;

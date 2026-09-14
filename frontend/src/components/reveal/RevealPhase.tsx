@@ -67,7 +67,7 @@ export function RevealPhase() {
         </div>
         <div className="reveal-seal-row">
           <span className="seal anim-seal" aria-hidden="true">
-            结案
+            落幕
           </span>
         </div>
       </div>

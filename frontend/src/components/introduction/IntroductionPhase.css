@@ -1,4 +1,4 @@
-/* Introduction Phase — 报案：卷宗题款 + 人物档案卡 + 供词页结果 */
+/* Introduction Phase — 序幕：戏单题款 + Deco 幕次头 + 定妆照卡 + 台词页结果 */
 
 .introduction-phase {
   width: min(100%, 880px);
@@ -10,7 +10,7 @@
   overflow-y: auto;
 }
 
-/* 档案头：左上对齐 + 朱红图钉 + 红绳横线（打破居中柱） */
+/* 幕次头：左上对齐 + 台红菱形 + 金细线（统一幕次头样式） */
 .introduction-header {
   display: flex;
   flex-direction: column;
@@ -21,34 +21,32 @@
   position: relative;
 }
 
-/* 顶部朱红图钉 */
+/* 台红菱形 */
 .introduction-header::before {
   content: '';
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #d9624a, var(--color-seal) 55%, #7a2b1c);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  width: 8px;
+  height: 8px;
+  background: var(--color-seal);
+  transform: rotate(45deg);
   position: absolute;
   top: 0;
   left: 2px;
 }
 
+/* 金细线 */
 .introduction-header::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  top: 4px;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--c-string-line);
-  opacity: 0.85;
+  top: 3px;
+  height: 1px;
+  background: var(--c-accent-line);
   pointer-events: none;
 }
 
 .introduction-icon {
-  display: none;   /* 档案头不再用图标圆 */
+  display: none;
 }
 
 .introduction-title {
@@ -67,7 +65,7 @@
   letter-spacing: 0.08em;
 }
 
-/* 人物档案卡：证件照 + 墨字名 + 「你」章 */
+/* 定妆照卡：剧照 + 墨字名 + 「你」章 */
 .introduction-player-card {
   position: relative;
 }
@@ -151,7 +149,7 @@
   color: var(--color-text-faint);
 }
 
-/* 供词墨槽（纸舞台深反白：墨色底 + 纸白字） */
+/* 台词墨槽（纸舞台深反白：墨色底 + 纸白字） */
 .introduction-textarea {
   width: 100%;
   resize: vertical;
@@ -197,7 +195,7 @@
   margin-bottom: var(--space-4);
 }
 
-/* 供词记录 */
+/* 台词记录 */
 .introduction-result-item {
   display: flex;
   flex-direction: column;
@@ -205,16 +203,16 @@
   padding: var(--space-3) var(--space-4);
   border-left: 3px solid var(--color-border-strong);
   background: var(--color-surface-raised);
-  border-radius: 0 2px 2px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   margin-bottom: var(--space-3);
   box-shadow: var(--shadow-sm);
 }
 
-/* 玩家供词在纸舞台上深反白（与讨论口供一致） */
+/* 玩家台词在纸舞台上深反白（与讨论台词一致） */
 .introduction-result-item.is-player {
   border-left-color: var(--color-seal);
   background: var(--paper-ink);
-  --color-seal: #d04030;
+  --color-seal: #d84858;
 }
 
 .introduction-result-speaker {
@@ -315,4 +313,74 @@
   .introduction-submit {
     align-self: stretch;
   }
+}
+
+/* ===== 剧情梗概：戏单上的剧情简介栏 ===== */
+.introduction-brief {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background:
+    linear-gradient(135deg, rgba(255, 252, 240, 0.35), transparent 30%),
+    var(--paper-2);
+  border-color: var(--color-accent);
+}
+
+.introduction-brief-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.22em;
+  color: var(--color-accent);
+  text-transform: uppercase;
+}
+
+.introduction-brief-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--text-xl);
+  color: var(--paper-ink);
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+}
+
+.introduction-brief-bg {
+  font-size: var(--text-sm);
+  line-height: 1.9;
+  color: var(--color-text-muted);
+}
+
+.introduction-brief-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-2) var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px dashed var(--paper-line);
+}
+
+.introduction-brief-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.introduction-brief-meta-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.1em;
+  color: var(--color-text-faint);
+}
+
+.introduction-brief-meta-value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--paper-ink);
+}
+
+.introduction-brief-note {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--paper-line);
 }

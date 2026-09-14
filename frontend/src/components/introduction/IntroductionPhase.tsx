@@ -49,11 +49,34 @@ export function IntroductionPhase() {
         <div className="introduction-icon">
           <User size={24} />
         </div>
-        <h2 className="introduction-title">自我介绍</h2>
+        <h2 className="introduction-title">开场亮相</h2>
         <p className="introduction-subtitle">
           每位角色都会介绍自己，留意每个人的说辞
         </p>
       </div>
+
+      {state.caseBrief && (
+        <Card variant="gold-border" className="introduction-brief">
+          <p className="introduction-brief-kicker">剧情梗概</p>
+          <h3 className="introduction-brief-title">{state.caseBrief.title}</h3>
+          <p className="introduction-brief-bg">{state.caseBrief.background}</p>
+          <div className="introduction-brief-meta">
+            <div className="introduction-brief-meta-item">
+              <span className="introduction-brief-meta-label">死者</span>
+              <span className="introduction-brief-meta-value">{state.caseBrief.victim}</span>
+            </div>
+            <div className="introduction-brief-meta-item">
+              <span className="introduction-brief-meta-label">案发时间</span>
+              <span className="introduction-brief-meta-value">{state.caseBrief.time || '不详'}</span>
+            </div>
+            <div className="introduction-brief-meta-item">
+              <span className="introduction-brief-meta-label">案发地点</span>
+              <span className="introduction-brief-meta-value">{state.caseBrief.location || '不详'}</span>
+            </div>
+          </div>
+          <p className="introduction-brief-note">入场须知 · 先读案情，再听登场自白</p>
+        </Card>
+      )}
 
       <Card variant="gold-border" className="introduction-player-card">
         <div className="introduction-player">

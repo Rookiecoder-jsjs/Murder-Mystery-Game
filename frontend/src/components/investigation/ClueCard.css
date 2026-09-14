@@ -1,12 +1,12 @@
-/* ClueCard — 证物拍立得：做旧纸、胶带角、编号章、轻微旋转 */
+/* ClueCard — 道具牌：旧戏单纸、金细线装裱、编号章、轻微旋转 */
 
 .clue-card {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  /* 纸舞台上的拍立得：比舞台更深一档的旧纸，保持胶带/投影的立体感 */
-  background: linear-gradient(160deg, var(--paper-2) 0%, #cbb690 100%);
+  /* 纸舞台上的道具牌：比舞台更深一档的旧纸，保持投影的立体感 */
+  background: linear-gradient(160deg, var(--paper-2) 0%, #dcc9a1 100%);
   color: var(--paper-ink);
   border: 1px solid var(--paper-line);
   border-radius: var(--radius-sm);
@@ -31,21 +31,14 @@
   border-radius: inherit;
 }
 
-/* 胶带角 */
+/* 金细线装裱内框 */
 .clue-card::after {
   content: '';
   position: absolute;
-  top: -8px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-2deg);
-  width: 56px;
-  height: 16px;
-  background: var(--tape-bg);
-  border-left: 1px dashed var(--tape-line);
-  border-right: 1px dashed var(--tape-line);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  inset: 4px;
+  border: 1px solid var(--gold-frame);
+  border-radius: 1px;
   pointer-events: none;
-  z-index: 1;
 }
 
 .clue-card:hover {
@@ -58,7 +51,7 @@
   outline-color: var(--color-seal);
 }
 
-/* 新证据：上墙吸附（不回填 forwards，保证 hover 提拉可用） */
+/* 新证据：吸附入场（不回填 forwards，保证 hover 提拉可用） */
 .clue-card-new {
   animation: evidence-drop 0.48s cubic-bezier(0.18, 0.89, 0.32, 1.18) backwards;
 }
@@ -70,7 +63,7 @@
   gap: var(--space-2);
 }
 
-/* 类型小印：mono 标签 + 类型色 */
+/* 类型小签：mono 标签 + 类型色 */
 .clue-card-type {
   display: inline-flex;
   align-items: center;

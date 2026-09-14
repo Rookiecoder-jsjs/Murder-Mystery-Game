@@ -1,4 +1,4 @@
-/* Home Page — 案卷封面 + 新案登记单 + 旧卷宗书架 */
+/* HomePage — 午夜剧场：丝绒海报 + 开演登记单 + 保留剧目书架 */
 
 .home-page {
   min-height: 100vh;
@@ -19,70 +19,56 @@
   padding-top: var(--space-8);
 }
 
-/* ===== 卷宗封面 ===== */
+/* ===== 剧场海报（丝绒幕布底 + 金框 + 跑马灯） ===== */
 .case-cover {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-8) var(--space-12) var(--space-6);
-  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-raised) 100%);
-  border: 1px solid var(--color-border-strong);
-  border-top: 3px solid var(--color-border-strong);
-  border-radius: var(--radius-md);
+  padding: calc(var(--space-6) + 8px) var(--space-8) var(--space-6);
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.22) 0 2px, transparent 2px 26px),
+    radial-gradient(120% 100% at 50% 0%, #2b1a20 0%, #1a1216 55%, #120d10 100%);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-desk);
   min-width: min(86vw, 560px);
 }
 
-/* 顶部胶带封条 */
-.case-cover::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-1deg);
-  width: 152px;
-  height: 22px;
-  background: var(--tape-bg);
-  border-left: 1px dashed var(--tape-line);
-  border-right: 1px dashed var(--tape-line);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-/* 四角铜图钉 */
+/* 海报金细线内框 */
 .case-cover::after {
   content: '';
   position: absolute;
-  inset: var(--space-3);
-  border: 1px solid var(--c-accent-line);
-  border-radius: calc(var(--radius-md) - 2px);
+  inset: 8px;
+  border: 1px solid var(--gold-frame);
+  border-radius: 2px;
   pointer-events: none;
 }
 
 .case-cover-kicker {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
-  letter-spacing: 0.22em;
-  color: var(--color-text-faint);
+  letter-spacing: 0.24em;
+  color: var(--color-accent-bright);
   text-transform: uppercase;
 }
 
+/* 题字：奶油白戏名 */
 .home-logo {
   font-size: var(--text-display);
-  color: var(--color-accent-bright);
+  color: var(--color-text);
   letter-spacing: 0.14em;
   line-height: 1.15;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
 }
 
 .home-tagline {
   font-size: var(--text-sm);
-  color: var(--color-text-faint);
+  color: var(--color-text-muted);
   letter-spacing: 0.2em;
 }
 
-/* 封面下缘：红绳封签 */
+/* 封面下缘：幕绳红签 */
 .case-cover-string {
   width: 44%;
   height: 2px;
@@ -91,7 +77,15 @@
   margin-top: var(--space-2);
 }
 
-/* 整块纸面舞台：一张摊开的卷宗，深炭桌面从四周透出 */
+/* 海报台红「壹」字章 */
+.case-cover-seal {
+  position: absolute;
+  bottom: var(--space-6);
+  right: var(--space-8);
+  animation: seal-stamp 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* 整块纸面舞台：一张对折的演出戏单 */
 .home-content {
   width: min(100% - 2 * var(--space-4), 880px);
   display: flex;
@@ -100,87 +94,7 @@
   padding: var(--space-8) var(--space-10) var(--space-10);
 }
 
-/* ===== 卷宗封面（纸上题款区） ===== */
-.case-cover {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-8) var(--space-8) var(--space-6);
-  background:
-    linear-gradient(160deg, var(--paper-2) 0%, var(--paper-1) 55%, var(--paper-2) 100%);
-  border: 2px solid var(--paper-ink);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-paper);
-}
-
-/* 顶部胶带封条（保留，纸上的胶带更真实） */
-.case-cover::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%) rotate(-1deg);
-  width: 152px;
-  height: 22px;
-  background: var(--tape-bg);
-  border-left: 1px dashed var(--tape-line);
-  border-right: 1px dashed var(--tape-line);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-}
-
-/* 四角墨线框（纸上卷宗内框） */
-.case-cover::after {
-  content: '';
-  position: absolute;
-  inset: var(--space-3);
-  border: 1px dashed var(--paper-line);
-  border-radius: calc(var(--radius-sm) - 2px);
-  pointer-events: none;
-}
-
-.case-cover-kicker {
-  font-family: var(--font-mono);
-  font-size: var(--text-2xs);
-  letter-spacing: 0.22em;
-  color: var(--paper-ink-muted);
-  text-transform: uppercase;
-}
-
-/* 书法题款：墨字（朱红章负责点睛） */
-.home-logo {
-  font-size: var(--text-display);
-  color: var(--paper-ink);
-  letter-spacing: 0.14em;
-  line-height: 1.15;
-  text-shadow: none;
-}
-
-.home-tagline {
-  font-size: var(--text-sm);
-  color: var(--paper-ink-muted);
-  letter-spacing: 0.2em;
-}
-
-/* 封面下缘：红绳封签 */
-.case-cover-string {
-  width: 44%;
-  height: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--color-string);
-  margin-top: var(--space-2);
-}
-
-/* 封面朱红「壹」字章 */
-.case-cover-seal {
-  position: absolute;
-  bottom: var(--space-6);
-  right: var(--space-8);
-  animation: seal-stamp 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-
-/* ===== 新案登记单 ===== */
+/* ===== 今夜新剧登记单 ===== */
 .home-create-card {
   display: flex;
   flex-direction: column;
@@ -201,6 +115,7 @@
   color: var(--color-accent);
 }
 
+/* 模式选择 */
 .home-mode-picker {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -268,9 +183,9 @@
   flex-shrink: 0;
 }
 
-/* ===== 誊录台 —— 生成剧本时的整页等待场景 =====
-   生成时整块替换"新案登记"卡片：浅纸卷宗，和暗色表单/书架两态区分，
-   配合流动的工序波、闪烁光标与计时码，明确"正在誊录"，而非卡死。 */
+/* ===== 装台排演 —— 生成剧本时的整页等待场景 =====
+   生成时整块替换登记卡片：旧戏单底 + 流动工序波 + 闪烁光标 + 计时码，
+   明确"正在排演"，而非卡死。 */
 .home-gendesk {
   position: relative;
   display: flex;
@@ -279,17 +194,16 @@
   gap: var(--space-3);
   padding: var(--space-8) var(--space-10) var(--space-6);
   text-align: center;
-  /* 纸舞台内加深一档（paper-2→旧纸），避免与舞台同色 */
   background:
     linear-gradient(180deg, var(--paper-2) 0%, var(--paper-1) 100%);
   color: var(--paper-ink);
   border: 1px solid var(--paper-line);
-  border-top: 3px solid var(--color-brass);
+  border-top: 3px solid var(--color-accent);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-paper);
 }
 
-/* 顶部红绳封签 */
+/* 顶部幕绳红签 */
 .home-gendesk::before {
   content: '';
   position: absolute;
@@ -313,7 +227,7 @@
   color: var(--paper-ink-muted);
 }
 
-/* 红点指示灯 —— 表示"进行中" */
+/* 台红指示灯 —— 表示"进行中" */
 .home-gendesk-lamp {
   width: 7px;
   height: 7px;
@@ -362,7 +276,7 @@
   white-space: nowrap;
 }
 
-/* 工序清单 —— 逐行誊录 */
+/* 工序清单 —— 逐行排演 */
 .home-gendesk-ledger {
   width: 100%;
   margin-top: var(--space-3);
@@ -400,7 +314,7 @@
   text-overflow: ellipsis;
 }
 
-/* 行尾小方点 —— 扫描波从第一行流向最后一行再循环 */
+/* 行尾小菱形 —— 扫描波从第一行流向最后一行再循环 */
 .ledger-row-dot {
   width: 8px;
   height: 8px;
@@ -439,7 +353,7 @@
   color: var(--paper-ink);
 }
 
-/* ===== 生成中：旧卷宗书架沉底变暗 ===== */
+/* ===== 排演中：保留剧目书架沉底变暗 ===== */
 .home-stories-section {
   transition: opacity var(--transition-normal), filter var(--transition-normal);
 }
@@ -450,7 +364,7 @@
   pointer-events: none;
 }
 
-/* 誊录台动效关键帧 */
+/* 装台动效关键帧 */
 @keyframes gendesk-lamp {
   0%, 32% { opacity: 1; }
   40%, 68% { opacity: 0.25; }
@@ -479,6 +393,7 @@
   font-size: var(--text-sm);
 }
 
+/* 备选剧目 */
 .home-examples {
   display: flex;
   flex-direction: column;
@@ -514,20 +429,20 @@
   border-style: solid;
 }
 
-/* ===== 旧卷宗书架 =====
-   书架在纸舞台内重新建立深炭作用域——纸上的深炭木架，形成"桌上放卷宗"对比 */
+/* ===== 保留剧目书架 =====
+   书架在纸舞台内重新建立深色作用域——纸上的深色木架，形成"戏单旁立着戏本"对比 */
 .home-stories-section {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  --color-surface: #16130f;              /* 书架区内回退深炭 */
-  --color-surface-raised: #1d1913;
-  --color-border: #2b251c;
-  --color-border-strong: #3a3327;
-  --color-text: #e8ddc8;
-  --color-text-muted: #a99c82;
-  --color-text-faint: #7a7263;
-  --color-accent-bright: #c9a75d;
+  --color-surface: #1a1216;
+  --color-surface-raised: #241a1f;
+  --color-border: #33232b;
+  --color-border-strong: #463039;
+  --color-text: #f0e7d8;
+  --color-text-muted: #b5a48f;
+  --color-text-faint: #857468;
+  --color-accent-bright: #d9ab5f;
 }
 
 .home-section-header {
@@ -564,7 +479,7 @@
   color: var(--color-text-faint);
 }
 
-/* 书脊立排 */
+/* 戏本立排 */
 .shelf-book {
   height: 172px;
   width: min(150px, 40vw);
@@ -675,4 +590,15 @@
   .ledger-row-dot {
     opacity: 1;
   }
+}
+
+/* 海报顶缘跑马灯：骑在金框上方（海报是深色底，恢复亮金灯珠） */
+.case-cover-lights {
+  position: absolute;
+  top: 14px;
+  left: 26px;
+  right: 26px;
+  opacity: 0.85;
+  --bulb: #f5d489;
+  --bulb-dim: rgba(245, 212, 137, 0.22);
 }

@@ -1,4 +1,4 @@
-/* Toast — 顶部居中堆叠（纸条：左边条按类型着色） */
+/* Toast — 顶部居中堆叠（戏单纸条：左边条按类型着色） */
 
 .toast-stack {
   position: fixed;
@@ -21,7 +21,7 @@
   background: var(--color-surface-raised);
   border: 1px solid var(--color-border-strong);
   border-left: 3px solid var(--color-accent);
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   box-shadow: var(--shadow-lg);
   font-size: var(--text-sm);
   color: var(--color-text);
