@@ -1,6 +1,6 @@
 /* ==========================================================================
    全局基础：reset、排版、表单、滚动条、关键帧、无障碍
-   午夜剧场：观众席黑 + 顶光足光 + 两侧丝绒幕布红 + 全屏微噪点
+   案件号外：整页报纸米白 + 油墨黑 + 号外红 + 全屏印刷微噪点
    ========================================================================== */
 
 * {
@@ -24,29 +24,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* 舞台灯光：顶部暖金顶光 + 底部台口压暗 + 左右两侧丝绒幕布暗红 */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(110vh 70vh at 50% -8%, rgba(245, 212, 137, 0.09), transparent 58%),
-    radial-gradient(120vh 90vh at 50% 120%, #08050a, transparent 66%),
-    radial-gradient(55vw 120vh at -6% 50%, var(--velvet-red), transparent 62%),
-    radial-gradient(55vw 120vh at 106% 50%, var(--velvet-red), transparent 62%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* 座椅尘埃：全屏微噪点叠加 */
+/* 印刷微噪点：报纸纸纹（multiply 叠印，低存在感） */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   background-image: var(--texture-noise);
   background-size: 200px 200px;
-  opacity: 0.32;
-  mix-blend-mode: overlay;
+  opacity: 0.14;
+  mix-blend-mode: multiply;
   pointer-events: none;
   z-index: -1;
 }
@@ -65,7 +51,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-text);
 }
 
-/* 题字书法体只用于戏单题名/落幕大字（.font-display），不全局套用 */
+/* 报头宋体只用于报头题名/落幕大字（.font-display），不全局套用 */
 .font-display {
   font-family: var(--font-display);
   font-weight: 400;
@@ -143,10 +129,10 @@ input::placeholder, textarea::placeholder {
   background: var(--color-accent);
 }
 
-/* ===== 选区（幕布红） ===== */
+/* ===== 选区（号外红反白） ===== */
 ::selection {
-  background: var(--color-danger);
-  color: var(--color-text);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
 }
 
 /* ===== 关键帧（全站唯一定义处；组件只引用） ===== */
@@ -163,17 +149,6 @@ input::placeholder, textarea::placeholder {
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.45; }
-}
-
-/* 纸面眩光：hover 时一道高光扫过 */
-@keyframes paper-sheen {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* 跑马灯灯珠巡游 */
-@keyframes marquee-chase {
-  to { background-position: 36px 0, 54px 0; }
 }
 
 /* 印章盖落：1.25 落 1，带微震 */

@@ -1,41 +1,41 @@
 /* ==========================================================================
    设计令牌 — 全站唯一来源
-   午夜剧场（Midnight Playbill）：丝绒幕布黑、戏单米白、足光金、幕布绯红
+   案件号外（Morning Extra）：报纸米白、号外红、油墨黑、铅灰
    ========================================================================== */
 
 :root {
-  /* ===== 颜色 · 幕布与后台（深色壳） ===== */
-  --color-bg: #120d10;              /* 观众席黑：酒红底调的暖黑 */
-  --color-surface: #1a1216;         /* 后台面板（侧栏/抽屉底） */
-  --color-surface-raised: #241a1f;  /* 悬停、输入区升面 */
-  --color-border: #33232b;          /* 深分隔线 */
-  --color-border-strong: #463039;   /* 强分隔、激活行 */
+  /* ===== 颜色 · 报纸版面（全页纸面） ===== */
+  --color-bg: #f4f1ea;              /* 报纸米白：整页即一张晨报 */
+  --color-surface: #fbfaf4;         /* 亮新闻纸卡片 */
+  --color-surface-raised: #e9e3d3;  /* 悬停、输入区升面（略旧报纸） */
+  --color-border: #d8d2c0;          /* 细分隔线 */
+  --color-border-strong: #a49d8b;   /* 强分隔、激活行 */
 
-  --color-text: #f0e7d8;            /* 戏单米白正文 */
-  --color-text-muted: #b5a48f;      /* 次要文字 */
-  --color-text-faint: #857468;      /* 时码、占位符 */
+  --color-text: #1a1a1a;            /* 油墨黑正文 */
+  --color-text-muted: #6f6a60;      /* 次要文字（铅灰） */
+  --color-text-faint: #98928a;      /* 时码、占位符 */
 
-  /* 足光金（唯一金属强调：标题、激活态、细边框） */
-  --color-accent: #b9873e;
-  --color-accent-bright: #d9ab5f;
-  --color-accent-ink: #221505;      /* 金底上的墨字 */
+  /* 号外红（唯一强调：标题批注、激活态、印章、CTA） */
+  --color-accent: #b3382c;
+  --color-accent-bright: #c4463a;
+  --color-accent-ink: #f4f1ea;      /* 红底上的反白字 */
 
-  /* 幕布绯红（丝绒 / 危险 / 真凶 / 判决） */
-  --color-danger: #93202f;          /* 深丝绒红：危险、错误 */
-  --color-danger-bright: #c73a4a;   /* 台口红：印章、醒目 */
-  --color-string: #a3273a;          /* 幕绳红 */
-  --color-seal: #c73a4a;            /* 判决印专用（语义名） */
-  --color-success: #6f8f66;
-  --color-info: #7d9dc0;
+  /* 深红（危险 / 错误，与号外红同族更深） */
+  --color-danger: #93202f;
+  --color-danger-bright: #b3382c;
+  --color-string: #b3382c;          /* 编辑红笔（原幕绳红语义位） */
+  --color-seal: #b3382c;            /* 印章红专用（语义名） */
+  --color-success: #4e6e48;
+  --color-info: #3f6584;
 
-  --color-scrim: rgba(12, 6, 9, 0.82); /* 抽屉/弹窗遮罩 */
+  --color-scrim: rgba(26, 22, 14, 0.55); /* 抽屉/弹窗遮罩 */
 
   /* 线索类型三色（低饱和；纸上以小签呈现） */
-  --clue-physical: #c39a45;
-  --clue-testimony: #7d9dc0;
-  --clue-document: #a583bd;
+  --clue-physical: #8a6b1f;
+  --clue-testimony: #4a7099;
+  --clue-document: #6f5590;
 
-  /* 头像六色（剧照瓦片，低饱和暗底可辨） */
+  /* 头像六色（低饱和，纸面可辨） */
   --avatar-c-1: #6b5340;
   --avatar-c-2: #4f5d6e;
   --avatar-c-3: #655871;
@@ -43,13 +43,13 @@
   --avatar-c-5: #4d6b5c;
   --avatar-c-6: #6e6a4c;
 
-  /* ===== 颜色 · 纸面（戏单 / 节目单） ===== */
-  --paper-1: #f2e9d3;               /* 主纸面 */
-  --paper-2: #e7dabb;               /* 旧戏单、次纸面 */
-  --paper-ink: #2c2118;             /* 纸上墨字 */
-  --paper-ink-muted: #756349;       /* 纸上次要字 */
-  --paper-line: #c6b48e;            /* 纸上分隔线 */
-  --paper-edge: #d9cba8;            /* 纸边高光 */
+  /* ===== 颜色 · 纸面（与版面同族，供纸卡体系引用） ===== */
+  --paper-1: #f4f1ea;               /* 主纸面 */
+  --paper-2: #ece7d8;               /* 旧报纸、次纸面 */
+  --paper-ink: #1a1a1a;             /* 纸上油墨字 */
+  --paper-ink-muted: #6f6a60;       /* 纸上次要字 */
+  --paper-line: #d8d2c0;            /* 纸上分隔线 */
+  --paper-edge: #fbfaf4;            /* 纸边高光 */
 
   /* ===== 颜色 · alpha 工具（收敛硬编码 rgba，color-mix 派生） ===== */
   --c-bg-header: color-mix(in srgb, var(--color-bg) 92%, transparent);
@@ -67,26 +67,25 @@
   --c-clue-document-line: color-mix(in srgb, var(--clue-document) 40%, transparent);
   --c-string-line: color-mix(in srgb, var(--color-string) 55%, transparent);
 
-  /* ===== 材质微色（戏单 / 灯珠 / 剧照 / 幕布体系） ===== */
-  --bulb: #f5d489;                            /* 跑马灯亮珠 */
-  --bulb-dim: rgba(245, 212, 137, 0.22);      /* 跑马灯暗珠 */
-  --gold-frame: rgba(217, 171, 95, 0.38);     /* 金细线内框 */
-  --paper-cream: rgba(255, 251, 240, 0.4);    /* 纸上卡片底 */
-  --paper-sheen: rgba(255, 250, 235, 0.14);   /* 剧照内高光 */
-  --photo-ink: rgba(250, 244, 228, 0.92);     /* 剧照字色 */
-  --seal-glow: rgba(90, 40, 30, 0.12);        /* 纸上印章暗影 */
-  --card-topline: rgba(255, 250, 235, 0.04);  /* 卡片顶缘微光 */
-  --velvet-red: rgba(84, 14, 28, 0.32);       /* 幕布侧红（body 氛围） */
+  /* ===== 材质微色（报纸 / 印章 / 头像体系；名字保留，值随主题） ===== */
+  --bulb: #b3382c;                            /* 报眉强调（原灯珠语义位） */
+  --bulb-dim: rgba(179, 56, 44, 0.25);
+  --gold-frame: rgba(26, 26, 26, 0.35);       /* 细线内框 → 油墨细框 */
+  --paper-cream: rgba(255, 255, 255, 0.55);   /* 纸上卡片底 */
+  --paper-sheen: rgba(0, 0, 0, 0.05);         /* 内缘压边 */
+  --photo-ink: rgba(252, 248, 238, 0.92);     /* 头像瓦片字色 */
+  --seal-glow: rgba(0, 0, 0, 0.08);           /* 纸上印章暗影 */
+  --card-topline: rgba(0, 0, 0, 0.04);        /* 卡片顶缘微光 */
 
   /* ===== 纸纹（全站唯一噪点图，浏览器只解码一次） ===== */
   --texture-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
 
   /* ===== 字体 ===== */
-  /* display：题字书法体，仅戏单题名/落幕大字（只有 400 字重） */
-  --font-display: 'Ma Shan Zheng', 'Noto Serif SC', 'STKaiti', 'KaiTi', 'SimSun', serif;
-  /* body：宋体正文（戏单排版） */
+  /* display：报头宋体大字（黑重衬线，仅报头题名/落幕大字） */
+  --font-display: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  /* body：宋体正文（报纸排版） */
   --font-body: 'Noto Serif SC', 'Songti SC', 'SimSun', Georgia, serif;
-  /* mono：票根等宽（编号/时码/幕次），中文自动回退宋体 */
+  /* mono：时码等宽（编号/日期/幕次），中文自动回退宋体 */
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Noto Serif SC', 'Songti SC', 'SimSun', monospace;
 
   /* ===== 流式字号 ===== */
@@ -98,7 +97,7 @@
   --text-xl: clamp(1.2rem, 1.05rem + 0.75vw, 1.42rem);
   --text-2xl: clamp(1.5rem, 1.2rem + 1.5vw, 1.95rem);
   --text-3xl: clamp(1.85rem, 1.45rem + 1.8vw, 2.4rem);
-  --text-display: clamp(1.85rem, 1.2rem + 4.5vw, 3.25rem);
+  --text-display: clamp(2.2rem, 1.4rem + 5vw, 3.8rem);
 
   /* ===== 间距 ===== */
   --space-1: 0.25rem;
@@ -111,18 +110,18 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  /* ===== 圆角（剧场走利落直线，小圆角收边） ===== */
-  --radius-sm: 3px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
+  /* ===== 圆角（报纸走利落直线，全直角） ===== */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
   --radius-pill: 999px;
 
-  /* ===== 阴影（只用暖黑系） ===== */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
-  --shadow-paper: 0 1px 2px rgba(30, 12, 18, 0.35), 0 10px 28px rgba(30, 12, 18, 0.3);
-  --shadow-desk: 0 30px 60px -24px rgba(0, 0, 0, 0.55);
+  /* ===== 阴影（浅而克制，纸面浮起即可） ===== */
+  --shadow-sm: 0 1px 2px rgba(30, 26, 16, 0.14);
+  --shadow-md: 0 2px 10px rgba(30, 26, 16, 0.12);
+  --shadow-lg: 0 8px 28px rgba(30, 26, 16, 0.16);
+  --shadow-paper: 0 1px 2px rgba(30, 26, 16, 0.12), 0 6px 18px rgba(30, 26, 16, 0.1);
+  --shadow-desk: 0 30px 60px -24px rgba(30, 26, 16, 0.28);
 
   /* ===== 过渡 ===== */
   --transition-fast: 120ms ease;
@@ -144,43 +143,38 @@
 }
 
 /* ==========================================================================
-   戏单主舞台 —— 奶油纸面成为内容主角
-   用法：在内容容器（首页 home-content / 游戏 game-main）上挂 .stage-paper，
-   在此作用域内覆盖全部语义 token → 组件自动反白，无需逐个改写。
-   深色幕布（body）/ Header / Sidebar / Modal / Toast / curtain 留在作用域外。
+   报面内容区 —— 整页即报纸，stage-paper 仅作语义作用域保留
+   （历史组件把内容挂在 .stage-paper 上；全页纸面后此作用域与根令牌同值，
+   保留以维持组件契约，不再产生"浮起纸卡"效果。）
    ========================================================================== */
 .stage-paper {
-  /* 底与面：舞台=主纸，卡片/输入区=旧戏单，升面=更旧纸 */
+  /* 底与面：版面 = 主纸，卡片/输入区 = 亮新闻纸，升面 = 略旧报纸 */
   --color-bg: var(--paper-1);
-  --color-surface: var(--paper-2);       /* Card / 输入区 = 旧戏单 */
-  --color-surface-raised: #dcc9a1;       /* 悬停/升面 = 更旧纸 */
+  --color-surface: var(--paper-edge);
+  --color-surface-raised: #e2dbc8;
   --color-border: var(--paper-line);
-  --color-border-strong: #8f7c53;        /* 纸面强分隔 */
+  --color-border-strong: #8f887a;
 
   --color-text: var(--paper-ink);
-  --color-text-muted: #5d4f35;           /* 纸上 ≈6.4:1 */
-  --color-text-faint: #6b5b3d;           /* 纸上 >4.5:1 */
+  --color-text-muted: #5d574b;
+  --color-text-faint: #6f6a60;
 
   /* 强调色 → 纸面加深值 */
-  --color-accent: #8a6526;
-  --color-accent-bright: #7a5620;
-  --color-accent-ink: #f7eee0;           /* 金底墨字反白 */
+  --color-accent: #a5342a;
+  --color-accent-bright: #b3382c;
+  --color-accent-ink: #f7f4ea;
   --color-danger: #8c1f2c;
   --color-danger-bright: #a22836;
-  --color-seal: #a22836;                 /* 纸上朱红（≈4.5:1） */
+  --color-seal: #a22836;
 
   /* 线索三色 → 纸面加深 */
   --clue-physical: #8a6b1f;
   --clue-testimony: #4a7099;
   --clue-document: #6f5590;
 
-  /* 阴影 → 暖棕（纸面投影非纯黑；--c-* alpha 系自动随 accent/danger 派生） */
-  --shadow-sm: 0 1px 2px rgba(90, 62, 40, 0.35);
-  --shadow-md: 0 4px 14px rgba(90, 62, 40, 0.35);
-  --shadow-lg: 0 12px 36px rgba(90, 62, 40, 0.4);
-  --shadow-paper: 0 1px 2px rgba(90, 62, 40, 0.3), 0 10px 26px rgba(90, 62, 40, 0.3);
-
-  /* 灯珠在纸上换暗金，避免刺目 */
-  --bulb: #b9873e;
-  --bulb-dim: rgba(185, 135, 62, 0.25);
+  /* 阴影 → 暖灰棕（纸面投影非纯黑；--c-* alpha 系自动随 accent/danger 派生） */
+  --shadow-sm: 0 1px 2px rgba(70, 60, 40, 0.22);
+  --shadow-md: 0 4px 14px rgba(70, 60, 40, 0.2);
+  --shadow-lg: 0 12px 36px rgba(70, 60, 40, 0.24);
+  --shadow-paper: 0 1px 2px rgba(70, 60, 40, 0.18), 0 10px 26px rgba(70, 60, 40, 0.16);
 }

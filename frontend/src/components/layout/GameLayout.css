@@ -15,7 +15,7 @@
   display: flex;
 }
 
-/* 戏单主舞台：奶油纸面固定在视口，阶段内容在纸上滚动（像一张摊开的节目单） */
+/* 报面主舞台：米白纸面固定在视口，阶段内容在纸上滚动（像一张摊开的晨报） */
 .game-main {
   flex: 1;
   min-width: 0;
@@ -23,16 +23,14 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  /* 覆盖 effects 的 .stage-paper：游戏壳取直角满幅纸面（圆角会让滚动条怪样），
-     纸缘用光影表现——顶部金线、四周幕布黑透过 */
+  /* 覆盖 effects 的 .stage-paper：游戏壳取直角满幅报面（圆角会让滚动条怪样） */
   border-radius: 0;
   box-shadow: none;
-  background-attachment: fixed;
 }
 
-/* 戏单顶缘：装订金线 */
+/* 报面顶缘：装订双线 */
 .game-main.stage-paper {
-  border-top: 3px solid var(--color-accent);
+  border-top: 3px double var(--color-text);
 }
 
 /* 阶段组件填满主区；需要内部滚动的阶段自行声明 */

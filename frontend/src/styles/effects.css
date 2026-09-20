@@ -1,51 +1,31 @@
 /* ==========================================================================
-   午夜剧场质感复用件集：戏单纸面、跑马灯、印章、幕布黑场、交错、书架
+   案件号外质感复用件集：报框卡片、报眉双线、印章、黑场转场、交错、剧目栏
    全站通用，组件按需挂类（类名全局命名空间）。
    ========================================================================== */
 
-/* ---------- 戏单卡片（浅色节目单的底） ---------- */
+/* ---------- 报框卡片（报纸广告框：细墨线方框） ---------- */
 .paper-card {
   position: relative;
-  background:
-    linear-gradient(135deg, rgba(255, 251, 240, 0.35), transparent 30%),
-    var(--paper-1);
+  background: var(--color-surface);
   color: var(--paper-ink);
-  border: 1px solid var(--paper-line);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-paper);
+  box-shadow: var(--shadow-sm);
   transform: rotate(var(--paper-tilt, 0deg));
   overflow: hidden;
 }
 
-/* 墨渍颗粒 + 边缘压暗 */
+/* 纸面墨渍颗粒（印刷质感，弱存在感） */
 .paper-card::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image: var(--texture-noise);
   background-size: 200px 200px;
-  opacity: 0.5;
+  opacity: 0.18;
   mix-blend-mode: multiply;
   pointer-events: none;
   border-radius: inherit;
-}
-
-/* hover 纸面眩光扫过 */
-.paper-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.28) 50%, transparent 60%);
-  background-size: 200% 100%;
-  opacity: 0;
-  pointer-events: none;
-  border-radius: inherit;
-  transition: opacity var(--transition-normal);
-}
-
-.paper-card:hover::after {
-  opacity: 1;
-  animation: paper-sheen 1.2s ease;
 }
 
 /* 让纸卡上的文字/子元素浮在伪元素之上 */
@@ -54,16 +34,12 @@
   z-index: 1;
 }
 
-/* ---------- 跑马灯灯珠带（海报/横幅顶缘） ---------- */
+/* ---------- 报眉双线（题区上缘的粗细双规则线） ---------- */
 .marquee-lights {
-  height: 8px;
-  background-image:
-    radial-gradient(circle 1.8px at center, var(--bulb) 96%, transparent),
-    radial-gradient(circle 1.8px at center, var(--bulb-dim) 96%, transparent);
-  background-size: 36px 8px;
-  background-position: 0 0, 18px 0;
-  background-repeat: repeat-x;
-  animation: marquee-chase 1.2s steps(2) infinite;
+  height: 6px;
+  background: none;
+  border-top: 2px solid var(--color-text);
+  border-bottom: 1px solid var(--color-text);
   pointer-events: none;
 }
 
@@ -91,32 +67,31 @@
   transform: rotate(45deg);
 }
 
-/* ---------- 印章 · 圆章（台口红双环） ---------- */
+/* ---------- 印章 · 号外章（红双线矩形批章） ---------- */
 .seal {
-  --seal-angle: -8deg;
+  --seal-angle: -6deg;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-width: 2.6em;
-  height: 2.6em;
-  padding: 0 0.45em;
-  border: 2px solid var(--color-seal);
-  box-shadow: inset 0 0 0 1px var(--color-seal);
-  border-radius: 50%;
+  padding: 0.18em 0.55em;
+  border: 4px double var(--color-seal);
+  border-radius: 0;
   color: var(--color-seal);
   font-family: var(--font-display);
   font-size: var(--text-lg);
+  font-weight: 700;
   line-height: 1;
-  background: color-mix(in srgb, var(--color-seal) 12%, transparent);
+  letter-spacing: 0.14em;
+  background: color-mix(in srgb, var(--color-seal) 6%, transparent);
   transform: rotate(var(--seal-angle));
   user-select: none;
 }
 
 .seal--small {
   min-width: 2em;
-  height: 2em;
   font-size: var(--text-sm);
-  border-width: 1.5px;
+  border-width: 3px;
 }
 
 /* 挂载时盖落 */
@@ -140,7 +115,7 @@
   user-select: none;
 }
 
-/* 台红批示章（新 / 凶 等） */
+/* 号外红批示章（新 / 凶 等） */
 .stamp--seal {
   color: var(--color-seal);
   border-style: double;
@@ -148,7 +123,7 @@
   font-weight: 600;
 }
 
-/* ---------- 口供记录头（票根等宽感） ---------- */
+/* ---------- 口供记录头（时码等宽感） ---------- */
 .record-head {
   font-family: var(--font-mono);
   font-size: var(--text-2xs);
@@ -161,10 +136,10 @@
   text-overflow: ellipsis;
 }
 
-/* ---------- 纸上分隔线 ---------- */
+/* ---------- 分隔线 ---------- */
 .divider-ink {
   border: none;
-  border-top: 1px dashed var(--color-border-strong);
+  border-top: 1px solid var(--color-border-strong);
 }
 
 .paper-card .divider-ink {
@@ -176,7 +151,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-curtain);
-  background: #070406;
+  background: #0e0c08;
   pointer-events: none;
   animation: curtain-reveal var(--transition-slow) ease forwards;
 }
@@ -203,70 +178,49 @@
   color: var(--color-text-faint);
 }
 
-/* ---------- 戏单主舞台：一张对折的演出节目单 ---------- */
+/* ---------- 报面内容区：整页即报纸，平铺版面 ---------- */
 .stage-paper {
   position: relative;
-  background-color: var(--paper-1);
-  /* 中缝微亮 + 折痕压暗 + 纸屑噪点（三层背景一次合成，滚动不抖动） */
-  background-image:
-    radial-gradient(120% 90% at 50% 0%, rgba(255, 252, 240, 0.55), transparent 55%),
-    radial-gradient(130% 100% at 50% 115%, rgba(90, 62, 40, 0.16), transparent 62%),
-    var(--texture-noise);
-  background-size: auto, auto, 200px 200px;
+  background: none;
   color: var(--paper-ink);
-  /* 纸缘从深色观众席"浮起" */
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-paper), 0 1px 0 rgba(255, 252, 240, 0.08) inset;
 }
 
-/* 戏单顶部装订金线，由各屏自行挂载 */
+/* 报面顶缘装订双线，由各屏自行挂载 */
 .stage-paper-line {
-  border-top: 3px solid var(--color-accent);
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-top: 3px double var(--color-text);
 }
 
-/* 纸舞台内的浅纸元素统一加深一档，避免"纸 on 纸"消失 */
+/* 报面内的纸卡统一略旧一档，避免"纸 on 纸"消失 */
 .stage-paper .paper-card {
-  background:
-    linear-gradient(135deg, rgba(255, 252, 240, 0.35), transparent 30%),
-    var(--paper-2);
+  background: var(--paper-2);
   border-color: var(--paper-line);
 }
 
-/* ---------- 保留剧目书架 ---------- */
+/* ---------- 保留剧目栏（alternating 交替行） ---------- */
 .shelf {
   position: relative;
   display: flex;
-  align-items: flex-end;
-  gap: var(--space-4);
-  padding: 0 var(--space-2) var(--space-3);
-  overflow-x: auto;
-}
-
-/* 书架台板：底部阴影线 */
-.shelf::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.33), rgba(0, 0, 0, 0));
+  flex-direction: column;
+  border-top: 1px solid var(--color-border-strong);
 }
 
 .shelf-book {
   position: relative;
-  flex: 0 0 auto;
-  width: min(180px, 46vw);
-  padding: var(--space-3);
-  background: linear-gradient(135deg, var(--color-surface-raised), var(--color-surface));
-  border: 1px solid var(--color-border);
-  border-bottom: 3px solid var(--color-border-strong);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  transition: transform var(--transition-normal), border-color var(--transition-normal);
+  width: 100%;
+  padding: var(--space-3) var(--space-3);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+  text-align: left;
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+.shelf-book:nth-child(even) {
+  background: rgba(26, 26, 26, 0.045);
 }
 
 .shelf-book:hover {
-  transform: translateY(-3px);
-  border-color: var(--color-accent);
+  background: rgba(179, 56, 44, 0.07);
+  border-color: var(--color-border-strong);
 }

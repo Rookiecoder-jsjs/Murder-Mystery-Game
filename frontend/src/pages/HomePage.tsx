@@ -15,6 +15,15 @@ const EXAMPLE_TOPICS = [
   '密室中的摄影师之死',
 ];
 
+/** 报头日期栏：今日日期 · 星期（报纸刊印惯例） */
+const DATE_DATE = new Date().toLocaleDateString('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+const DATE_WEEKDAY = new Date().toLocaleDateString('zh-CN', { weekday: 'long' });
+const DATELINE = `${DATE_DATE} ${DATE_WEEKDAY}`;
+
 /** 誊录台工序清单 —— 卷Ⅰ 构思 / 卷Ⅱ 撰写（纯叙事，无真实进度语义） */
 const STAGE_ONE_STEPS = [
   '人物立案 · 身份与容貌',
@@ -102,18 +111,39 @@ export function HomePage() {
   return (
     <div className="home-page">
       <div className="home-content stage-paper">
-        <div className="case-cover">
-          <div className="marquee-lights case-cover-lights" aria-hidden="true" />
-          <p className="case-cover-kicker">午夜剧场 · 今夜开演</p>
-          <h1 className="home-logo font-display">剧本杀</h1>
+        <header className="case-masthead">
+          <div className="masthead-dateline">
+            <span>深夜第 1024 期 · 号外</span>
+            <span>{DATELINE}</span>
+            <span>全城独家 · 每夜发售</span>
+          </div>
+          <div className="masthead-row">
+            <h1 className="home-logo font-display">剧本杀</h1>
+            <span className="extra-stamp" aria-hidden="true">
+              号外 EXTRA
+            </span>
+          </div>
+          <div className="masthead-sub">
+            <span>MURDER MYSTERY GAME</span>
+            <span>今夜开演 · 全 AI 班底</span>
+          </div>
           <p className="home-tagline">
-            一人入戏 · 众 AI 同台 · 真相只有一个
+            一人入戏 · 众 AI 同台 · <em>真相只有一个</em>
           </p>
-          <div className="case-cover-string" aria-hidden="true" />
-          <span className="seal case-cover-seal" aria-hidden="true">
-            壹
-          </span>
-        </div>
+        </header>
+
+        <div className="home-columns">
+          <section className="home-col">
+            <div className="home-section-head">
+              <span className="giant-no" aria-hidden="true">
+                01
+              </span>
+              <h2 className="home-section-title">
+                <Sparkles size={18} className="home-create-icon" />
+                今夜新剧
+              </h2>
+              <span className="head-fill" aria-hidden="true" />
+            </div>
 
         {isCreating ? (
             <div className="home-gendesk" role="status">
@@ -161,11 +191,6 @@ export function HomePage() {
             </div>
           ) : (
           <Card className="home-create-card" variant="gold-border">
-            <div className="home-create-header">
-              <Sparkles size={20} className="home-create-icon" />
-              <h2>今夜新剧</h2>
-            </div>
-
             <div className="home-mode-picker" role="group" aria-label="选择游戏模式">
               <button
                 type="button"
@@ -233,14 +258,21 @@ export function HomePage() {
               </div>
             </Card>
         )}
+          </section>
 
-        <div
-          className={`home-stories-section${isCreating ? ' home-stories-section--dim' : ''}`}
-        >
-          <div className="home-section-header">
-            <BookOpen size={18} />
-            <h3>保留剧目</h3>
-          </div>
+          <section
+            className={`home-col home-stories-section${isCreating ? ' home-stories-section--dim' : ''}`}
+          >
+            <div className="home-section-head">
+              <span className="giant-no" aria-hidden="true">
+                02
+              </span>
+              <h3 className="home-section-title">
+                <BookOpen size={18} />
+                保留剧目
+              </h3>
+              <span className="head-fill" aria-hidden="true" />
+            </div>
 
           {isLoadingStories ? (
             <div className="home-loading">
@@ -258,14 +290,19 @@ export function HomePage() {
             </Card>
           ) : (
             <div className="shelf">
-              {stories.map((story) => (
+              {stories.map((story, i) => (
                 <button
                   key={story.id}
                   className="shelf-book"
                   onClick={() => handleLoadGame(story.id)}
                 >
-                  <span className="shelf-book-topic">{story.topic}</span>
-                  <span className="shelf-book-title">{story.title}</span>
+                  <span className="shelf-book-idx" aria-hidden="true">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="shelf-book-main">
+                    <span className="shelf-book-topic">{story.topic}</span>
+                    <span className="shelf-book-title">{story.title}</span>
+                  </span>
                   <span className="shelf-book-meta">
                     <Clock size={11} />
                     {new Date(story.created_at).toLocaleDateString()}
@@ -274,6 +311,16 @@ export function HomePage() {
               ))}
             </div>
           )}
+
+          <aside className="home-editorial">
+            <p>
+              真相
+              <br />
+              <em>只有一个</em>
+            </p>
+            <small>本报评论 · 头版社论</small>
+          </aside>
+        </section>
         </div>
       </div>
 
