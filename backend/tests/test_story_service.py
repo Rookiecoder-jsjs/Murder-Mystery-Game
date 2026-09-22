@@ -15,6 +15,7 @@ import threading
 import time
 
 from app.core.config import QwenImageConfig
+from app.domain.models import StoryArchive
 from app.services import story_service as ss
 from app.services.image_service import PortraitService
 
@@ -47,6 +48,45 @@ def _service_with_key(api_key: str) -> ss.StoryService:
     svc = ss.StoryService()
     svc.portrait_service = PortraitService(config=QwenImageConfig(api_key=api_key))
     return svc
+
+
+class TestRevealFlagsStayOutOfTheArchive:
+    """哪些线索已公开属于单局运行时状态（由会话快照的
+    ``revealed_clue_ids`` 承载），剧本存档只放静态数据。
+
+    曾经的做法是把运行时的 ``reveal_to_all`` 直接写回存档：肖像后台线程
+    保存存档时，同局游戏已经在搜证、正在把场景线索翻成公开，于是整局
+    进度被写进剧本 JSON，下次载入时开局自带一堆已公开线索。
+    """
+
+    def test_to_dict_pins_reveal_to_false(self, sample_archive):
+        sample_archive.clues[0].reveal_to_all = True
+        data = sample_archive.to_dict()
+        assert all(c["reveal_to_all"] is False for c in data["clues"])
+
+    def test_from_dict_discards_stored_reveal_flags(self, sample_archive):
+        data = sample_archive.to_dict()
+        data["clues"][0]["reveal_to_all"] = True
+        restored = StoryArchive.from_dict(data)
+        assert all(c.reveal_to_all is False for c in restored.clues)
+        assert [c.id for c in restored.clues] == [
+            c.id for c in sample_archive.clues
+        ]
+
+    def test_parse_ignores_llm_reveal_to_all(self):
+        """模型常把证词类线索标成公开；prompt 里的示例说的是 false，
+        但没有校验，所以解析层必须自己兜住。"""
+        case_data = dict(CASE_DATA)
+        case_data["clues"] = [{
+            "id": "clue_1",
+            "content": "线索内容",
+            "type": "testimony",
+            "holder_id": "char_1",
+            "reveal_to_all": True,
+            "required_clue_id": None,
+        }]
+        archive = ss.parse_case_to_archive(case_data, "测试主题")
+        assert archive.clues[0].reveal_to_all is False
 
 
 class TestCreateStoryPortraits:

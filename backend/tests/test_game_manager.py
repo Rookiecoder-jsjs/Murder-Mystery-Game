@@ -168,6 +168,17 @@ class TestLookups:
         revealed = gm.get_revealed_clues()
         assert {c.id for c in revealed} == {"clue_scene"}
 
+    def test_get_revealed_clues_excludes_character_held(self, sample_archive):
+        """只有场景线索会公开给所有人。
+
+        这份列表是下发给 AI 的「已公开」信息；若把角色持有的线索也算
+        进来，AI 就会引用玩家根本拿不到的线索——实测中钱伯安曾引用王
+        阿福的私有证词来质问玩家。
+        """
+        gm = GameManager(sample_archive)
+        gm.get_clue("clue_a").reveal_to_all = True
+        assert {c.id for c in gm.get_revealed_clues()} == {"clue_scene"}
+
 
 # ---------- Clue board ----------
 
@@ -191,6 +202,24 @@ class TestClueBoard:
         gm.state.player_states["char_2"].known_clues.append("clue_a")
         board = gm.get_clue_board("char_2")
         assert "clue_locked" in [e.clue.id for e in board.available]
+
+    def test_publicly_revealed_clue_satisfies_prerequisite(self, sample_archive):
+        """前置是已公开线索时链条必须通。
+
+        场景线索被抽到后转成公开、从此只走 scene_public 分支，永远不会
+        进入 known_clues。若前置判定只认 known_clues，经典模式下 AI 在
+        开局抽走场景线索就会把依赖它的整条线索链对玩家永久锁死——
+        本局实测中，定罪真凶的笔迹线索 clue_7 就是这样丢掉的。
+        """
+        from app.domain.models import ClueData
+        sample_archive.clues.append(ClueData(
+            id="clue_gated", content="x", type="physical",
+            holder_id="char_1", required_clue_id="clue_scene",
+        ))
+        gm = GameManager(sample_archive)
+        # clue_scene 已是公开（reveal=True），玩家无需亲自持有
+        ids = [e.clue.id for e in gm.get_clue_board("char_2").available]
+        assert "clue_gated" in ids
 
     def test_distribute_random_clues_marks_owned(self, sample_archive):
         gm = GameManager(sample_archive)

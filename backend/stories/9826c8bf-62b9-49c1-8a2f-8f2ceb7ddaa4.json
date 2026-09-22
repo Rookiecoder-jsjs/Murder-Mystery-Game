@@ -101,7 +101,7 @@
       "content": "书房里的银质裁纸刀插在顾鸿声左胸，刀长约7寸，刀柄无指纹，刀身血迹顺向地板。刀柄与刀身连接处缠着一小段极细的钢丝，材质与钢琴低音弦一致，但并非来自楼下舞台钢琴断弦的位置",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -109,7 +109,7 @@
       "content": "书房靠窗的自动换片留声机内放有三张肖邦《夜曲》唱片，唱针停在最后一张唱片末尾空转，胶木已有磨痕。经检查，机器设定为19:50开始播放，每张约5分钟，20:05左右结束后空转至被发现。楼下多位证人20:00左右听到琴声",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -117,7 +117,7 @@
       "content": "书房门从内反锁，窗户月牙锁完好。钥匙在尸体左臂外侧地毯下，门底缝隙有新鲜横向擦痕，且钥匙环上粘着极细钢丝断茬。法式门锁的外侧需要用钥匙才能反锁",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -125,7 +125,7 @@
       "content": "死者西装内袋有一张被撕去署名的便条，写着：“今晚，你要的东西会放在钢琴下，小心程探长。”字迹为顾鸿声亲笔，但末字有重影，似服了药后手抖",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -133,7 +133,7 @@
       "content": "法医报告：死者胃内有牛排、红酒和微量吗啡。吗啡量不到致死量，但足以让人在15分钟内出现头晕、行动迟缓和嗜睡。致命伤为左胸刀伤，一刀贯穿心室，出血量少，可能当时已呈半昏迷",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -181,7 +181,7 @@
       "content": "书房窗外花圃泥土里有一组朝向墙根的单向脚印，鞋码约43码，与程子昂所穿黑雨靴纹路一致。窗台外侧没有泥土，窗子内锁完整，无翻窗痕迹",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -189,7 +189,7 @@
       "content": "女佣阿香证词：19:50看到程探长从二楼下来，面色如常，袖口有雨渍；20:15看到沈月华沿着二楼走廊从书房方向回房间；20:25看到林若白在书房门前弯下腰，像在捡东西；20:45看到唐九猛拍书房门，喊“顾老板，你别做缩头乌龟”。她没看到秦雪楼上楼",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -197,7 +197,7 @@
       "content": "留声机旁有一张旧唱片纸套，上面字迹为“为月华演奏·1932年冬”，是顾鸿声亲笔。但纸套夹层里有一张当票，当票日期为1934年10月10日，当物是沈月华的一串珍珠项链，票面署名为“秦雪楼”",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -205,7 +205,7 @@
       "content": "书房暗格内藏有《法租界巡捕房密档》抄件，记录程子昂自1929年起向青帮唐九传递巡捕房查案情报、私放烟土船只，并由顾鸿声经手分赃。抄件末页印有顾鸿声私人印章，日期为1934年10月11日",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -213,7 +213,7 @@
       "content": "锁匠老赵证词：三天前沈月华找她来为书房换锁，问过“从外面用钥匙反锁后，能不能把钥匙从门缝塞回房里”。老赵试过后说能塞回，但至少需要一条细线牵引，否则钥匙会卡在门下。沈月华当天取走了旧锁",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     }
   ],

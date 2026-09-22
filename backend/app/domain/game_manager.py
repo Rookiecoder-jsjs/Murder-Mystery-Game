@@ -134,8 +134,18 @@ class GameManager:
         return self.clues.get(clue_id)
 
     def get_revealed_clues(self) -> list[ClueData]:
-        """Get all revealed clues."""
-        return [c for c in self.archive.clues if c.reveal_to_all]
+        """Get the clues that are public to every player.
+
+        Only scene-held clues are ever revealed to all (see
+        ``_claim_clue``). Restricting to them mirrors the board's
+        ``scene_public`` bucket: the AI is told this list is already
+        common knowledge, so anything wider would let it cite clues the
+        player has no way to obtain.
+        """
+        return [
+            c for c in self.archive.clues
+            if c.reveal_to_all and c.holder_id == "scene"
+        ]
 
     def get_player_clues(self, player_id: str) -> list[ClueData]:
         """Get all clues known by a player.
@@ -208,6 +218,12 @@ class GameManager:
         scene_public_entries = []
 
         known = set(state.known_clues)
+        # 已公开的线索对所有人都是已知的，理应满足解锁前置。漏掉这一步
+        # 会让链条断死：场景线索一旦被抽到就转公开、走上面的 scene_public
+        # 分支，永远不会进入 known_clues，于是依赖它的线索对该玩家永久隐藏。
+        satisfied = known | {
+            c.id for c in self.archive.clues if c.reveal_to_all
+        }
         for clue in self.archive.clues:
             if clue.reveal_to_all and clue.holder_id == "scene":
                 entry = ClueBoardEntry(
@@ -225,7 +241,7 @@ class GameManager:
                 owned_entries.append(entry)
                 continue
 
-            if clue.required_clue_id and clue.required_clue_id not in known:
+            if clue.required_clue_id and clue.required_clue_id not in satisfied:
                 continue  # locked — hidden from this player's board
 
             entry = ClueBoardEntry(

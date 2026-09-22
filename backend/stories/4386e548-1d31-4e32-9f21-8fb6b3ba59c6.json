@@ -108,7 +108,7 @@
       "content": "暗房显影台下发现一只碎玻璃瓶，瓶底残留少量白色晶体，经法医检验为氰化钾；瓶口和晶体上都有淡淡的醋酸味。时间线：18:30顾维桢将盛有氰化钾的薄玻璃皿放在显影台下",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -116,7 +116,7 @@
       "content": "暗房门锁为耶鲁弹簧锁，锁舌根部有数道细小划痕，像是被锉刀轻轻打磨过。时间线：案发前几日顾维桢趁夜打磨锁舌，使关门时几乎无声，便于布置装置后离开",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -132,7 +132,7 @@
       "content": "暗房换气扇开关被关闭，插头被人从插座上拔出；暗房内醋酸气味浓重，几乎盖过显影液原本的气味。时间线：18:45顾维桢在电闸箱处关闭换气扇，制造密闭空间以提高毒气浓度",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -148,7 +148,7 @@
       "content": "女佣阿珍的证词：她于18:50前后看见顾维桢从后门离开照相馆，手里提着一个棕色小木箱，神色匆忙；她还说19:00后叶婉清一直在账房对账，直到20:00才出来。时间线：18:50与19:00-20:00",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -196,7 +196,7 @@
       "content": "沈鹤年尸体内侧口袋里有三张未冲洗的玻璃底片，其中一张底片影像模糊，但能辨认出赵德贵与青帮头目在码头交易的画面。时间线：这是沈鹤年最后的保险，也是赵德贵急于夺回的东西",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {

@@ -114,7 +114,7 @@
       "content": "死者怀表停在11点47分，表壳背面刻有‘沈氏惠存’四字，系当铺死当物品",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -122,7 +122,7 @@
       "content": "柜台内地面有一把切当布用的铜柄刻刀，刀刃沾有死者脑后的血，但刀柄指纹被擦去",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -146,7 +146,7 @@
       "content": "柴房门从外被铁锁反锁，锁孔内留有半截断掉的铜钥匙，断口新鲜",
       "type": "physical",
       "holder_id": "char_3",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -154,7 +154,7 @@
       "content": "前堂客座茶几上有两盏空茶杯，一盏杯底残留吗啡粉末，另一盏有茶垢。林四称自己茶中无问题，但巡捕检验后确认吗啡盏在靠近柜台一侧",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -170,7 +170,7 @@
       "content": "当铺柜台内通往地窖的暗门旁有火药味和新鲜擦痕，地窖内未发现任何货物，但地面有血迹",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -178,7 +178,7 @@
       "content": "柜台后的留声机仍通电，唱片已转至最后一圈，喇叭旁有一根细铜丝连接到底部小灯泡，灯泡内部有针孔大小破洞",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -186,7 +186,7 @@
       "content": "王阿福称午夜前看到林四走到当铺门口朝后巷张望并抬手看表，但他不确定具体时间",
       "type": "testimony",
       "holder_id": "char_3",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": "clue_6"
     },
     {
@@ -194,7 +194,7 @@
       "content": "林四声称自己在门外等车的几分钟内，听到柜台方向传来一声闷响，像是重物倒地，随后当铺内的钟敲了十一点三刻",
       "type": "testimony",
       "holder_id": "char_4",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": "clue_1"
     },
     {
@@ -218,7 +218,7 @@
       "content": "当铺门口灯笼在午夜后仍亮着，但灯油已近干涸，因风大光线忽明忽暗，邻居听到两次‘砰’声，第二次较轻，疑似关门声",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": "clue_11"
     },
     {
@@ -226,7 +226,7 @@
       "content": "死者左脚鞋后跟沾有后巷板车下的潮湿红泥，而柜台内地面干净，说明死者曾从后巷返回柜台",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": "clue_8"
     }
   ],

@@ -161,7 +161,15 @@ class StoryArchive:
                 clue.holder_id = "scene"
 
     def to_dict(self) -> dict:
-        """Convert to dictionary for JSON serialization."""
+        """Convert to dictionary for JSON serialization.
+
+        ``reveal_to_all`` is pinned to ``False``: which clues are public is
+        per-game runtime state (owned by the session snapshot's
+        ``revealed_clue_ids``), never part of the archive. Serializing the
+        live flag leaked a playthrough into the story file — the portrait
+        thread re-saves this archive while the game that shares it is
+        already revealing scene clues.
+        """
         return {
             "id": self.id,
             "created_at": self.created_at,
@@ -169,13 +177,18 @@ class StoryArchive:
             "title": self.title,
             "case": asdict(self.case),
             "characters": [asdict(c) for c in self.characters],
-            "clues": [asdict(c) for c in self.clues],
+            "clues": [{**asdict(c), "reveal_to_all": False} for c in self.clues],
             "story_content": self.story_content,
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "StoryArchive":
-        """Load from dictionary."""
+        """Load from dictionary.
+
+        Mirrors ``to_dict``: any ``reveal_to_all`` stored in the file is
+        discarded, so archives written before the flag was pinned heal on
+        load instead of starting a game pre-revealed.
+        """
         return cls(
             id=data["id"],
             created_at=data["created_at"],
@@ -183,7 +196,10 @@ class StoryArchive:
             title=data["title"],
             case=CaseData(**data["case"]),
             characters=[ScriptCharacter(**c) for c in data["characters"]],
-            clues=[ClueData(**c) for c in data["clues"]],
+            clues=[
+                ClueData(**{**c, "reveal_to_all": False})
+                for c in data["clues"]
+            ],
             story_content=data["story_content"],
         )
 

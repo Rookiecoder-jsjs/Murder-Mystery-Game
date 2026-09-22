@@ -128,7 +128,7 @@
       "content": "在陆望舒书桌抽屉暗格发现的半张烧焦的戏票，日期是11月16日（首起事件前日），剧目是《牡丹亭·离魂》，座位号与苏曼云收藏的票根吻合。票背面有模糊字迹：“…知真相，速离沪…” 这封信本是苏曼云写给陆望舒的警告，被沈梦蝶截获后只留下此票根。",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -184,7 +184,7 @@
       "content": "詹姆斯与上海某西餐厅的电话接线生证词：11月23日晚约8点15分，接到一位自称“詹姆斯”的先生电话，要求预留9点的位置，声音略显急促。但餐厅记录显示詹姆斯预订的是7点半。",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -192,7 +192,7 @@
       "content": "在陆望舒死亡现场（卧室）的阳台外侧消防梯扶手上，发现一小片极细微的、与沈梦蝶常穿阴丹士林蓝布同材质的纤维，且附着少量书房特有的旧书尘灰。阳台门内侧门闩上缠有一根几乎看不见的细丝线痕迹。",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -208,7 +208,7 @@
       "content": "租界公董局公共卫生处残留档案（部分被焚）：11月24日（陆死后次日）对霞飞公寓的“例行检查”记录中，提到在公共垃圾箱发现一个破碎的小玻璃药瓶，标签被撕，但残留物经快速检测，与詹姆斯所购毒素化学结构相似。报告被“特殊原因”勒令归档不究。",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -216,7 +216,7 @@
       "content": "公寓小孩证词：11月23日晚，听到苏阿姨（苏曼云）房间一直有“咿咿呀呀”的唱戏声（收音机），但8点左右声音停了一会儿，听到开门和很轻的脚步声往楼梯方向去，大概几分钟后唱戏声又响了。",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -232,7 +232,7 @@
       "content": "陆望舒保险箱（密码为其生母生日，由苏曼云提供线索打开）：内有一叠胶片（内容为日本商会与某些华商的不法交易记录）、若干金条、一封写给“梦蝶”的未完成信：“…小梅，我知你终会来。慕白之死，我之罪孽，百死莫赎。公寓之局，是我为你设的舞台，也是我的终点。真相在…” 信至此中断。还有一把书房储藏间暗门的备用钥匙。",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": "clue_1"
     },
     {

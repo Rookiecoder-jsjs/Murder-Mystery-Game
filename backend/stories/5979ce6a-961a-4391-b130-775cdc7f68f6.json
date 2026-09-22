@@ -127,7 +127,7 @@
       "content": "书房壁炉冷灰里有一枚直径约两厘米的铜质小环，环上系着半截被烧焦的丝线，像是密道钥匙的拉环",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -143,7 +143,7 @@
       "content": "法医报告显示：死者胃内含有未消化的晚宴食物和过量洋地黄成分，死亡时间约在9:00-9:30之间；胸口刀伤非立即致命，死者系先中毒心脏骤停后被刺",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -199,7 +199,7 @@
       "content": "酒窖后密道拐角处发现一块沾有暗红血迹的亚麻抹布，上面有沈云樵的烟斗丝碎末，还有几根周福的灰白头发",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {

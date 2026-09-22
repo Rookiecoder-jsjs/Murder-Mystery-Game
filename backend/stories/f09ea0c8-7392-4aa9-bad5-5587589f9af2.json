@@ -102,7 +102,7 @@
       "content": "法医验尸报告：死者程世昌被判定为氰化钾中毒，死亡时间约为20:25至20:35。胃内容物经检测无氰化物，排除口服毒药直接致死；血液及肝脏中有大量氰化物，符合饮酒带入。这说明毒物进入体内途径为酒杯残液",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -110,7 +110,7 @@
       "content": "书房地毯上的高脚杯碎片与残液：破碎的高脚杯内壁残液测出高浓度氰化钾，杯底有白色晶状颗粒；但同款酒杯在客厅酒柜中均无毒素。证明毒来源不是酒瓶，而是杯中某种添加物",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -118,7 +118,7 @@
       "content": "客厅冰桶中的残余冰水：冰桶内剩余冰块已融化，水样经检验无氰化物，但冰桶内侧有少量白色结晶，与死者杯底相同。暗示曾有一块特殊冰块混入其中，且只放进程杯",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -126,7 +126,7 @@
       "content": "方国栋带来的日式漆盒：漆盒留在客厅，盒内残留水渍和几粒未溶的白色晶体，盒底有日文标签“共荣商事 製氷室”。经检验，白色晶体为氰化钾。这条直接指向方国栋带来的冰块含毒",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -134,7 +134,7 @@
       "content": "印度门卫哈桑的证词：当晚18:30看到方国栋提着一只日式漆盒进入电梯，20:10空手离开。期间无外人携带类似容器进入702。说明只有方国栋带来过特殊冰块",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -142,7 +142,7 @@
       "content": "公寓电话总机记录：总机记载20:15有电话从604方公馆拨往702，通话持续13分04秒，至20:28线路中断。接线员听到方国栋曾大声问“程先生，你还在吗？”并听到重物倒地声。方国栋的不在场证明成立，但电话中程世昌最后一句话是“你……这酒……”说明他本人也意识到酒有问题",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -182,7 +182,7 @@
       "content": "胃药瓶：书房桌上的日本“武田胃药”瓶，瓶内胶囊经检验均无毒素。瓶底有“共荣商事经销”小字。方国栋在18:30将药送给程世昌，并嘱咐饭后服用。此药是烟雾弹，意在将毒与胃药联系，嫁祸阿贵或周丽华",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -190,7 +190,7 @@
       "content": "未签署的董事会决议文件：程世昌书房内有一份第二日即将召开的董事会决议草稿，内容是罢免方国栋董事职务，并附有向法租界工部局举报方国栋通日、走私军用物资的信稿。方国栋杀人动机确凿",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -206,7 +206,7 @@
       "content": "阿贵的不在场证明：公寓门卫和车行伙计均证实，20:00到20:30阿贵在楼下擦洗程家的别克汽车，期间没有离开。阿贵无机会在客厅酒杯中下毒",
       "type": "testimony",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {

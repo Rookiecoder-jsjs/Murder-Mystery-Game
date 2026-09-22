@@ -157,7 +157,7 @@
       "content": "一张1934年11月6日（案发前一日）从吴淞口发出的渡船船票，背面用铅笔写着‘白鹭居，九点，勿误’，字迹经比对该为秦慕白所写",
       "type": "document",
       "holder_id": "char_4",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -173,7 +173,7 @@
       "content": "书房门内侧的门把手上有一个细微的新划痕，呈逆时针旋转方向，且门内锁孔旁有被细铁丝反复刮擦的金属碎屑",
       "type": "physical",
       "holder_id": "scene_01",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {

@@ -142,7 +142,7 @@
       "content": "【厨房垃圾桶发现】一个空的安眠药药瓶（标签为罗文斌诊所），生产日期较新。女仆证言，昨晚9点左右，管家周福曾向她讨要过一杯热牛奶，说是自己失眠",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -150,7 +150,7 @@
       "content": "【书房门外地毯提取】少量湿润的泥土和一片极细的绿色丝线（与林梅旗袍内衬颜色质地吻合）。昨晚台风前下过阵雨，阳台和花园有泥。书房内窗台也有类似泥土",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -166,7 +166,7 @@
       "content": "【一楼客厅电话旁便签】记录着一个未拨出的号码，经查是苏州某公馆电话（苏婉清表兄家）。字迹是顾威廉的，时间标记为“晚9点”",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -174,7 +174,7 @@
       "content": "【苏婉清证言】晚9点左右，她曾在二楼阳台看见顾威廉在三楼书房窗口似乎与人争执，影子晃动，但看不清对方是谁。不久后灯熄灭了几分钟（约9点05分至9点10分），然后又亮起",
       "type": "testimony",
       "holder_id": "char_3",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -182,7 +182,7 @@
       "content": "【书房留声机】唱片停在某一曲的中间，唱针有被人为抬起又放下的轻微刮痕。曲目是歌剧《蝴蝶夫人》的选段。女仆证实在晚10点打扫时，留声机并未开启",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -190,7 +190,7 @@
       "content": "【周福证言】晚11点整他去书房时，除了听到顾威廉说“不必”，还隐约听到房内有极轻微的、类似音乐的声音（但不确定），且看到门缝下并无灯光透出（而书房通常灯火通明）",
       "type": "testimony",
       "holder_id": "char_1",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -198,7 +198,7 @@
       "content": "【罗文斌证言】他晚10点20分送药时，看到书房门缝下透出灯光，并且听到里面有脚步声和纸张翻动声，他敲门说“药送到了”，里面顾威廉的声音含糊地应了一声“嗯”，他放下药就离开了",
       "type": "testimony",
       "holder_id": "char_5",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -206,7 +206,7 @@
       "content": "【书房发现的物证】勒死死者的丝绸领巾，是顾威廉自己的物品，但打结方式非常特殊，是一种罕见的水手结（平结变体）。死者怀表摔坏，内部一个细微的齿轮有新鲜擦痕，似乎被什么拨动过。书房面向阳台的窗户插销内侧，有用细线勒过的微小痕迹",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {

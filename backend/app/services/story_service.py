@@ -343,7 +343,9 @@ def parse_case_to_archive(
             content=clean_content,
             type=clue_dict.get("type", "physical"),
             holder_id=clue_dict.get("holder_id", "scene"),
-            reveal_to_all=clue_dict.get("reveal_to_all", False),
+            # 公开与否是每局运行时状态，LLM 说了不算：它常把证词类线索
+            # 标成公开，而那会让剧本一开局就自带已公开线索
+            reveal_to_all=False,
             required_clue_id=clue_dict.get("required_clue_id")
         )
         clues.append(clue)

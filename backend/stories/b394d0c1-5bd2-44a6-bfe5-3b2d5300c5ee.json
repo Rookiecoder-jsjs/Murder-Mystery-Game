@@ -119,7 +119,7 @@
       "content": "书房门内侧插销头部有一道细线勒痕，插销槽内有一滴淡黄色油渍，气味类似缝纫机油",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -127,7 +127,7 @@
       "content": "书房门下缘门缝处发现一根深蓝色毛线纤维，与白秀珠深蓝围裙下摆脱线一致",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -135,7 +135,7 @@
       "content": "留声机唱针在内圈空转，唱片《贵妃醉酒》表面有一道新划痕，导致反复跳针，播放同一句唱词",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -143,7 +143,7 @@
       "content": "书桌上的威士忌酒杯内残留氰化钾，杯口边缘有极细的划痕，残留毒物与沈如兰药片成分一致",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -151,7 +151,7 @@
       "content": "书房窗台上有半截蜡烛，窗缝有蜡油，但窗外积雪表面完整，没有脚印",
       "type": "physical",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -159,7 +159,7 @@
       "content": "壁炉灰烬中有一片未烧尽的纸片，写着：“白氏真实身份已查，雪停后一并解决，勿留后患。”",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     },
     {
@@ -215,7 +215,7 @@
       "content": "沈万山马甲内侧口袋发现书房钥匙，另有一张当票，当物为白俄皇冠红宝石，当票签名是沈万山",
       "type": "document",
       "holder_id": "scene",
-      "reveal_to_all": true,
+      "reveal_to_all": false,
       "required_clue_id": null
     }
   ],
