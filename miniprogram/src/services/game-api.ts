@@ -1,6 +1,7 @@
 import { request } from './http'
 import type {
   AccuseResponse,
+  DiscussionOptions,
   ClueBoard,
   GameBootstrap,
   GameMode,
@@ -58,9 +59,13 @@ export const gameApi = {
     method: 'POST',
   }),
 
-  speak: (gameId: string, message: string) => request<SpeakResponse>(`/games/${gameId}/speak`, {
+  nextInvestigationRound: (gameId: string) => request<PhaseResponse>(`/games/${gameId}/next-investigation-round`, { method: 'POST' }),
+
+  collectBallotAdvice: (gameId: string) => request<RevealInfo>(`/games/${gameId}/ballot-advice`, { method: 'POST' }),
+
+  speak: (gameId: string, message: string, options: DiscussionOptions = {}) => request<SpeakResponse>(`/games/${gameId}/speak`, {
     method: 'POST',
-    data: { message },
+    data: { message, ...options },
     timeout: 180_000,
   }),
 

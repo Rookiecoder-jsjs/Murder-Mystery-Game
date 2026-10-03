@@ -168,16 +168,13 @@ class TestLookups:
         revealed = gm.get_revealed_clues()
         assert {c.id for c in revealed} == {"clue_scene"}
 
-    def test_get_revealed_clues_excludes_character_held(self, sample_archive):
-        """只有场景线索会公开给所有人。
-
-        这份列表是下发给 AI 的「已公开」信息；若把角色持有的线索也算
-        进来，AI 就会引用玩家根本拿不到的线索——实测中钱伯安曾引用王
-        阿福的私有证词来质问玩家。
-        """
+    def test_personal_clue_is_public_only_after_presenting(self, sample_archive):
         gm = GameManager(sample_archive)
-        gm.get_clue("clue_a").reveal_to_all = True
+        gm.distribute_clue("char_1", "clue_a")
         assert {c.id for c in gm.get_revealed_clues()} == {"clue_scene"}
+        gm.present_clues("char_1", ["clue_a"])
+        assert {c.id for c in gm.get_revealed_clues()} == {"clue_a", "clue_scene"}
+        assert "clue_a" in {e.clue.id for e in gm.get_clue_board("char_2").scene_public}
 
 
 # ---------- Clue board ----------
@@ -339,6 +336,29 @@ class TestAccuse:
 # ---------- Voting ----------
 
 class TestVoting:
+    def test_single_player_verdict_ignores_npc_split(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        gm.submit_vote("char_2", "char_1")
+        gm.submit_vote("char_1", "char_3")
+        ended, _ = gm.resolve_player_verdict("char_2")
+        assert ended and gm.state.winner == "good"
+        assert gm.current_phase == GamePhase.REVEAL
+
+    def test_single_player_wrong_verdict_loses(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        gm.submit_vote("char_2", "char_3")
+        gm.resolve_player_verdict("char_2")
+        assert gm.state.winner == "killer"
+
+    def test_verdict_requires_valid_ballot(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        assert gm.resolve_player_verdict("char_2")[0] is False
+        gm.submit_vote("char_2", "char_2")
+        assert gm.resolve_player_verdict("char_2")[0] is False
+
     def test_submit_vote_records(self, sample_archive):
         gm = GameManager(sample_archive)
         gm.set_phase(GamePhase.VOTING)
@@ -581,3 +601,50 @@ class TestLastEventLifecycle:
         gm3.state.last_event = {"title": "案件出现突破"}
         gm3.force_reveal()
         assert gm3.state.last_event is None
+
+
+class TestFinishedGameGuards:
+    def test_next_investigation_round_requires_completed_play(self, sample_archive):
+        gm = GameManager(sample_archive, mode="quick")
+        gm.set_phase(GamePhase.DISCUSSION)
+        with pytest.raises(ValueError):
+            gm.start_next_investigation_round("char_2")
+        gm.state.investigated_round = gm.state.discussed_round = 1
+        gm.start_next_investigation_round("char_2")
+        assert gm.state.round == 2
+        assert gm.current_phase == GamePhase.INVESTIGATION
+        with pytest.raises(ValueError):
+            gm.start_next_investigation_round("char_2")
+
+    def test_advice_after_verdict_never_changes_winner_or_votes(self, sample_archive):
+        gm = GameManager(sample_archive)
+        with pytest.raises(ValueError):
+            gm.record_ballot_advice("char_3", "char_2", "判断理由")
+        gm.set_phase(GamePhase.VOTING)
+        gm.submit_vote("char_2", "char_1")
+        gm.resolve_player_verdict("char_2")
+        votes = list(gm.state.votes_record)
+        gm.record_ballot_advice("char_3", "char_2", "判断理由")
+        gm.record_ballot_advice("char_3", "char_1", "补充理由")
+        assert gm.state.votes_record == votes
+        assert gm.state.winner == "good"
+        assert gm.current_phase == GamePhase.REVEAL
+        assert gm.state.ballot_details == [{"voter": "Carol", "target": "Alice", "reason": "补充理由"}]
+
+    def test_accusation_cannot_overwrite_a_voting_win(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.set_phase(GamePhase.VOTING)
+        for source, target in [("char_1", "char_3"), ("char_2", "char_1"),
+                               ("char_3", "char_1"), ("char_4", "char_1")]:
+            gm.submit_vote(source, target)
+        assert gm.check_voting_result()[0]
+        assert not gm.can_accuse("char_2")
+        assert not gm.accuse("char_2", "char_3")[0]
+        assert gm.state.winner == "good"
+
+    def test_finished_game_cannot_reenter_investigation(self, sample_archive):
+        gm = GameManager(sample_archive)
+        gm.force_reveal()
+        with pytest.raises(ValueError):
+            gm.set_phase(GamePhase.INVESTIGATION)
+        assert gm.current_phase == GamePhase.REVEAL

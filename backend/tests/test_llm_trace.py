@@ -114,3 +114,14 @@ def test_write_failure_is_swallowed(monkeypatch, tmp_path):
 
     # Trace must never raise, even when the target directory is unwritable.
     trace_llm_chat(model="m", kind="k", messages=[{"role": "user", "content": "hi"}])
+
+
+def test_provider_cache_usage_is_logged_without_estimating_hits(monkeypatch, tmp_path):
+    monkeypatch.setattr(llm_trace, "_is_enabled", lambda: True)
+    monkeypatch.setattr(llm_trace, "trace_dir", lambda: tmp_path)
+    trace_llm_chat(model="m", kind="roleplay", messages=[],
+                   usage={"prompt_tokens": 100, "prompt_cache_hit_tokens": 80, "prompt_cache_miss_tokens": 20})
+    trace_llm_chat(model="m", kind="roleplay", messages=[], usage={"prompt_tokens": 100})
+    records = _read_records(next(tmp_path.glob("*.jsonl")))
+    assert records[0]["cache"] == {"prompt_tokens": 100, "hit_tokens": 80, "miss_tokens": 20, "hit_rate": .8}
+    assert records[1]["cache"]["hit_rate"] is None

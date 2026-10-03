@@ -155,6 +155,7 @@ class MurderMysteryCLI:
         self.session.archive = self.archive
         self.session.human_player_id = char_id
         self.session.game = GameManager(self.archive)
+        player_char = self.session.game.get_character(char_id)
 
         # 初始化AI角色
         self.session.ai_characters = {}
@@ -163,6 +164,8 @@ class MurderMysteryCLI:
                 self.session.ai_characters[char.id] = RoleplayCharacter(
                     character=char,
                     client=self.roleplay_client,
+                    case=self.archive.case,
+                    user_persona=f"{player_char.name}（{player_char.public_identity}）",
                 )
 
         # 分配初始线索
@@ -347,7 +350,8 @@ class MurderMysteryCLI:
             ai_vote, _reason = ai.get_vote(
                 known_clues=self.session.game.get_player_clues(char_id),
                 revealed_clues=self.session.game.get_revealed_clues(),
-                other_chars=list(self.session.archive.characters),
+                other_chars=[c for c in self.session.archive.characters
+                             if c.id in self.session.game.alive_players],
                 discussion_history=self.session.game.state.discussion_history,
             )
             if ai_vote in self.session.game.alive_players:

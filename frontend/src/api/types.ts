@@ -17,10 +17,18 @@ export interface GameEvent {
   clue_id?: string;
 }
 
+export interface DiscussionOptions {
+  target_id?: string;
+  presented_clue_ids?: string[];
+  action_id?: string;
+}
+
 export interface CharacterInfo {
   id: string;
   name: string;
   public_identity: string;
+  role_script?: string;
+  objectives?: string[];
   is_killer?: boolean;
   appearance: string;
   portrait_url?: string;
@@ -29,6 +37,7 @@ export interface CharacterInfo {
 
 export interface Clue {
   id: string;
+  title?: string;
   content: string;
   type: 'physical' | 'testimony' | 'document';
   holder_name: string;
@@ -38,6 +47,8 @@ export interface Clue {
 export interface ChatMessage {
   speaker: string;
   message: string;
+  action_id?: string;
+  kind?: string;
 }
 
 export interface Story {
@@ -82,6 +93,10 @@ export interface LoadGameResponse {
 
 export interface GameStatus {
   game_id: string;
+  story_id: string;
+  game_ended: boolean;
+  winner: string | null;
+  is_speaking: boolean;
   phase: GamePhase;
   mode: GameMode;
   is_quick_mode: boolean;
@@ -94,6 +109,7 @@ export interface GameStatus {
   characters: CharacterInfo[];
   case_brief: CaseBrief;
   available_actions: string[];
+  round_progress?: { investigated: boolean; discussed: boolean };
 }
 
 export interface ClueBoard {
@@ -111,6 +127,7 @@ export interface IntroductionResponse {
 export interface SpeakResponse {
   messages: ChatMessage[];
   phase: string;
+  available_actions: string[];
 }
 
 export interface InvestigateResponse {
@@ -118,17 +135,21 @@ export interface InvestigateResponse {
   clue_board: ClueBoard;
   investigation_options: InvestigationOption[];
   event: GameEvent | null;
+  available_actions: string[];
 }
 
 export interface PhaseResponse {
   phase: string;
+  available_actions: string[];
   round?: number;
   investigation_options?: InvestigationOption[];
   last_event?: GameEvent | null;
+  round_progress?: { investigated: boolean; discussed: boolean };
 }
 
 export interface VoteResponse {
   votes: Record<string, string>;
+  vote_reasons?: Record<string, string>;
   result: string;
   game_ended: boolean;
   winner: string | null;
@@ -146,6 +167,10 @@ export interface AccuseResponse {
 }
 
 export interface RevealInfo {
+  advice_state?: 'available' | 'running' | 'completed' | 'unavailable';
+  deductions?: { conclusion: string; evidence: { clue_id: string; title: string; quote: string; discovered: boolean }[] }[];
+  player_verdict?: { target: string; correct: boolean };
+  votes?: { voter: string; target: string; reason: string }[];
   story_content: string;
   winner: string;
   case_info: {

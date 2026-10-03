@@ -39,7 +39,7 @@
 
 /* 当前幕：幕布红菱形 + 金字 */
 .phase-step.active {
-  color: var(--color-accent-bright);
+  color: var(--color-accent);
   border-color: var(--c-accent-line);
   background: var(--c-accent-bg-faint);
 }
@@ -88,7 +88,7 @@
 }
 
 .phase-round-value {
-  color: var(--color-accent-bright);
+  color: var(--color-accent);
   font-weight: 600;
 }
 

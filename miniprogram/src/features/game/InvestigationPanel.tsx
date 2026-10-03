@@ -181,10 +181,10 @@ export function InvestigationPanel() {
         </Button>
         <Button
           className='primary-button'
-          disabled={transitioning}
+          disabled={transitioning || state.isLoading || (state.mode === 'quick' && !state.availableActions.includes('discuss'))}
           onClick={enterDiscussion}
         >
-          带着线索进入讨论
+          {state.mode === 'quick' && !state.availableActions.includes('discuss') ? '先调查一条线索' : '带着线索进入讨论'}
         </Button>
       </View>
 

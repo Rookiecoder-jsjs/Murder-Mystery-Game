@@ -13,7 +13,7 @@
 
   --color-text: #1a1a1a;            /* 油墨黑正文 */
   --color-text-muted: #6f6a60;      /* 次要文字（铅灰） */
-  --color-text-faint: #98928a;      /* 时码、占位符 */
+  --color-text-faint: var(--color-text-muted); /* 小字、时码和占位符也保持可读对比 */
 
   /* 号外红（唯一强调：标题批注、激活态、印章、CTA） */
   --color-accent: #b3382c;
@@ -139,7 +139,6 @@
   --z-drawer: 200;
   --z-modal: 300;
   --z-toast: 400;
-  --z-curtain: 500;                 /* 阶段黑场（最顶，pointer-events none） */
 }
 
 /* ==========================================================================
@@ -157,7 +156,7 @@
 
   --color-text: var(--paper-ink);
   --color-text-muted: #5d574b;
-  --color-text-faint: #6f6a60;
+  --color-text-faint: var(--color-text-muted);
 
   /* 强调色 → 纸面加深值 */
   --color-accent: #a5342a;

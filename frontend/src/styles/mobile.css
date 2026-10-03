@@ -1,0 +1,219 @@
+/* Native portrait layout: one owner for system insets, one scrolling reading pane. */
+.native-app {
+  --app-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --app-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --font-display: 'Noto Serif SC', 'Songti SC', serif;
+  overscroll-behavior: none;
+}
+.native-app #root {
+  height: 100dvh;
+  padding: var(--app-top) 0 var(--app-bottom);
+  box-sizing: border-box;
+}
+.native-app .game-shell { height: 100%; }
+.native-app .home-page { min-height: 100%; padding: 12px; }
+.native-app .home-content { padding: 16px 14px; }
+.native-app .home-columns { display: flex; flex-direction: column; gap: 24px; }
+.native-app .home-col { min-width: 0; width: 100%; }
+.native-app .home-stories-section { order: -1; }
+.native-saved-row small { display: block; font-size: 12px; opacity: .7; margin-top: 6px; white-space: normal; overflow-wrap: anywhere; }
+.game-main > .game-task-panel { display: flex; flex: 0 0 auto; flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 12px; background: var(--paper-2); color: var(--paper-ink); border-bottom: 1px solid var(--paper-line); font-size: 12px; }
+.game-task-panel span { min-width: 0; overflow-wrap: anywhere; }
+.game-task-panel .btn { flex-shrink: 0; min-height: 44px; }
+.native-app .masthead-dateline { font-size: 10px; gap: 8px; }
+.native-app .masthead-dateline > :first-child { display: none; }
+.native-app .home-logo { font-size: clamp(40px, 12vw, 64px); }
+.native-app .case-masthead { padding-bottom: 16px; margin-bottom: 12px; }
+.native-app .masthead-row { padding: 12px 0; }
+.native-app .masthead-sub { flex-wrap: wrap; gap: 6px; font-size: 10px; }
+.native-app .extra-stamp { font-size: 18px; padding: 4px 8px; }
+.native-app .home-tagline { margin-top: 10px; font-size: 14px; }
+.native-app .home-section-head { margin-bottom: 12px; }
+.native-app .giant-no { font-size: 44px; }
+.native-app .home-mode-picker { grid-template-columns: 1fr 1fr; }
+.native-app .home-mode-option { padding: 12px 8px; }
+.native-app .home-gendesk-ledger, .native-app .home-editorial { display: none; }
+.native-app .header { min-height: 60px; height: auto; padding: 8px 12px; flex-wrap: wrap; gap: 6px; }
+.native-app .header-center { order: 3; flex-basis: 100%; justify-content: center; }
+.native-app .phase-indicator { width: 100%; min-width: 0; justify-content: space-between; gap: 2px; }
+.native-app .phase-step { padding: 3px 5px; gap: 4px; letter-spacing: 0; }
+.native-app .phase-icon { display: none; }
+.native-app .phase-connector { width: 6px; }
+.native-app .phase-round { margin-left: 2px; padding: 3px 4px; letter-spacing: 0; font-size: 10px; }
+.native-app .header-info { margin-left: auto; }
+.native-app .header-title { font-size: 20px; }
+.native-app .header-topic { display: none; }
+.native-app .header-menu-btn { display: inline-flex; min-width: 44px; min-height: 44px; }
+.native-app .discussion-topbar { padding: 8px 12px; }
+.native-app .discussion-topbar-title h2 { font-size: 16px; }
+.native-app .discussion-actions { width: 100%; }
+.native-app .discussion-actions .btn { flex: 1; min-width: 0; min-height: 44px; white-space: normal; gap: 4px; font-size: 12px; }
+.native-app .discussion-messages { padding: 12px; gap: 12px; }
+.native-app .chat-message { max-width: 100%; gap: 8px; }
+.native-app .chat-message .avatar-lg { width: 36px; height: 36px; font-size: 14px; }
+.native-app .chat-message-content { padding: 8px 12px; }
+.native-app .chat-message-identity { display: none; }
+.native-app .discussion-input-area { padding: 8px 12px; }
+.native-app .discussion-question-options { gap: 8px; }
+.native-app .discussion-question-options label { flex: 1 1 0; }
+.native-app .discussion-question-options select { font-size: 14px; min-height: 44px; }
+.native-app .introduction-player { min-height: 0; flex-direction: row; align-items: flex-start; gap: 12px; text-align: left; }
+.native-app .introduction-player > .avatar-hero { width: 88px; align-self: flex-start; }
+.native-app .introduction-player-details { padding: 0; border: 0; align-items: flex-start; }
+.native-app .introduction-player-identity { align-self: flex-start; }
+.native-app .introduction-player-appearance { font-size: 14px; }
+.native-app .introduction-other-grid { grid-template-columns: 1fr; gap: 12px; }
+.native-app .introduction-other-card { flex-direction: row; align-items: center; gap: 12px; padding: 12px; }
+.native-app .introduction-other-card .avatar-portrait { width: 48px; height: 64px; }
+.native-app .introduction-other-info { text-align: left; }
+.native-app .introduction-phase, .native-app .investigation-phase,
+.native-app .voting-phase, .native-app .reveal-phase { padding: 16px 12px; }
+.native-app .discussion-input { font-size: 16px; min-height: 48px; max-height: 100px; }
+.native-app .discussion-hint { display: none; }
+.native-app .btn { min-height: 44px; touch-action: manipulation; }
+.native-app p, .native-app .message-content { overflow-wrap: anywhere; }
+.native-app .modal-overlay { padding: calc(var(--app-top) + 12px) 12px calc(var(--app-bottom) + 12px); }
+.native-app .modal { max-height: 100%; max-width: 100%; }
+.native-app .sidebar { top: var(--app-top); bottom: var(--app-bottom); height: auto; width: min(88vw, 360px); }
+.native-app .sidebar-close { width: 44px; height: 44px; flex-shrink: 0; }
+.native-app .sidebar-case-value { flex: 1; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+.native-app .toast-stack { top: calc(var(--app-top) + 8px); }
+.native-app .toast-message { min-width: 0; overflow-wrap: anywhere; }
+.native-app .toast-close { width: 44px; height: 44px; }
+.native-home { margin: 18px 0; padding: 14px; border: 1px solid var(--color-border); border-radius: 8px; }
+.native-home-top { display: flex; gap: 12px; align-items: center; justify-content: space-between; font-size: 13px; }
+.native-home-top .btn { flex-shrink: 0; }
+.native-home p { font-size: 13px; line-height: 1.6; margin: 8px 0; }
+.native-saves, .native-tasks { margin-top: 16px; }
+.native-saved-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; text-align: left; padding: 12px 0; background: transparent; border: 0; border-bottom: 1px solid var(--color-border); color: inherit; font: inherit; }
+.native-saved-row > :first-child { min-width: 0; flex: 1; }
+.native-saved-row > :last-child { flex-shrink: 0; }
+@media (max-height: 520px) {
+  .native-app .header-center, .native-app .discussion-topbar-title { display: none; }
+  .native-app .header { min-height: 44px; }
+}
+
+.native-tasks .native-saved-row { flex-wrap: wrap; }
+.native-tasks .native-saved-row > :first-child { flex-basis: 100%; }
+.native-tasks .native-saved-row .btn { flex: 1; }
+
+/* Phone-specific composition, rather than scaled desktop stationery. */
+.native-app .home-page { padding: 10px; }
+.native-app .home-content { padding: 14px; }
+.native-app .mobile-home-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--paper-line); }
+.native-app .mobile-home-header h1 { font-family: var(--font-display); font-size: 28px; letter-spacing: 3px; }
+.native-app .mobile-home-header p { font-size: 12px; color: var(--paper-ink-muted); }
+.native-app .native-home { margin: 12px 0 18px; padding: 10px 12px; }
+.native-app .native-home-top { gap: 8px; }
+.native-app .native-home-top > span { max-width: 160px; }
+.native-app .native-saves, .native-app .native-tasks { margin-top: 10px; font-size: 14px; }
+.native-app .native-saved-row { min-height: 44px; padding: 8px 0; }
+.native-app .native-saves-toggle { width: 100%; font-size: 12px; }
+.native-app .giant-no, .native-app .home-footer { display: none; }
+.native-app .home-section-head { margin-bottom: 10px; }
+.native-app .home-section-title { font-size: 20px; }
+.native-app .home-columns { gap: 20px; }
+.native-app .home-create-card { padding: 14px; }
+.native-app .home-mode-option { padding: 10px 8px; }
+.native-app .home-mode-option small { font-size: 11px; }
+.native-app .home-input { font-size: 16px; min-height: 48px; }
+.native-app .home-example-btn { min-height: 40px; font-size: 12px; }
+.native-app .home-gendesk { padding: 16px; }
+.native-app .home-gendesk-title { font-size: 22px; }
+.native-app .home-gendesk-foot { flex-wrap: wrap; gap: 12px; }
+
+.native-app .game-main { overflow: hidden; }
+.native-app .investigation-phase { padding: 0; overflow: hidden; gap: 0; }
+.native-app .investigation-reading { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 12px; overflow-y: auto; padding: 12px; }
+.native-app .investigation-header, .native-app .voting-header, .native-app .introduction-header, .native-app .reveal-header { padding: 0 0 8px; gap: 4px; }
+.native-app .investigation-header::before, .native-app .investigation-header::after,
+.native-app .voting-header::before, .native-app .voting-header::after { display: none; }
+.native-app .investigation-title, .native-app .voting-title, .native-app .introduction-title, .native-app .reveal-title { font-size: 22px; margin-top: 0; letter-spacing: 1px; }
+.native-app .investigation-leads { margin: 0; padding: 12px; }
+.native-app .investigation-leads-header { gap: 8px; margin-bottom: 10px; }
+.native-app .investigation-leads-header h3 { font-size: 16px; }
+.native-app .investigation-leads-count { font-size: 11px; flex-shrink: 0; }
+.native-app .investigation-leads-grid { grid-template-columns: 1fr; gap: 8px; }
+.native-app .investigation-lead-card { min-height: 88px; padding: 10px 12px; gap: 4px; position: relative; }
+.native-app .investigation-lead-card-index { font-size: 11px; }
+.native-app .investigation-lead-card strong { font-size: 16px; padding-right: 68px; }
+.native-app .investigation-lead-card span:not(.investigation-lead-card-index) { font-size: 12px; line-height: 1.5; }
+.native-app .investigation-lead-card em { position: absolute; right: 12px; top: 12px; font-size: 11px; }
+.native-app .investigation-actions { flex-direction: row; flex-wrap: nowrap; padding: 10px 12px; gap: 8px; flex-shrink: 0; border-top: 1px solid var(--paper-line); background: var(--paper-1); }
+.native-app .investigation-actions .btn { flex: 1; width: auto; min-width: 0; padding: 10px 8px; font-size: 13px; }
+.native-app .investigation-content { gap: 12px; }
+.native-app .investigation-clues-card, .native-app .investigation-scene-card { padding: 12px; }
+.native-app .investigation-clues-grid { grid-template-columns: 1fr; gap: 8px; }
+.native-app .clue-card { padding: 10px 12px; transform: none; }
+.native-app .clue-card-title { font-size: 14px; line-height: 1.5; }
+.native-app .clue-card-content { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: 13px; line-height: 1.6; }
+.native-app .clue-card-footer { margin-top: 6px; padding-top: 6px; font-size: 11px; }
+.native-app .investigation-clue-detail-content { font-size: 16px; line-height: 1.9; }
+
+.native-app .voting-phase { gap: 12px; }
+.native-app .voting-instructions { padding: 12px; }
+.native-app .voting-instructions-content p { font-size: 13px; line-height: 1.6; }
+.native-app .voting-character-grid { grid-template-columns: 1fr; gap: 8px; }
+.native-app .voting-character-card { flex-direction: row; text-align: left; justify-content: flex-start; gap: 14px; min-height: 88px; padding: 10px 12px; }
+.native-app .voting-character-card .avatar-portrait { width: 48px; height: 64px; flex-shrink: 0; }
+.native-app .voting-character-info { padding-right: 24px; }
+.native-app .voting-character-identity { font-size: 13px; }
+.native-app .voting-selected-badge { top: 50%; transform: translateY(-50%); right: 12px; }
+.native-app .voting-actions { position: sticky; bottom: -16px; padding: 10px 0; background: var(--paper-1); margin-top: auto; }
+.native-app .voting-actions .btn { width: 100%; }
+
+.native-app .discussion-topbar-title { display: none; } /* Phase and round are already in the app header. */
+.native-app .discussion-topbar { padding: 6px 10px; }
+.native-app .discussion-actions { gap: 6px; }
+.native-app .discussion-actions .btn { min-height: 40px; padding: 8px 6px; font-size: 11px; letter-spacing: 0; }
+.native-app .discussion-actions .btn svg { display: none; }
+.native-app .discussion-messages { padding: 10px; }
+.native-app .chat-message-text { font-size: 15px; line-height: 1.8; }
+.native-app .discussion-input-area { padding: 8px 10px 10px; }
+.native-app .discussion-mobile-options { display: flex; gap: 8px; margin-bottom: 8px; }
+.native-app .discussion-mobile-options button { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; flex: 1; min-height: 44px; padding: 6px 10px; border: 1px solid var(--paper-line); border-radius: 8px; color: var(--paper-ink); background: var(--paper-2); font: inherit; font-size: 13px; text-align: left; }
+.native-app .discussion-suggestions { display: flex; gap: 8px; margin-bottom: 8px; }
+.native-app .discussion-mobile-options button > :first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.native-app .discussion-mobile-options button > :last-child { flex-shrink: 0; }
+.native-app .discussion-suggestions button { min-height: 36px; border: 1px solid var(--paper-line); border-radius: 18px; padding: 6px 12px; color: var(--paper-ink-muted); background: transparent; font: inherit; font-size: 12px; }
+.native-app .discussion-input { min-height: 48px; height: 64px; padding: 10px; }
+.native-app .discussion-send-btn { width: 48px; min-height: 48px; }
+.native-app .modal-overlay { align-items: flex-end; padding: var(--app-top) 0 var(--app-bottom); }
+.native-app .modal { border-radius: 18px 18px 0 0; max-height: 78dvh; }
+.native-app .modal-header { padding: 8px 12px; }
+.native-app .modal-close { width: 44px; height: 44px; }
+.native-app .modal-content { padding: 12px 16px 18px; overscroll-behavior: contain; }
+.native-app .modal-footer { padding: 10px 12px; }
+.native-app .accuse-dialog { max-height: min(92dvh, calc(100dvh - var(--app-top) - var(--app-bottom))); }
+.native-app .accuse-dialog .modal-content { padding: 8px 12px; }
+.native-app .accuse-modal { padding: 12px; gap: 12px; }
+.native-app .accuse-warning { padding: 8px; gap: 8px; font-size: 12px; }
+.native-app .accuse-suspects h4 { margin-bottom: 8px; font-size: 14px; }
+.native-app .accuse-suspect-grid { grid-template-columns: 1fr; gap: 8px; }
+.native-app .accuse-suspect-card { min-height: 88px; padding: 10px; gap: 12px; }
+.native-app .accuse-suspect-card .avatar-portrait { width: 48px; height: 64px; }
+.native-app .accuse-suspect-info { padding-right: 26px; overflow-wrap: anywhere; }
+.native-app .accuse-suspect-name { font-size: 16px; }
+.native-app .accuse-suspect-identity { font-size: 13px; }
+.native-app .accuse-selected-badge { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+.native-app .accuse-actions { gap: 8px; }
+.native-app .accuse-actions .btn { flex: 1; min-width: 0; padding-inline: 8px; }
+.native-app .discussion-selection-list { display: flex; flex-direction: column; gap: 8px; }
+.native-app .discussion-selection-list button { display: flex; flex-direction: column; gap: 6px; min-height: 52px; padding: 12px; text-align: left; color: var(--color-text); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; font: inherit; }
+.native-app .discussion-selection-list button[aria-pressed="true"] { border: 2px solid var(--color-accent); background: var(--color-surface-raised); }
+.native-app .discussion-selection-list small { color: var(--color-text-muted); font-size: 13px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-height: 520px) {
+  .native-app .discussion-suggestions { display: none; }
+  .native-app .discussion-mobile-options { margin-bottom: 6px; }
+  .native-app .discussion-input { height: 48px; }
+}
+
+.native-app.native-keyboard-open .header-center { display: none; }
+.native-app.native-keyboard-open .discussion-suggestions { display: none; }
+@media (max-height: 420px) {
+  .native-app.native-keyboard-open .header { min-height: 44px; padding: 4px 10px; }
+  .native-app.native-keyboard-open .discussion-topbar { display: none; }
+  .native-app.native-keyboard-open .discussion-messages { padding: 6px; }
+  .native-app.native-keyboard-open .discussion-input-area { padding: 6px 10px; }
+  .native-app.native-keyboard-open .discussion-mobile-options { margin-bottom: 4px; }
+}

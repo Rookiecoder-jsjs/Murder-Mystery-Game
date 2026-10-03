@@ -1,0 +1,2 @@
+# Normalize the Windows wrapper in Git while retaining CRLF on checkout.
+gradlew.bat text eol=crlf

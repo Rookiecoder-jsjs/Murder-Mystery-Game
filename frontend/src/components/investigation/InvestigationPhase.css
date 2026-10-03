@@ -1,4 +1,5 @@
 /* Investigation Phase — 搜证幕：戏单 + 装饰金线 + 交错倾斜的道具牌 */
+.investigation-reading { display: contents; }
 
 .investigation-phase {
   width: min(100%, 1100px);

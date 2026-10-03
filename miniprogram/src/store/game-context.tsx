@@ -5,10 +5,13 @@ import {
   useContext,
   useMemo,
   useReducer,
+  useRef,
   type PropsWithChildren,
 } from 'react'
 import { gameApi } from '@/services/game-api'
 import { ApiError } from '@/services/http'
+import type { DiscussionOptions } from '@/types/game'
+
 import type {
   AccuseResponse,
   CharacterInfo,
@@ -92,12 +95,15 @@ interface GameContextValue {
   createGame: (topic: string, mode?: GameMode) => Promise<string>
   loadGame: (storyId: string, mode?: GameMode) => Promise<string>
   resumeGame: (gameId: string) => Promise<void>
+  refreshGame: () => Promise<void>
   introduce: (message: string) => Promise<void>
   investigate: (leadId?: string) => Promise<Clue[]>
   nextPhase: () => Promise<void>
   returnToInvestigation: () => Promise<void>
+  startNextRound: () => Promise<void>
+  collectBallotAdvice: () => Promise<void>
   startVoting: () => Promise<void>
-  speak: (message: string) => Promise<void>
+  speak: (message: string, options?: DiscussionOptions) => Promise<void>
   vote: (characterName: string) => Promise<VoteResponse>
   accuse: (characterName: string) => Promise<AccuseResponse>
   loadReveal: (gameId?: string) => Promise<RevealInfo>
@@ -120,11 +126,39 @@ export function getLastGameId(): string {
 
 export function GameProvider({ children }: PropsWithChildren) {
   const [state, dispatch] = useReducer(reducer, initialState)
+  const activeGameIdRef = useRef<string | null>(null)
+  const mutationVersionRef = useRef(0)
+
+  const syncGame = useCallback(async (gameId: string, restoring = false) => {
+    const version = mutationVersionRef.current
+    const [status, clueBoard, history] = await Promise.all([
+      gameApi.getStatus(gameId), gameApi.getClues(gameId), gameApi.getDiscussionHistory(gameId),
+    ])
+    if (activeGameIdRef.current !== gameId || mutationVersionRef.current !== version) return
+    dispatch({
+      type: 'PATCH',
+      payload: {
+        ...(restoring ? initialState : {}),
+        gameId, storyId: status.story_id, phase: status.phase, mode: status.mode,
+        round: status.round, maxRounds: status.max_rounds,
+        investigationOptions: status.investigation_options, lastEvent: status.last_event,
+        investigationCount: status.investigation_count || 0,
+        player: status.player, characters: status.characters,
+        availableActions: status.available_actions,
+        clues: clueBoard.clues, scenePublicClues: clueBoard.scene_public_clues,
+        accusationPoints: clueBoard.accusation_points,
+        discussionHistory: history.history,
+        ...(status.phase === 'introduction' ? { introductions: history.history } : {}),
+        gameEnded: status.game_ended, winner: status.winner, isSpeaking: status.is_speaking,
+      },
+    })
+  }, [])
 
   const createGame = useCallback(async (topic: string, mode: GameMode = 'classic') => {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
       const result = await gameApi.createGame(topic, mode)
+      activeGameIdRef.current = result.game_id
       persistLastGame(result.game_id)
       dispatch({
         type: 'PATCH',
@@ -149,6 +183,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           gameEnded: false,
         },
       })
+      await syncGame(result.game_id)
       return result.game_id
     } catch (error) {
       dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
@@ -156,12 +191,13 @@ export function GameProvider({ children }: PropsWithChildren) {
     } finally {
       dispatch({ type: 'PATCH', payload: { isLoading: false } })
     }
-  }, [])
+  }, [syncGame])
 
   const loadGame = useCallback(async (storyId: string, mode: GameMode = 'classic') => {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
       const result = await gameApi.loadGame(storyId, mode)
+      activeGameIdRef.current = result.game_id
       persistLastGame(result.game_id)
       dispatch({
         type: 'PATCH',
@@ -186,6 +222,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           gameEnded: false,
         },
       })
+      await syncGame(result.game_id)
       return result.game_id
     } catch (error) {
       dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
@@ -193,51 +230,31 @@ export function GameProvider({ children }: PropsWithChildren) {
     } finally {
       dispatch({ type: 'PATCH', payload: { isLoading: false } })
     }
-  }, [])
+  }, [syncGame])
 
   const resumeGame = useCallback(async (gameId: string) => {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
-      const [status, clueBoard, history] = await Promise.all([
-        gameApi.getStatus(gameId),
-        gameApi.getClues(gameId),
-        gameApi.getDiscussionHistory(gameId),
-      ])
+      activeGameIdRef.current = gameId
+      await syncGame(gameId, true)
       persistLastGame(gameId)
-      dispatch({
-        type: 'PATCH',
-        payload: {
-          gameId,
-          phase: status.phase,
-          mode: status.mode,
-          round: status.round,
-          maxRounds: status.max_rounds,
-          investigationOptions: status.investigation_options,
-          lastEvent: status.last_event,
-          investigationCount: status.investigation_count || 0,
-          player: status.player,
-          characters: status.characters,
-          availableActions: status.available_actions,
-          clues: clueBoard.clues,
-          scenePublicClues: clueBoard.scene_public_clues,
-          accusationPoints: clueBoard.accusation_points,
-          discussionHistory: history.history,
-          introductions: status.phase === 'introduction' ? history.history : state.introductions,
-          gameEnded: status.phase === 'reveal',
-        },
-      })
     } catch (error) {
       dispatch({ type: 'PATCH', payload: { error: messageOf(error) } })
       throw error
     } finally {
       dispatch({ type: 'PATCH', payload: { isLoading: false } })
     }
-  }, [state.introductions])
+  }, [syncGame])
 
   const requireGameId = useCallback(() => {
     if (!state.gameId) throw new ApiError('游戏尚未开始')
+    mutationVersionRef.current += 1
     return state.gameId
   }, [state.gameId])
+
+  const refreshGame = useCallback(async () => {
+    await syncGame(requireGameId())
+  }, [requireGameId, syncGame])
 
   const introduce = useCallback(async (message: string) => {
     const gameId = requireGameId()
@@ -247,6 +264,10 @@ export function GameProvider({ children }: PropsWithChildren) {
       dispatch({
         type: 'PATCH',
         payload: {
+          discussionHistory: [
+            { speaker: state.player?.name || '你', message: result.player_introduction },
+            ...result.ai_introductions,
+          ],
           introductions: [
             { speaker: state.player?.name || '你', message: result.player_introduction },
             ...result.ai_introductions,
@@ -272,6 +293,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           clues: result.clue_board.clues,
           scenePublicClues: result.clue_board.scene_public_clues,
           accusationPoints: result.clue_board.accusation_points,
+          availableActions: result.available_actions,
           investigationOptions: result.investigation_options,
           lastEvent: result.event,
           investigationCount: state.investigationCount + 1,
@@ -291,11 +313,16 @@ export function GameProvider({ children }: PropsWithChildren) {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
       const result = await gameApi.nextPhase(gameId)
+      const clueBoard = await gameApi.getClues(gameId)
       dispatch({
         type: 'PATCH',
         payload: {
           phase: result.phase,
+          clues: clueBoard.clues,
+          scenePublicClues: clueBoard.scene_public_clues,
+          accusationPoints: clueBoard.accusation_points,
           round: result.round || state.round,
+          availableActions: result.available_actions,
           investigationOptions: result.investigation_options || [],
           lastEvent: result.last_event || null,
         },
@@ -308,14 +335,12 @@ export function GameProvider({ children }: PropsWithChildren) {
     }
   }, [requireGameId, state.round])
 
-  const returnToInvestigation = useCallback(async () => {
+  const changeInvestigation = useCallback(async (nextRound = false) => {
     const gameId = requireGameId()
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
-      const [phase, clueBoard] = await Promise.all([
-        gameApi.returnToInvestigation(gameId),
-        gameApi.getClues(gameId),
-      ])
+      const phase = await (nextRound ? gameApi.nextInvestigationRound(gameId) : gameApi.returnToInvestigation(gameId))
+      const clueBoard = await gameApi.getClues(gameId)
       dispatch({
         type: 'PATCH',
         payload: {
@@ -324,6 +349,7 @@ export function GameProvider({ children }: PropsWithChildren) {
           clues: clueBoard.clues,
           scenePublicClues: clueBoard.scene_public_clues,
           accusationPoints: clueBoard.accusation_points,
+          availableActions: phase.available_actions,
           investigationOptions: phase.investigation_options || [],
           lastEvent: phase.last_event || null,
         },
@@ -336,6 +362,13 @@ export function GameProvider({ children }: PropsWithChildren) {
     }
   }, [requireGameId, state.round])
 
+  const returnToInvestigation = useCallback(() => changeInvestigation(), [changeInvestigation])
+  const startNextRound = useCallback(() => changeInvestigation(true), [changeInvestigation])
+  const collectBallotAdvice = useCallback(async () => {
+    const result = await gameApi.collectBallotAdvice(requireGameId())
+    dispatch({ type: 'PATCH', payload: { revealInfo: result } })
+  }, [requireGameId])
+
   const startVoting = useCallback(async () => {
     const gameId = requireGameId()
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
@@ -346,6 +379,7 @@ export function GameProvider({ children }: PropsWithChildren) {
         payload: {
           phase: result.phase,
           round: result.round || state.round,
+          availableActions: result.available_actions,
           investigationOptions: result.investigation_options || [],
           lastEvent: result.last_event || null,
         },
@@ -358,8 +392,9 @@ export function GameProvider({ children }: PropsWithChildren) {
     }
   }, [requireGameId, state.round])
 
-  const speak = useCallback(async (message: string) => {
+  const speak = useCallback(async (message: string, options: DiscussionOptions = {}) => {
     const gameId = requireGameId()
+    if (state.isSpeaking) return
     const ownMessage = { speaker: state.player?.name || '你', message }
     const optimisticHistory = [...state.discussionHistory, ownMessage]
     dispatch({
@@ -367,11 +402,12 @@ export function GameProvider({ children }: PropsWithChildren) {
       payload: { isSpeaking: true, error: null, discussionHistory: optimisticHistory },
     })
     try {
-      const result = await gameApi.speak(gameId, message)
+      const result = await gameApi.speak(gameId, message, options)
       dispatch({
         type: 'PATCH',
         payload: {
           discussionHistory: [...optimisticHistory, ...result.messages],
+          availableActions: result.available_actions,
           phase: result.phase,
         },
       })
@@ -386,8 +422,9 @@ export function GameProvider({ children }: PropsWithChildren) {
       throw error
     } finally {
       dispatch({ type: 'PATCH', payload: { isSpeaking: false } })
+      await syncGame(gameId)
     }
-  }, [requireGameId, state.discussionHistory, state.player?.name])
+  }, [requireGameId, state.discussionHistory, state.player?.name, state.isSpeaking, syncGame])
 
   const vote = useCallback(async (characterName: string) => {
     const gameId = requireGameId()
@@ -456,6 +493,7 @@ export function GameProvider({ children }: PropsWithChildren) {
   }, [requireGameId, state.characters])
 
   const resetGame = useCallback(() => {
+    activeGameIdRef.current = null
     Taro.removeStorageSync(LAST_GAME_KEY)
     dispatch({ type: 'RESET' })
   }, [])
@@ -465,10 +503,13 @@ export function GameProvider({ children }: PropsWithChildren) {
     createGame,
     loadGame,
     resumeGame,
+    refreshGame,
     introduce,
     investigate,
     nextPhase,
     returnToInvestigation,
+    startNextRound,
+    collectBallotAdvice,
     startVoting,
     speak,
     vote,
@@ -480,10 +521,13 @@ export function GameProvider({ children }: PropsWithChildren) {
     createGame,
     loadGame,
     resumeGame,
+    refreshGame,
     introduce,
     investigate,
     nextPhase,
     returnToInvestigation,
+    startNextRound,
+    collectBallotAdvice,
     startVoting,
     speak,
     vote,

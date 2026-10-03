@@ -1,0 +1,11 @@
+.evidence-notebook { display: grid; gap: 10px; min-width: 0; }
+.evidence-note { border: 1px solid var(--color-border-strong); border-radius: 8px; padding: 12px; min-width: 0; background: var(--color-surface); color: var(--color-text); }
+.evidence-note[data-selected="true"] { border: 2px solid var(--color-accent); background: var(--color-surface-raised); }
+.evidence-note summary { cursor: pointer; min-height: 44px; overflow-wrap: anywhere; }
+.evidence-note-heading { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
+.evidence-note-heading strong { font-size: 14px; line-height: 1.6; flex: 1; min-width: 0; }
+.evidence-note-selected { display: inline-flex; align-items: center; gap: 3px; color: var(--color-accent); font-size: 12px; font-weight: 600; }
+.evidence-note-meta { display: block; font-size: 12px; color: var(--color-text-muted); margin: 6px 0; }
+.evidence-note p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; margin: 10px 0; }
+.evidence-note button { min-height: 44px; width: 100%; white-space: normal; }
+.sidebar-evidence-section > summary { min-height: 44px; cursor: pointer; }

@@ -92,3 +92,5 @@
     height: 64px;
   }
 }
+ .chat-message-context { display: flex; flex-wrap: wrap; gap: 4px; margin: 3px 0 6px; }
+ .chat-message-context span { font-size: 12px; padding: 3px 6px; border: 1px solid var(--color-border-strong); border-radius: 5px; }

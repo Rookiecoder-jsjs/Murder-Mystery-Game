@@ -12,6 +12,7 @@ by a slow model.
 from __future__ import annotations
 
 import json
+import asyncio
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -23,6 +24,7 @@ from app.api.dependencies import (
 )
 from app.api.schemas import (
     AccuseRequest,
+    ClueBoardResponse,
     CreateGameRequest,
     IntroduceRequest,
     InvestigateRequest,
@@ -30,16 +32,14 @@ from app.api.schemas import (
     SpeakRequest,
     VoteRequest,
 )
-from app.core.logging import get_logger
 from app.core.phases import GamePhase
 from app.services.session_service import GameSession, SessionManager
 from app.services.story_service import StoryService
 
 
-logger = get_logger(__name__)
+from app.api.game_route import GameRoute
 
-
-router = APIRouter(prefix="/games", tags=["games"])
+router = APIRouter(prefix="/games", tags=["games"], route_class=GameRoute)
 
 
 def _get_story_service(manager: SessionManager) -> StoryService:
@@ -97,9 +97,14 @@ async def load_game(
     manager: SessionManager = Depends(get_session_manager),
 ) -> dict:
     """加载已有游戏（重新生成 session，故事内容从已存 archive 恢复）"""
-    archive = _get_story_service(manager).get_story(request.story_id)
+    try:
+        archive = await asyncio.to_thread(_get_story_service(manager).get_playable_story, request.story_id)
+    except ValueError:
+        raise HTTPException(status_code=422, detail="剧本尚未完成制作，请从成品库选择其他案件")
+    except RuntimeError:
+        raise HTTPException(status_code=503, detail="本地剧本读取失败，请稍后重试")
     if not archive:
-        raise HTTPException(status_code=404, detail="故事不存在")
+        raise HTTPException(status_code=404, detail="剧本不存在或存档已损坏")
     try:
         game_id, session = manager.create_session(
             archive=archive, mode=request.mode,
@@ -130,7 +135,7 @@ async def get_game_status(
     return session.get_game_status()
 
 
-@router.get("/{game_id}/clues")
+@router.get("/{game_id}/clues", response_model=ClueBoardResponse)
 async def get_clues(
     session: GameSession = Depends(get_session),
 ) -> dict:
@@ -170,97 +175,36 @@ async def player_introduce(
 async def advance_phase(
     session: GameSession = Depends(persist_session),
 ) -> dict:
-    if session.game.state.phase == GamePhase.DISCUSSION.value:
-        if session.game.state.mode == "quick":
-            # 速推模式的讨论阶段由「返回搜证」「进入投票」驱动；
-            # 走这里的经典逻辑会误加调查轮计数
-            raise HTTPException(
-                status_code=400,
-                detail="速推模式请使用「返回搜证」或「进入投票」推进",
-            )
-        if session.game.state.round >= session.game.state.max_rounds:
-            session.game.next_phase()
-        else:
-            session.game.state.round += 1
-    else:
-        session.game.next_phase()
-    return {
-        "phase": session.game.state.phase,
-        "round": session.game.state.round,
-        "investigation_options": session.get_investigation_options(),
-        "last_event": session.game.state.last_event,
-    }
+    return session.advance_phase()
 
 
 @router.post("/{game_id}/return-to-investigation")
 async def return_to_investigation(
     session: GameSession = Depends(persist_session),
 ) -> dict:
-    if session.game.state.phase not in [
-        GamePhase.DISCUSSION.value,
-        GamePhase.VOTING.value,
-    ]:
-        raise HTTPException(status_code=400, detail="只能在讨论或投票阶段返回搜证")
-
-    was_revote = (
-        session.game.state.phase == GamePhase.VOTING.value
-        and bool(session.game.get_votes())
-    )
-
-    if (
-        session.game.state.mode == "quick"
-        and session.game.state.phase == GamePhase.DISCUSSION.value
-    ):
-        if session.game.state.round >= session.game.state.max_rounds:
-            raise HTTPException(
-                status_code=400,
-                detail="速推模式已完成调查轮次，请进入投票",
-            )
-        session.game.state.round += 1
-
-    session.game.set_phase(GamePhase.INVESTIGATION)
-    # Discussion history survives — it is each side's memory of the case.
-    # A fresh voting round after this needs clean ballots.
-    if was_revote:
-        session.game.reset_votes()
-    quick_mode = session.game.state.mode == "quick"
-    if not quick_mode:
-        session.game.distribute_random_clues(session.human_player_id, 1)
-    for char_id in session.ai_characters:
-        # 速推模式：场景线索留给玩家当调查方向，AI 只抽人物持有的线索
-        session.game.distribute_random_clues(
-            char_id, 1, exclude_scene=quick_mode,
-        )
-    return {
-        "phase": session.game.state.phase,
-        "round": session.game.state.round,
-        "investigation_options": session.get_investigation_options(),
-        "last_event": session.game.state.last_event,
-    }
+    return session.return_to_investigation()
 
 
 @router.post("/{game_id}/start-voting")
 async def start_voting(
     session: GameSession = Depends(persist_session),
 ) -> dict:
-    if session.game.state.phase != GamePhase.DISCUSSION.value:
-        raise HTTPException(status_code=400, detail="当前不是讨论阶段")
-    if (
-        session.game.state.mode == "quick"
-        and session.game.state.round < session.game.state.max_rounds
-    ):
-        raise HTTPException(
-            status_code=400,
-            detail=f"请完成第 {session.game.state.round + 1} 轮调查后再进入投票",
-        )
-    session.game.set_phase(GamePhase.VOTING)
-    session.game.reset_votes()
-    return {
-        "phase": session.game.state.phase,
-        "round": session.game.state.round,
-        "investigation_options": session.get_investigation_options(),
-        "last_event": session.game.state.last_event,
-    }
+    return session.start_voting()
+
+
+@router.post("/{game_id}/next-investigation-round")
+async def next_investigation_round(
+    session: GameSession = Depends(persist_session),
+) -> dict:
+    return session.start_next_round()
+
+
+@router.post("/{game_id}/ballot-advice")
+async def ballot_advice(
+    session: GameSession = Depends(persist_session),
+) -> dict:
+    """Optional opinions use the frozen pre-verdict role contexts."""
+    return await session.collect_ballot_advice()
 
 
 # ---------------------------------------------------------------------------
@@ -284,10 +228,11 @@ async def speak(
 ) -> dict:
     if session.game.state.phase != GamePhase.DISCUSSION.value:
         raise HTTPException(status_code=400, detail="当前不是讨论阶段")
-    messages = await session.player_speak_collect(request.message)
+    messages = await session.player_speak_collect(request.message, request.target_id, request.presented_clue_ids, request.action_id)
     return {
         "messages": messages,
         "phase": session.game.state.phase,
+        "available_actions": session.get_game_status()["available_actions"],
     }
 
 
@@ -301,21 +246,20 @@ async def speak_stream(
     """SSE variant of ``/speak``.
 
     Emits one ``message`` event per AI response as it completes. The
-    human player's own message is NOT re-emitted — the frontend echoes
-    it optimistically. The final ``done`` event carries the current
+    player's question is emitted after it is recorded and saved, so clients
+    clear a draft only after acceptance. The final ``done`` event carries the current
     phase; a failure mid-stream is emitted as an ``error`` event.
 
-    Persistence happens after the body is consumed (this handler uses
-    ``get_session``, not ``persist_session``): the stream mutates state
-    while it runs, so a snapshot taken before the first AI reply would
-    drop the entire round.
+    Persistence is owned by the session background producer.
+    It records and saves every response even after a disconnect.
+
     """
-    if session.game.state.phase != GamePhase.DISCUSSION.value:
-        raise HTTPException(status_code=400, detail="当前不是讨论阶段")
+    session.validate_discussion(request.target_id, request.presented_clue_ids)
 
     async def event_source():
         try:
-            async for msg in session.player_speak_async(request.message):
+            async for msg in session.player_speak_async(request.message, request.target_id, request.presented_clue_ids,
+                                                       request.action_id, include_question=True):
                 payload = json.dumps(msg, ensure_ascii=False)
                 yield f"event: message\ndata: {payload}\n\n"
             terminal = json.dumps(
@@ -325,13 +269,6 @@ async def speak_stream(
         except Exception as e:
             err = json.dumps({"detail": str(e)}, ensure_ascii=False)
             yield f"event: error\ndata: {err}\n\n"
-        finally:
-            # Stream is fully consumed (success, error, or disconnect):
-            # snapshot now so the round's entries + AI memories persist.
-            try:
-                manager.save(game_id)
-            except Exception as e:
-                logger.warning("流式发言后保存会话失败: %s", e)
 
     return StreamingResponse(
         event_source(),

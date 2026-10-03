@@ -7,6 +7,8 @@
   flex-direction: column;
 }
 
+.discussion-new-messages { position: sticky; bottom: 4px; display: block; margin-left: auto; min-height: 44px; padding: 8px 16px; border-radius: 20px; background: var(--paper-2); color: var(--paper-ink); border: 1px solid var(--paper-line); cursor: pointer; z-index: 1; }
+
 /* 顶部戏单签横条（纸舞台上加深一档，与主纸区分） */
 .discussion-topbar {
   display: flex;
@@ -156,3 +158,10 @@
     padding-right: var(--space-4);
   }
 }
+
+.discussion-question-options { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.discussion-question-options label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; min-width: 0; flex: 1 1 160px; }
+.discussion-question-options select { width: 100%; padding: 8px; background: var(--bg-card, #f5efdf); color: var(--text-primary, #2c241c); border: 1px solid var(--border-color, #bda777); border-radius: 4px; }
+
+.discussion-choice-title { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; width: 100%; }
+.discussion-choice-selected { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; color: var(--color-accent); }

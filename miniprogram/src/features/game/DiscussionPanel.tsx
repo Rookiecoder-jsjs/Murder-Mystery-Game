@@ -1,4 +1,4 @@
-import { Button, ScrollView, Text, Textarea, View } from '@tarojs/components'
+import { Button, Picker, ScrollView, Text, Textarea, View } from '@tarojs/components'
 import { useMemo, useState } from 'react'
 import { ClueCard, PortraitFrame } from '@/components'
 import { useGame } from '@/store/game-context'
@@ -6,9 +6,13 @@ import { showError } from '@/utils/feedback'
 import './DiscussionPanel.scss'
 
 export function DiscussionPanel() {
-  const { state, speak, returnToInvestigation, startVoting } = useGame()
+  const { state, speak, returnToInvestigation, startNextRound, startVoting } = useGame()
   const quickModeNeedsAnotherRound = state.mode === 'quick' && state.round < state.maxRounds
   const [message, setMessage] = useState('')
+  const [targetIndex, setTargetIndex] = useState(0)
+  const [evidenceIndex, setEvidenceIndex] = useState(0)
+  const targets = state.characters.filter((c) => c.id !== state.player?.id)
+  const evidence = [...state.clues, ...state.scenePublicClues]
   const portraits = useMemo(
     () => state.characters.map((item) => item.portrait_url || ''),
     [state.characters],
@@ -19,7 +23,8 @@ export function DiscussionPanel() {
     if (!trimmed || state.isSpeaking) return
     setMessage('')
     try {
-      await speak(trimmed)
+      await speak(trimmed, { target_id: targets[targetIndex - 1]?.id, presented_clue_ids: evidence[evidenceIndex - 1] ? [evidence[evidenceIndex - 1].id] : [] })
+      setEvidenceIndex(0)
     } catch (error) {
       setMessage(trimmed)
       showError(error)
@@ -40,6 +45,11 @@ export function DiscussionPanel() {
     } catch (error) {
       showError(error)
     }
+  }
+
+  const advanceRound = async () => {
+    try { await startNextRound() }
+    catch (error) { showError(error) }
   }
 
   return (
@@ -130,6 +140,12 @@ export function DiscussionPanel() {
 
       <View className='discussion-panel__composer paper-card'>
         <Text className='field-label'>提交你的推论或质问</Text>
+        <Picker mode='selector' range={['全员讨论', ...targets.map((c) => c.name)]} value={targetIndex} onChange={(e) => setTargetIndex(Number(e.detail.value))} disabled={state.isSpeaking}>
+          <View className='discussion-panel__choice'>询问：{targets[targetIndex - 1]?.name || '全员讨论'}</View>
+        </Picker>
+        <Picker mode='selector' range={['不出示证据', ...evidence.map((c) => c.title || c.content.slice(0, 24))]} value={evidenceIndex} onChange={(e) => setEvidenceIndex(Number(e.detail.value))} disabled={state.isSpeaking}>
+          <View className='discussion-panel__choice'>证据：{evidence[evidenceIndex - 1]?.content.slice(0, 24) || '不出示'}</View>
+        </Picker>
         <Textarea
           className='archive-textarea discussion-panel__textarea'
           value={message}
@@ -147,10 +163,11 @@ export function DiscussionPanel() {
       </View>
 
       <View className='discussion-panel__footer'>
-        <Button className='secondary-button' disabled={!quickModeNeedsAnotherRound && state.mode === 'quick'} onClick={backToSearch}>返回搜证</Button>
-        <Button className='danger-button' disabled={quickModeNeedsAnotherRound} onClick={enterVoting}>
-          {quickModeNeedsAnotherRound ? `还需 ${state.maxRounds - state.round} 轮` : '结束讨论 · 进入表决'}
-        </Button>
+        <Button className='secondary-button' disabled={state.isSpeaking || state.isLoading} onClick={backToSearch}>补充调查</Button>
+        {quickModeNeedsAnotherRound && <Button className='primary-button' disabled={state.isSpeaking || state.isLoading || !state.availableActions.includes('next_round')} onClick={advanceRound}>下一轮调查</Button>}
+        {!quickModeNeedsAnotherRound && <Button className='danger-button' disabled={state.isSpeaking || state.isLoading || (state.mode === 'quick' && !state.availableActions.includes('vote'))} onClick={enterVoting}>
+          {quickModeNeedsAnotherRound ? `还需 ${state.maxRounds - state.round} 轮` : state.mode === 'quick' && !state.availableActions.includes('vote') ? '先发表本轮推论' : '结束讨论 · 进入表决'}
+        </Button>}
       </View>
     </View>
   )

@@ -1,6 +1,7 @@
 import { createContext } from 'react';
 import type {
   AccuseResponse,
+  DiscussionOptions,
   CaseBrief,
   CharacterInfo,
   ChatMessage,
@@ -40,6 +41,7 @@ export interface GameState {
   error: string | null;
   currentDiscussionMessages: ChatMessage[];
   introductions: ChatMessage[];
+  roundProgress?: { investigated: boolean; discussed: boolean };
 }
 
 export interface GameContextValue {
@@ -55,8 +57,10 @@ export interface GameContextValue {
   nextPhase: () => Promise<void>;
   startVoting: () => Promise<void>;
   returnToInvestigation: () => Promise<void>;
+  startNextRound: () => Promise<void>;
+  collectBallotAdvice: () => Promise<void>;
   investigate: (leadId?: string) => Promise<Clue[]>;
-  speak: (message: string) => Promise<void>;
+  speak: (message: string, options?: DiscussionOptions) => Promise<{ recorded: boolean; completed: boolean }>;
   vote: (characterName: string) => Promise<VoteResponse>;
   accuse: (characterName: string) => Promise<AccuseResponse>;
   loadReveal: () => Promise<void>;

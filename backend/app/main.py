@@ -18,6 +18,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from app.core.errors import GameError
 from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router
@@ -108,6 +110,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(GameError)
+async def game_error_handler(_request, error):
+    return JSONResponse(status_code=error.status_code, content={'detail': error.detail})
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_cors_origins(),
@@ -127,7 +134,8 @@ app.include_router(router)
 
 @app.get("/")
 async def root() -> dict:
-    return {"message": "剧本杀 API", "version": "1.0.0"}
+    return {"message": "剧本杀 API", "version": "1.0.0",
+            "launch_id": os.getenv("DEV_LAUNCH_ID", ""), "pid": os.getpid()}
 
 
 if __name__ == "__main__":

@@ -14,7 +14,7 @@ import json
 from dataclasses import asdict
 
 import pytest
-from fastapi import HTTPException
+from app.core.errors import GameError as HTTPException
 
 from app.core.phases import GamePhase
 from app.domain.models import PlayerState
@@ -78,13 +78,24 @@ class StubRoleplayClient:
     def create(self, **kwargs):
         self.calls.append(kwargs)
         texts = [m.get("content", "") for m in kwargs.get("messages", [])]
-        if any("submit_vote" in (t or "") for t in texts):
+        if kwargs.get("tool_choice", {}).get("function", {}).get("name") == "check_statement":
+            data = json.loads(texts[1])
+            return _FakeResponse(_FakeMessage(None, [_FakeToolCall(
+                "check_statement", json.dumps({"checks": [], "valid": True, "issues": [],
+                    "segments": [{"segment_index": i, "supported": True, "non_factual": True,
+                        "source_id": "", "quote": "", "unsupported_details": []}
+                        for i, _ in enumerate(data["speech_segments"])]}),
+            )]))
+        if kwargs.get("tool_choice", {}).get("function", {}).get("name") == "submit_vote":
             tool_call = _FakeToolCall(
                 "submit_vote",
                 '{"target_id": "char_2", "brief_reason": "他的时间线对不上"}',
             )
             return _FakeResponse(_FakeMessage(content=None, tool_calls=[tool_call]))
-        return _FakeResponse(_FakeMessage(content=self.reply))
+        tool_call = _FakeToolCall("submit_statement", json.dumps({
+            "speech": self.reply, "claims": [], "corrections": [],
+        }, ensure_ascii=False))
+        return _FakeResponse(_FakeMessage(content=None, tool_calls=[tool_call]))
 
 
 @pytest.fixture
@@ -110,6 +121,8 @@ class _FakeStoryService:
             return self._archive
         return None
 
+    get_playable_story = get_story
+
 
 # ---------- snapshot round trip ----------
 
@@ -128,13 +141,15 @@ class TestSnapshotRoundTrip:
 
         assert status["mode"] == "quick"
         assert status["max_rounds"] == 3
-        assert len(status["investigation_options"]) == 2
+        assert [o["id"] for o in status["investigation_options"]] == ["clue_a"]
 
         result = session.investigate(status["investigation_options"][0]["id"])
 
         assert result["found"]
         assert result["event"]["title"]
-        assert result["investigation_options"]
+        assert result["investigation_options"] == []
+        session.game.state.round = 2
+        assert session.get_investigation_options()
 
     def test_quick_mode_survives_snapshot_restore(self, sample_archive):
         session = GameSession(
@@ -301,32 +316,55 @@ class TestVoteFallback:
         session.game.set_phase(GamePhase.VOTING)
         return session
 
-    def test_failing_ai_still_gets_a_vote(self, sample_archive):
+    def test_failing_ai_abstains_without_blocking_verdict(self, sample_archive):
         session = self._voting_session(sample_archive)
-        # char_3 (Carol) always fails to produce a usable vote.
         session.ai_characters["char_3"].get_vote = lambda **kw: ("", "")
-
         result = asyncio.run(session.vote_async("Alice"))
-
-        # Every alive player (human + 3 AIs) must have cast a vote; otherwise
-        # check_voting_result never opens the ballot ("等待投票中..." forever).
-        assert len(session.game.state.votes_record) == 4
+        advice = asyncio.run(session.collect_ballot_advice())
+        assert next(b for b in advice["votes"] if b["voter"] == "Carol")["target"] == "弃权"
+        assert result["game_ended"] and result["winner"] == "good"
         assert result["all_submitted"] is True
-        assert "等待投票中" not in result["result"]
+        restored = GameSession.from_snapshot(session.to_snapshot("g"), sample_archive, StubRoleplayClient())
+        assert any(v["voter"] == "Carol" and v["target"] == "弃权"
+                   for v in restored.get_reveal_info()["votes"])
 
-    def test_fallback_target_is_alive_and_not_self(self, sample_archive):
+    def test_ai_exception_does_not_change_player_result(self, sample_archive):
         session = self._voting_session(sample_archive)
-        session.ai_characters["char_3"].get_vote = lambda **kw: ("", "")
+        def fail(**kwargs):
+            raise RuntimeError("模拟模型失败")
+        session.ai_characters["char_3"].get_vote = fail
+        result = asyncio.run(session.vote_async("Dave"))
+        advice = asyncio.run(session.collect_ballot_advice())
+        assert next(b for b in advice["votes"] if b["voter"] == "Carol")["target"] == "弃权"
+        assert result["game_ended"] and result["winner"] == "killer"
 
-        alive_before = set(session.game.alive_players)
-        asyncio.run(session.vote_async("Alice"))
+    def test_stalled_optional_advice_cannot_delay_or_overwrite_verdict(self, sample_archive, monkeypatch):
+        from app.services import session_service
+        session = self._voting_session(sample_archive)
+        result = asyncio.run(session.vote_async("Alice"))
+        monkeypatch.setattr(session_service, "NPC_VOTE_TIMEOUT_SECONDS", 0.01)
+        async def saved():
+            pass
+        monkeypatch.setattr(session, "_save_background", saved)
+        async def run():
+            loop = asyncio.get_running_loop()
+            monkeypatch.setattr(loop, "run_in_executor", lambda *args: loop.create_future())
+            return await asyncio.wait_for(session.collect_ballot_advice(), timeout=1)
+        advice = asyncio.run(run())
+        assert result["game_ended"] and result["winner"] == "good"
+        assert advice["winner"] == "good"
+        assert all(b["target"] == "弃权" for b in advice["votes"] if b["voter"] != "Bob")
+        assert not session.is_speaking
 
-        entry = next(
-            v for v in session.game.state.votes_record
-            if v["player_id"] == "char_3"
-        )
-        assert entry["target_id"] in alive_before
-        assert entry["target_id"] != "char_3"
+    def test_dead_target_is_rejected_before_ai_calls(self, sample_archive):
+        client = StubRoleplayClient()
+        session = GameSession(sample_archive, "char_2", client)
+        session.game.set_phase(GamePhase.VOTING)
+        session.game.eliminate_player("char_3")
+        with pytest.raises(HTTPException):
+            asyncio.run(session.vote_async("Carol"))
+        assert not client.calls
+        assert not session.game.state.votes_record
 
 
 # ---------- vote function calling (structured output) ----------
@@ -339,36 +377,26 @@ class TestVoteTool:
 
         asyncio.run(session.vote_async("Alice"))
 
-        by_player = {v["player_id"]: v for v in session.game.state.votes_record}
-        # char_4 is an AI whose stub always returns the submit_vote tool call.
-        assert by_player["char_4"]["target_id"] == "char_2"
-        assert by_player["char_4"].get("reason") == "他的时间线对不上"
-        # Every alive player voted (human + 3 AIs).
-        assert len(session.game.state.votes_record) == 4
+        asyncio.run(session.collect_ballot_advice())
+        advice = {b["voter"]: b for b in session.get_reveal_info()["votes"]}
+        assert advice["Dave"]["target"] == "Bob"
+        assert advice["Dave"]["reason"] == "他的时间线对不上"
+        assert len(session.game.state.votes_record) == 1
+        assert len(advice) == 4
 
 
 # ---------- snapshot defensive copy ----------
 
 
 class TestSnapshotDefensiveCopy:
-    def test_ai_memory_snapshot_is_not_alias(self, sample_archive):
+    def test_event_snapshot_is_not_alias(self, sample_archive):
         session = GameSession(sample_archive, "char_2", StubRoleplayClient())
-        session.ai_characters["char_3"].conversation_history.append(
-            {"role": "assistant", "message": "已发言"}
-        )
-
+        session.game.add_discussion("char_3", "已发言")
         snap = session.to_snapshot("g1")
-        assert snap["ai_memories"]["char_3"] == [
-            {"role": "assistant", "message": "已发言"}
-        ]
-
-        # Appending after snapshotting must not retroactively change it.
-        session.ai_characters["char_3"].conversation_history.append(
-            {"role": "user", "message": "新发言"}
-        )
-        assert snap["ai_memories"]["char_3"] == [
-            {"role": "assistant", "message": "已发言"}
-        ]
+        assert "ai_memories" not in snap
+        session.game.add_discussion("char_2", "新发言")
+        assert len(snap["state"]["discussion_events"]) == 1
+        assert snap["state"]["discussion_events"][0]["text"] == "已发言"
 
 
 # ---------- quick-mode phase guards ----------
@@ -435,7 +463,7 @@ class TestQuickModeInvestigation:
     def test_status_actions_match_callable_endpoints(self, sample_archive):
         """available_actions 必须与真实可调用的端点一致：
         round < max 可搜证/可返回搜证但不可进投票；
-        round == max 可进投票但返回搜证已被端点拒绝。"""
+        round == max 仍可补查，完成调查与讨论后才可投票。"""
         session = self._session(sample_archive)
         session.game.set_phase(GamePhase.DISCUSSION)
 
@@ -447,8 +475,11 @@ class TestQuickModeInvestigation:
         session.game.state.round = session.game.state.max_rounds
         status = session.get_game_status()
         assert "investigate" in status["available_actions"]
-        assert "return_investigation" not in status["available_actions"]
-        assert "vote" in status["available_actions"]
+        assert "return_investigation" in status["available_actions"]
+        assert "vote" not in status["available_actions"]
+        session.investigate()
+        asyncio.run(session.player_speak_collect("最终推论"))
+        assert "vote" in session.get_game_status()["available_actions"]
 
 
 # ---------- case brief (public synopsis, spoiler-free) ----------
@@ -473,7 +504,83 @@ class TestCaseBrief:
         """谜底仍走 reveal 通道（对照：简报裁剪不影响揭晓完整性）。"""
         session = GameSession(sample_archive, "char_2", StubRoleplayClient())
 
+        session.game.force_reveal()
         reveal = session.get_reveal_info()
 
         assert reveal["case_info"]["motive"] == "动机"
         assert reveal["case_info"]["true_killer"] == "char_1"
+
+
+class TestReviewRegressions:
+    def test_human_is_always_an_innocent(self, sample_archive, monkeypatch):
+        choices = []
+        def choose(ids):
+            choices.extend(ids)
+            return ids[0]
+        monkeypatch.setattr("app.services.session_service.random.choice", choose)
+        manager = SessionManager(StubRoleplayClient(), None)
+        game_id, session = manager.create_session(archive=sample_archive)
+        assert "char_1" not in choices
+        assert session.human_player_id != session.game.killer_id
+        assert session.get_game_status()["game_id"] == game_id
+        restored = GameSession.from_snapshot(session.to_snapshot(game_id), sample_archive, StubRoleplayClient())
+        assert restored.get_game_status()["game_id"] == game_id
+
+    def test_introductions_are_idempotent(self, sample_archive):
+        client = StubRoleplayClient()
+        session = GameSession(sample_archive, "char_2", client)
+        first = asyncio.run(session.player_introduce_async("初次介绍"))
+        count = len(client.calls)
+        second = asyncio.run(session.player_introduce_async("重试介绍"))
+        assert second == first
+        assert len(client.calls) == count
+        assert len(session.get_discussion_history()) == len(sample_archive.characters)
+
+    def test_disconnect_finishes_and_persists_all_replies(self, sample_archive):
+        import threading
+        from app.api.endpoints.games import speak_stream
+        from app.api.schemas import SpeakRequest
+        session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+        session.game.set_phase(GamePhase.DISCUSSION)
+        gate = threading.Event()
+        snapshots = []
+        session.set_persistence_callback(lambda: snapshots.append(session.to_snapshot("demo")))
+        for index, ai in enumerate(session.ai_characters.values()):
+            def respond(ai=ai, index=index, **kwargs):
+                if index:
+                    assert gate.wait(5)
+                reply = f"回复{index}"
+                return reply
+            ai.respond = respond
+
+        async def run():
+            stream = await speak_stream("demo", SpeakRequest(message="提问"), session, None)
+            try:
+                accepted = await anext(stream.body_iterator)
+                assert '"kind": "question"' in accepted
+                assert session.discussion_task is not None
+                with pytest.raises(HTTPException):
+                    session.accuse("Alice")
+                await stream.body_iterator.aclose()
+            finally:
+                gate.set()
+            await asyncio.wait_for(asyncio.shield(session.discussion_task), 5)
+        asyncio.run(run())
+        assert len(session.get_discussion_history()) == 4
+        assert "ai_memories" not in snapshots[-1]
+        assert len(snapshots[-1]["state"]["discussion_events"]) == 4
+        assert len(snapshots[-1]["state"]["discussion_history"]) == 4
+        assert not session.get_game_status()["is_speaking"]
+
+
+def test_legacy_reveal_snapshot_remains_readable(sample_archive):
+    session = GameSession(sample_archive, "char_2", StubRoleplayClient())
+    snapshot = session.to_snapshot("legacy-game")
+    snapshot["state"]["phase"] = "reveal"
+    snapshot["state"]["game_ended"] = False
+    snapshot["state"].pop("investigated_round")
+    snapshot["state"].pop("discussed_round")
+    restored = GameSession.from_snapshot(snapshot, sample_archive, StubRoleplayClient())
+    assert restored.get_game_status()["game_ended"] is True
+    assert restored.get_reveal_info()["case_info"]["true_killer"] == "char_1"
+    assert restored.game.state.investigated_round == 0

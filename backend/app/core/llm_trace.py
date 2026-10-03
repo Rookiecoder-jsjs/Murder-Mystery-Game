@@ -23,6 +23,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from app.core.logging import get_logger
+from app.core.prompt_cache import cache_usage
+from app.core.runtime import data_directory, is_embedded
 
 
 logger = get_logger(__name__)
@@ -60,7 +62,7 @@ def trace_dir() -> Path:
     raw = os.getenv(_ENV_DIR, "").strip()
     if raw:
         return Path(raw)
-    return Path(__file__).resolve().parents[2] / "logs" / "llm"
+    return data_directory() / "logs" / "llm"
 
 
 def _max_body_chars() -> int:
@@ -153,7 +155,12 @@ def trace_llm_chat(
         "response": response if response is not None else "",
         "reasoning": _truncate(reasoning or "", limit),
         "usage": usage,
+        "cache": cache_usage(usage),
         "duration_ms": duration_ms,
         "error": error,
     }
+    if is_embedded():
+        # Mobile diagnostics retain actual token/cache usage, never private text.
+        for field in ('messages', 'response', 'reasoning'):
+            record.pop(field, None)
     _append(record)

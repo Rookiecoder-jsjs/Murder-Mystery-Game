@@ -1,8 +1,10 @@
 // API client for the murder mystery game
+import { isAndroid, nativeRequest, nativeSpeak, NativeError } from './native';
 // 依赖 Vite 开发代理（/games、/stories → 后端），生产部署需同域或配置 API_BASE。
 
 import type {
   AccuseResponse,
+  DiscussionOptions,
   ChatMessage,
   ClueBoard,
   CreateGameResponse,
@@ -39,7 +41,7 @@ export class StreamTimeoutError extends Error {
 
 /** 取出 ApiError 的 HTTP 状态码（非 ApiError 返回 undefined） */
 export function apiErrorStatus(error: unknown): number | undefined {
-  return error instanceof ApiError ? error.status : undefined;
+  return error instanceof ApiError || error instanceof NativeError ? error.status : undefined;
 }
 
 async function fetchApi<T>(
@@ -47,6 +49,7 @@ async function fetchApi<T>(
   options?: RequestInit,
   timeoutMs?: number,
 ): Promise<T> {
+  if (isAndroid) return nativeRequest<T>(endpoint, options);
   let response: Response;
   const controller = new AbortController();
   const timer = timeoutMs
@@ -138,8 +141,14 @@ export const api = {
       method: 'POST',
     }),
 
+  nextInvestigationRound: (gameId: string) =>
+    fetchApi<PhaseResponse>(`/games/${gameId}/next-investigation-round`, { method: 'POST' }),
+
+  collectBallotAdvice: (gameId: string) =>
+    fetchApi<RevealInfo>(`/games/${gameId}/ballot-advice`, { method: 'POST' }),
+
   /**
-   * AI 发言流。服务端在开流前已把玩家消息写入讨论历史，
+   * 已记录的玩家问题与 AI 发言流；收到问题后才可清除草稿。
    * 因此失败时调用方应改用 discussion-history 重新同步，
    * 而不是重试批量发言接口（会导致消息重复入库）。
    */
@@ -147,7 +156,9 @@ export const api = {
     gameId: string,
     message: string,
     externalSignal?: AbortSignal,
+    options: DiscussionOptions = {},
   ): AsyncGenerator<ChatMessage, string, void> {
+    if (isAndroid) return yield* nativeSpeak(gameId, { message, ...options }, externalSignal);
     const controller = new AbortController();
     const onExternalAbort = () => controller.abort();
     externalSignal?.addEventListener('abort', onExternalAbort);
@@ -164,7 +175,7 @@ export const api = {
       const response = await fetch(`${API_BASE}/games/${gameId}/speak/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, ...options }),
         signal: controller.signal,
       });
       if (!response.ok || !response.body) {
@@ -199,6 +210,9 @@ export const api = {
           }
           yield JSON.parse(data);
         }
+      }
+      if (!finalPhase) {
+        throw new ApiError('连接提前中断，正在同步讨论记录');
       }
       return finalPhase;
     } catch (err) {

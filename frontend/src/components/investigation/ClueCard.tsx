@@ -2,6 +2,7 @@
 import { Search, MessageSquare, FileText } from 'lucide-react';
 import type { Clue } from '../../api/types';
 import './ClueCard.css';
+import { clueTitle } from '../../utils/playerText';
 
 interface ClueCardProps {
   clue: Clue;
@@ -46,10 +47,11 @@ export function ClueCard({ clue, isNew = false, onClick }: ClueCardProps) {
           <span className="stamp stamp--seal">新</span>
         ) : (
           <span className="stamp clue-card-id">
-            C-{clue.id.split('-').pop()?.slice(-4) ?? '0000'}
+            已归档
           </span>
         )}
       </div>
+      <strong className="clue-card-title">{clueTitle(clue)}</strong>
       <p className="clue-card-content">{clue.content}</p>
       <div className="clue-card-footer">
         <span className="clue-card-holder">持有者：{clue.holder_name}</span>

@@ -13,3 +13,6 @@ export { ErrorBoundary } from './ErrorBoundary';
 export type { ToastKind } from './ToastContext';
 export { TypingIndicator } from './TypingIndicator';
 export { ConnectionBanner } from './ConnectionBanner';
+
+export { RoleScript } from './RoleScript';
+export { EvidenceNotebook } from './EvidenceNotebook';

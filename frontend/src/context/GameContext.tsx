@@ -9,182 +9,19 @@ import {
   type ReactNode,
 } from 'react';
 import { api, ApiError } from '../api/client';
+import { isAndroid, nativeSnapshot } from '../api/native';
 import { useToast } from '../components/common';
 import type {
   AccuseResponse,
-  CaseBrief,
-  CharacterInfo,
+  DiscussionOptions,
   ChatMessage,
   Clue,
-  ClueBoard,
   GamePhase,
   GameMode,
-  GameStatus,
-  RevealInfo,
   VoteResponse,
 } from '../api/types';
-import { GameContext, type GameState } from './game-context';
-
-type GameAction =
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_SPEAKING'; payload: boolean }
-  | { type: 'SET_CONNECTION_LOST'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: string | null }
-  | {
-      type: 'GAME_CREATED';
-      payload: {
-        gameId: string;
-        storyId: string;
-        topic: string;
-        caseBrief?: CaseBrief | null;
-        player: CharacterInfo;
-        characters: CharacterInfo[];
-        phase: string;
-        mode?: GameMode;
-        maxRounds?: number;
-      };
-    }
-  | {
-      type: 'GAME_RESUMED';
-      payload: {
-        gameId: string;
-        status: GameStatus;
-        clueBoard: ClueBoard;
-        history: ChatMessage[];
-      };
-    }
-  | { type: 'SET_GAME_STATUS'; payload: Partial<GameState> }
-  | { type: 'SET_PHASE'; payload: GamePhase }
-  | { type: 'SET_ROUND'; payload: number }
-  | { type: 'SET_CLUES'; payload: { clues: Clue[]; accusationPoints: number; scenePublicClues: Clue[] } }
-  | { type: 'ADD_DISCUSSION_MESSAGES'; payload: ChatMessage[] }
-  | { type: 'SET_DISCUSSION_HISTORY'; payload: ChatMessage[] }
-  | { type: 'SET_INTRODUCTIONS'; payload: ChatMessage[] }
-  | { type: 'SET_REVEAL_INFO'; payload: RevealInfo }
-  | { type: 'GAME_ENDED'; payload: { winner: string; revealInfo: RevealInfo | null } }
-  | { type: 'RESET_GAME' };
-
-const initialState: GameState = {
-  gameId: null,
-  storyId: null,
-  topic: '',
-  caseBrief: null,
-  player: null,
-  characters: [],
-  phase: 'introduction',
-  mode: 'classic',
-  round: 1,
-  maxRounds: 5,
-  investigationOptions: [],
-  lastEvent: null,
-  clues: [],
-  accusationPoints: 1,
-  scenePublicClues: [],
-  discussionHistory: [],
-  availableActions: [],
-  gameEnded: false,
-  winner: null,
-  revealInfo: null,
-  isLoading: false,
-  isSpeaking: false,
-  connectionLost: false,
-  error: null,
-  currentDiscussionMessages: [],
-  introductions: [],
-};
-
-function gameReducer(state: GameState, action: GameAction): GameState {
-  switch (action.type) {
-    case 'SET_LOADING':
-      return { ...state, isLoading: action.payload };
-    case 'SET_SPEAKING':
-      return { ...state, isSpeaking: action.payload };
-    case 'SET_CONNECTION_LOST':
-      return { ...state, connectionLost: action.payload };
-    case 'SET_ERROR':
-      return { ...state, error: action.payload };
-    case 'GAME_CREATED':
-      return {
-        ...initialState,
-        gameId: action.payload.gameId,
-        storyId: action.payload.storyId,
-        topic: action.payload.topic,
-        caseBrief: action.payload.caseBrief ?? null,
-        player: action.payload.player,
-        characters: action.payload.characters,
-        phase: action.payload.phase as GamePhase,
-        mode: action.payload.mode ?? 'classic',
-        maxRounds: action.payload.maxRounds ?? 5,
-        investigationOptions: [],
-        lastEvent: null,
-      };
-    case 'GAME_RESUMED': {
-      const { gameId, status, clueBoard, history } = action.payload;
-      return {
-        ...state,
-        gameId,
-        caseBrief: status.case_brief ?? null,
-        player: status.player,
-        characters: status.characters,
-        phase: status.phase,
-        mode: status.mode,
-        round: status.round,
-        maxRounds: status.max_rounds,
-        investigationOptions: status.investigation_options,
-        lastEvent: status.last_event,
-        availableActions: status.available_actions,
-        clues: clueBoard.clues,
-        accusationPoints: clueBoard.accusation_points,
-        scenePublicClues: clueBoard.scene_public_clues,
-        currentDiscussionMessages: history,
-        isLoading: false,
-        connectionLost: false,
-        error: null,
-      };
-    }
-    case 'SET_GAME_STATUS':
-      return { ...state, ...action.payload };
-    case 'SET_PHASE':
-      return { ...state, phase: action.payload };
-    case 'SET_ROUND':
-      return { ...state, round: action.payload };
-    case 'SET_CLUES':
-      return {
-        ...state,
-        clues: action.payload.clues,
-        accusationPoints: action.payload.accusationPoints,
-        scenePublicClues: action.payload.scenePublicClues,
-      };
-    case 'ADD_DISCUSSION_MESSAGES':
-      return {
-        ...state,
-        currentDiscussionMessages: [
-          ...state.currentDiscussionMessages,
-          ...action.payload,
-        ],
-      };
-    case 'SET_DISCUSSION_HISTORY':
-      return { ...state, currentDiscussionMessages: action.payload };
-    case 'SET_INTRODUCTIONS':
-      return { ...state, introductions: action.payload };
-    case 'SET_REVEAL_INFO':
-      return { ...state, revealInfo: action.payload };
-    case 'GAME_ENDED':
-      // 游戏结束必然进入揭晓阶段（后端契约曾被投票分支破坏，这里双保险）
-      return {
-        ...state,
-        phase: 'reveal',
-        gameEnded: true,
-        winner: action.payload.winner,
-        revealInfo: action.payload.revealInfo,
-        isLoading: false,
-      };
-    case 'RESET_GAME':
-      return initialState;
-    default:
-      return state;
-  }
-}
+import { GameContext } from './game-context';
+import { gameReducer, initialState } from './game-reducer';
 
 function errMsg(error: unknown): string {
   return error instanceof Error ? error.message : '操作失败，请重试';
@@ -194,6 +31,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducer, initialState);
   const { notify } = useToast();
   const speakAbortRef = useRef<AbortController | null>(null);
+  const activeGameIdRef = useRef<string | null>(null);
 
   // 返回新建的 gameId，由页面负责导航到 /game/:gameId
   const createGame = useCallback(async (topic: string, playerName?: string, mode: GameMode = 'classic') => {
@@ -201,6 +39,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
       const response = await api.createGame(topic, playerName, mode);
+      activeGameIdRef.current = response.game_id;
       dispatch({
         type: 'GAME_CREATED',
         payload: {
@@ -229,6 +68,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
       const response = await api.loadGame(storyId, mode);
+      activeGameIdRef.current = response.game_id;
       dispatch({
         type: 'GAME_CREATED',
         payload: {
@@ -255,14 +95,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // 刷新/刷新页面后按 URL 中的 id 续局
   const resumeGame = useCallback(async (gameId: string) => {
     speakAbortRef.current?.abort();
+    speakAbortRef.current = null;
+    activeGameIdRef.current = gameId;
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const [status, clueBoard, historyResp] = await Promise.all([
+      const snapshot = isAndroid ? await nativeSnapshot(gameId) : null;
+      const [status, clueBoard, historyResp] = snapshot
+        ? [snapshot.status, snapshot.clues, { history: snapshot.history }] as const
+        : await Promise.all([
         api.getGameStatus(gameId),
         api.getClues(gameId),
         api.getDiscussionHistory(gameId),
       ]);
+      if (activeGameIdRef.current !== gameId) return;
       dispatch({
         type: 'GAME_RESUMED',
         payload: { gameId, status, clueBoard, history: historyResp.history },
@@ -280,16 +126,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!state.gameId) return false;
     try {
       const status = await api.getGameStatus(state.gameId);
+      if (activeGameIdRef.current !== state.gameId) return false;
       dispatch({
         type: 'SET_GAME_STATUS',
         payload: {
           phase: status.phase,
+          gameEnded: status.game_ended,
+          winner: status.winner,
+          isSpeaking: Boolean(speakAbortRef.current) || status.is_speaking,
           mode: status.mode,
           round: status.round,
           maxRounds: status.max_rounds,
           investigationOptions: status.investigation_options,
           lastEvent: status.last_event,
           availableActions: status.available_actions,
+          roundProgress: status.round_progress,
           player: status.player,
           characters: status.characters,
           // 简报只在到达时覆盖，避免旧后端缺字段时把已有值刷成 undefined
@@ -297,6 +148,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
           connectionLost: false,
         },
       });
+      if (status.phase === 'discussion' && !speakAbortRef.current) {
+        const { history } = await api.getDiscussionHistory(state.gameId);
+        if (activeGameIdRef.current === state.gameId && !speakAbortRef.current) {
+          dispatch({ type: 'SET_DISCUSSION_HISTORY', payload: history });
+        }
+      }
       return true;
     } catch {
       return false;
@@ -307,6 +164,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!state.gameId) return false;
     try {
       const clueBoard = await api.getClues(state.gameId);
+      if (activeGameIdRef.current !== state.gameId) return false;
       dispatch({
         type: 'SET_CLUES',
         payload: {
@@ -325,6 +183,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!state.gameId) return false;
     try {
       const { history } = await api.getDiscussionHistory(state.gameId);
+      if (activeGameIdRef.current !== state.gameId) return false;
       dispatch({ type: 'SET_DISCUSSION_HISTORY', payload: history });
       return true;
     } catch {
@@ -354,6 +213,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         type: 'SET_GAME_STATUS',
         payload: {
           investigationOptions: result.investigation_options,
+          availableActions: result.available_actions,
           lastEvent: result.event,
         },
       });
@@ -402,20 +262,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
       dispatch({
         type: 'SET_GAME_STATUS',
         payload: {
+          availableActions: result.available_actions,
           investigationOptions: result.investigation_options ?? [],
           lastEvent: result.last_event ?? null,
+          roundProgress: result.round_progress,
         },
       });
       if (result.round !== undefined) {
         dispatch({ type: 'SET_ROUND', payload: result.round });
       }
+      await refreshClues();
     } catch (error) {
       dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.gameId]);
+  }, [state.gameId, refreshClues]);
 
   const startVoting = useCallback(async () => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
@@ -424,6 +287,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     try {
       const result = await api.startVoting(state.gameId);
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
+      dispatch({ type: 'SET_GAME_STATUS', payload: { availableActions: result.available_actions, lastEvent: result.last_event ?? null } });
       if (result.round !== undefined) {
         dispatch({ type: 'SET_ROUND', payload: result.round });
       }
@@ -435,19 +299,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state.gameId]);
 
-  const returnToInvestigation = useCallback(async () => {
+  const changeInvestigation = useCallback(async (nextRound = false) => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const result = await api.returnToInvestigation(state.gameId);
+      const result = await (nextRound ? api.nextInvestigationRound(state.gameId) : api.returnToInvestigation(state.gameId));
       dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
       dispatch({ type: 'SET_ROUND', payload: result.round ?? 1 });
       dispatch({
         type: 'SET_GAME_STATUS',
         payload: {
+          availableActions: result.available_actions,
           investigationOptions: result.investigation_options ?? [],
           lastEvent: result.last_event ?? null,
+          roundProgress: result.round_progress,
         },
       });
       await refreshClues();
@@ -460,53 +326,67 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state.gameId, refreshClues, refreshDiscussionHistory]);
 
+  const returnToInvestigation = useCallback(() => changeInvestigation(), [changeInvestigation]);
+  const startNextRound = useCallback(() => changeInvestigation(true), [changeInvestigation]);
+
+  const collectBallotAdvice = useCallback(async () => {
+    if (!state.gameId) throw new ApiError('游戏尚未开始');
+    const reveal = await api.collectBallotAdvice(state.gameId);
+    if (activeGameIdRef.current === state.gameId) dispatch({ type: 'SET_REVEAL_INFO', payload: reveal });
+  }, [state.gameId]);
+
   const speak = useCallback(
-    async (message: string) => {
+    async (message: string, options: DiscussionOptions = {}) => {
       const gameId = state.gameId;
       const playerName = state.player?.name ?? '你';
-      if (!gameId || state.isSpeaking) return;
+      if (!gameId || state.isSpeaking) return { recorded: false, completed: false };
+      options = { ...options, action_id: options.action_id || crypto.randomUUID() };
+      let recorded = false;
+      let completed = false;
 
       speakAbortRef.current?.abort();
       const controller = new AbortController();
       speakAbortRef.current = controller;
 
-      // 乐观回显：服务端不再重复发送玩家消息
-      dispatch({
-        type: 'ADD_DISCUSSION_MESSAGES',
-        payload: [{ speaker: playerName, message }],
-      });
+      // Only recorded questions enter history; an unsent draft remains editable.
       dispatch({ type: 'SET_SPEAKING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
       try {
-        for await (const msg of api.speakStream(gameId, message, controller.signal)) {
+        for await (const msg of api.speakStream(gameId, message, controller.signal, options)) {
+          if (controller.signal.aborted || activeGameIdRef.current !== gameId) return { recorded, completed };
+          if (msg.speaker === playerName) recorded = true;
           dispatch({ type: 'ADD_DISCUSSION_MESSAGES', payload: [msg] });
         }
+        completed = recorded = true;
       } catch (error) {
-        if (controller.signal.aborted) return; // 被新一轮发言/重置打断，静默
+        if (controller.signal.aborted) return { recorded, completed };
         // 不做批量降级（会重复入库）。改用服务端历史重同步，保留已到达内容。
         try {
           const { history } = await api.getDiscussionHistory(gameId);
-          const ownRecorded = history.some(
-            (m) => m.speaker === playerName && m.message === message,
-          );
+          recorded = history.some((m) => m.action_id === options.action_id && m.kind === 'question');
           dispatch({
             type: 'SET_DISCUSSION_HISTORY',
-            payload: ownRecorded
-              ? history
-              : [...history, { speaker: playerName, message }],
+            payload: history,
           });
-          notify('连接中断，已为你同步最新消息', 'error');
+          notify(recorded ? `${errMsg(error)}，问题已保存，可继续原任务` : `${errMsg(error)}，草稿已保留`, 'error');
         } catch {
+          dispatch({ type: 'SET_CONNECTION_LOST', payload: true });
           notify(errMsg(error), 'error');
         }
       } finally {
         if (speakAbortRef.current === controller) {
           speakAbortRef.current = null;
           dispatch({ type: 'SET_SPEAKING', payload: false });
+          if (activeGameIdRef.current === gameId) {
+            await refreshStatus();
+            await refreshClues();
+            await refreshDiscussionHistory();
+          }
         }
       }
+      return { recorded, completed };
     },
-    [state.gameId, state.player?.name, state.isSpeaking, notify],
+    [state.gameId, state.player?.name, state.isSpeaking, notify, refreshStatus, refreshClues, refreshDiscussionHistory],
   );
 
   const vote = useCallback(
@@ -573,6 +453,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!state.gameId) return;
     try {
       const reveal = await api.getReveal(state.gameId);
+      if (activeGameIdRef.current !== state.gameId) return;
       dispatch({ type: 'SET_REVEAL_INFO', payload: reveal });
     } catch {
       // 保持加载提示，交由用户重试或轮询恢复
@@ -581,6 +462,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const resetGame = useCallback(() => {
     speakAbortRef.current?.abort();
+    speakAbortRef.current = null;
+    activeGameIdRef.current = null;
     dispatch({ type: 'RESET_GAME' });
   }, []);
 
@@ -599,6 +482,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
         nextPhase,
         startVoting,
         returnToInvestigation,
+        startNextRound,
+        collectBallotAdvice,
         investigate,
         speak,
         vote,

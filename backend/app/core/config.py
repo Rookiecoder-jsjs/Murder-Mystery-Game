@@ -9,12 +9,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
-from dotenv import load_dotenv
-
 # 环境变量文件固定锚定在 backend/.env（相对此文件解析，不依赖进程 CWD）。
 # 真实密钥只存这里（已被 .gitignore 忽略）；模板与注释见 backend/.env.simple。
 ENV_FILE: Path = Path(__file__).resolve().parents[2] / ".env"
-load_dotenv(ENV_FILE)
+if ENV_FILE.is_file():
+    # Embedded builds have no env file and need no dotenv dependency.
+    from dotenv import load_dotenv
+    load_dotenv(ENV_FILE)
 
 # 启动必需的环境变量 —— 缺失时直接拒绝启动（见 validate_secrets）
 REQUIRED_SECRETS: tuple[str, ...] = ("DEEPSEEK_API_KEY",)
@@ -114,6 +115,10 @@ class RoleplayConfig:
     model_name: str = "deepseek-v4-flash"
     generation: GenerationParams = field(default_factory=GenerationParams)
     thinking_enabled: bool = False
+    context_token_budget: int = 12000
+    """Conservative estimated input budget, including tools and repair reserve."""
+    review_model_name: str = ""
+    """Independent semantic checker and bounded repair model; empty reuses generation."""
 
     @classmethod
     def from_env(cls) -> "RoleplayConfig":
@@ -122,18 +127,22 @@ class RoleplayConfig:
         Falls back to DEEPSEEK_API_KEY when no separate roleplay key is set —
         both roles usually share the same DeepSeek account.
         """
+        base_url = os.getenv("ROLEPLAY_BASE_URL", "") or os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+        model = os.getenv("ROLEPLAY_MODEL", "deepseek-v4-flash")
+        review_default = "deepseek-v4-pro" if base_url.rstrip("/") in {
+            "https://api.deepseek.com", "https://api.deepseek.com/v1"} else model
         return cls(
             api_key=os.getenv("ROLEPLAY_API_KEY", "") or os.getenv("DEEPSEEK_API_KEY", ""),
-            base_url=os.getenv(
-                "ROLEPLAY_BASE_URL", os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
-            ),
-            model_name=os.getenv("ROLEPLAY_MODEL", "deepseek-v4-flash"),
+            base_url=base_url,
+            model_name=model,
+            review_model_name=os.getenv("ROLEPLAY_REVIEW_MODEL", review_default),
             generation=GenerationParams(
                 temperature=_env_float("ROLEPLAY_TEMPERATURE", 1.0),
                 top_p=_env_float("ROLEPLAY_TOP_P", 0.95),
                 max_completion_tokens=_env_int("ROLEPLAY_MAX_TOKENS", 2048),
             ),
             thinking_enabled=_env_bool("ROLEPLAY_THINKING_ENABLED", False),
+            context_token_budget=_env_int("ROLEPLAY_CONTEXT_TOKEN_BUDGET", 12000),
         )
 
 
@@ -214,3 +223,9 @@ def reload_config() -> AppConfig:
     global _config
     _config = AppConfig.from_env()
     return _config
+
+
+def configure_app(config: AppConfig) -> None:
+    """Inject a non-env configuration before starting an embedded session."""
+    global _config
+    _config = config

@@ -9,6 +9,7 @@ from typing import Optional
 import random
 
 from app.core.phases import GamePhase
+from app.domain.context import DiscussionEvent, StatementClaim
 from app.domain.models import (
     StoryArchive,
     ScriptCharacter,
@@ -75,6 +76,7 @@ class GameManager:
             archive: The story archive containing characters and clues.
         """
         self.archive = archive
+        self._release_rounds = archive.release_rounds()
         mode = normalize_mode(mode)
         self.state = GameState(
             story_id=archive.id,
@@ -134,18 +136,17 @@ class GameManager:
         return self.clues.get(clue_id)
 
     def get_revealed_clues(self) -> list[ClueData]:
-        """Get the clues that are public to every player.
+        """Scene discoveries and explicitly presented personal evidence."""
+        return [c for c in self.archive.clues if c.reveal_to_all]
 
-        Only scene-held clues are ever revealed to all (see
-        ``_claim_clue``). Restricting to them mirrors the board's
-        ``scene_public`` bucket: the AI is told this list is already
-        common knowledge, so anything wider would let it cite clues the
-        player has no way to obtain.
-        """
-        return [
-            c for c in self.archive.clues
-            if c.reveal_to_all and c.holder_id == "scene"
-        ]
+    def present_clues(self, player_id: str, clue_ids: list[str]) -> None:
+        """Publish owned evidence; validate the entire batch before mutation."""
+        known = {c.id for c in self.get_player_clues(player_id)} | {
+            c.id for c in self.get_revealed_clues()}
+        if any(cid not in known for cid in clue_ids):
+            raise ValueError("只能出示你已掌握的证据")
+        for cid in clue_ids:
+            self.get_clue(cid).reveal_to_all = True
 
     def get_player_clues(self, player_id: str) -> list[ClueData]:
         """Get all clues known by a player.
@@ -186,6 +187,8 @@ class GameManager:
         Args:
             phase: The phase to set.
         """
+        if self.state.game_ended and phase != GamePhase.REVEAL:
+            raise ValueError("游戏已经结束")
         self.state.phase = phase.value
         self.state.turn = 0
         if phase == GamePhase.DISCUSSION and self.state.mode != "quick":
@@ -195,6 +198,30 @@ class GameManager:
             self.state.round = 1
         # 突发事件横幅只属于触发它的那一刻，阶段推进后不再展示
         self.state.last_event = None
+
+    def start_next_investigation_round(self, player_id: str) -> None:
+        """Advance a completed quick round only through an explicit action."""
+        investigated = (self.state.investigated_round == self.state.round
+                        or not self.get_available_clues(player_id))
+        if (self.state.game_ended or self.state.mode != "quick"
+                or self.current_phase != GamePhase.DISCUSSION
+                or self.state.round >= self.state.max_rounds
+                or not investigated or self.state.discussed_round != self.state.round):
+            raise ValueError("请完成本轮调查和讨论后再开启下一轮")
+        self.state.round += 1
+        self.set_phase(GamePhase.INVESTIGATION)
+
+    def record_ballot_advice(self, player_id: str, target_id: str, reason: str) -> None:
+        """Store optional terminal advice without changing votes or the verdict."""
+        if not self.state.game_ended or self.current_phase != GamePhase.REVEAL:
+            raise ValueError("结案后才能记录人物判断")
+        character = self.get_character(player_id)
+        target = self.get_character(target_id)
+        if not character or (target_id and (not target or target_id == player_id)):
+            raise ValueError("人物判断的角色无效")
+        self.state.ballot_details = [b for b in self.state.ballot_details if b["voter"] != character.name]
+        self.state.ballot_details.append({"voter": character.name,
+            "target": target.name if target else "弃权", "reason": reason})
 
     def get_clue_board(self, player_id: str) -> ClueBoard:
         """Get the complete clue board for a player.
@@ -225,7 +252,7 @@ class GameManager:
             c.id for c in self.archive.clues if c.reveal_to_all
         }
         for clue in self.archive.clues:
-            if clue.reveal_to_all and clue.holder_id == "scene":
+            if clue.reveal_to_all:
                 entry = ClueBoardEntry(
                     clue=clue,
                     status=ClueStatus.SCENE_PUBLIC.value,
@@ -244,6 +271,9 @@ class GameManager:
             if clue.required_clue_id and clue.required_clue_id not in satisfied:
                 continue  # locked — hidden from this player's board
 
+            if self.state.mode == "quick" and self._release_rounds.get(clue.id, 1) > self.state.round:
+                continue
+
             entry = ClueBoardEntry(
                 clue=clue,
                 status=ClueStatus.AVAILABLE.value,
@@ -255,6 +285,29 @@ class GameManager:
             available=tuple(available_entries),
             scene_public=tuple(scene_public_entries),
         )
+
+    @staticmethod
+    def validate_quick_evidence_routes(archive: StoryArchive) -> None:
+        """Authoring-only simulation of evidence access for each playable role.
+
+        It checks rule reachability, not whether quotations prove a conclusion.
+        Each simulation owns a fresh archive, so no public flags escape to play.
+        """
+        required = {ref['clue_id'] for step in archive.solution for ref in step['evidence']}
+        for character in archive.characters:
+            if character.id == archive.case.true_killer:
+                continue
+            game = GameManager(StoryArchive.from_dict(archive.to_dict()), mode="quick")
+            game.set_phase(GamePhase.INVESTIGATION)
+            for round_number in (1, 2, 3):
+                game.state.round = round_number
+                for role_id in game.alive_players:
+                    game.grant_role_clues(role_id)
+                while available := game.get_available_clues(character.id):
+                    game.distribute_clue(character.id, available[0].id)
+            visible = {c.id for c in game.get_player_clues(character.id) + game.get_revealed_clues()}
+            if missing := required - visible:
+                raise ValueError(f"角色 {character.id} 在三轮内无法取得定案证据：{'、'.join(sorted(missing))}")
 
     def get_available_clues(self, player_id: str) -> list[ClueData]:
         """Return currently discoverable clues in archive order."""
@@ -348,6 +401,8 @@ class GameManager:
         Returns:
             True if the player can accuse.
         """
+        if self.state.game_ended or self.current_phase == GamePhase.REVEAL:
+            return False
         state = self.state.player_states.get(player_id)
         if not state or not state.is_alive:
             return False
@@ -384,6 +439,7 @@ class GameManager:
 
         state.accusation_points -= 1
         state.has_accused = True
+        state.vote = target_id  # Preserve the final choice for the reveal.
 
         if target_id == self.killer_id:
             char = self.get_character(target_id)
@@ -456,6 +512,36 @@ class GameManager:
             state and state.is_alive
             and self.current_phase == GamePhase.VOTING
         )
+
+    def resolve_player_verdict(self, player_id: str) -> tuple[bool, str]:
+        """A single human's final answer determines their outcome; NPCs advise."""
+        if self.state.game_ended or not self.can_vote(player_id):
+            return False, "当前无法结案"
+        target = self.state.player_states[player_id].vote
+        target_state = self.state.player_states.get(target)
+        if target == player_id or not target_state or not target_state.is_alive:
+            return False, "请先选择有效嫌疑人"
+        correct = target == self.killer_id
+        self.set_phase(GamePhase.REVEAL)
+        self.state.game_ended = True
+        self.state.winner = "good" if correct else "killer"
+        name = self.get_character(target).name
+        return True, f"你的最终判断：{name}。" + ("指认正确，好人胜利！" if correct else "指认错误，凶手逃脱。")
+
+    def grant_role_clues(self, player_id: str) -> None:
+        """Give only this role's authored personal knowledge, without searching."""
+        character = self.get_character(player_id)
+        if not character:
+            return
+        eligible = set(character.clues)
+        # Repeat to allow a role's own prerequisite chain in the same release.
+        while True:
+            clues = [c for c in self.get_available_clues(player_id)
+                     if c.id in eligible and c.holder_id == player_id]
+            if not clues:
+                break
+            for clue in clues:
+                self._claim_clue(player_id, clue.id)
 
     def get_votes(self) -> list[str]:
         """Get all votes.
@@ -568,16 +654,51 @@ class GameManager:
         self.set_phase(GamePhase.REVEAL)
         self.state.game_ended = True
 
-    def add_discussion(self, player_id: str, message: str) -> None:
-        """Add a message to the discussion history.
+    def migrate_discussion_history(self) -> None:
+        """Import old public lines once, without inventing missing metadata."""
+        if self.state.discussion_events:
+            self._refresh_discussion_projection()
+            return
+        by_name = {c.name: c.id for c in self.archive.characters}
+        for line in self.state.discussion_history:
+            name, separator, text = line.partition(": ")
+            sequence = len(self.state.discussion_events) + 1
+            self.state.discussion_events.append(DiscussionEvent(
+                event_id=f"e{sequence}", sequence=sequence,
+                speaker_id=by_name.get(name, ""), speaker_name=name if separator else "未知",
+                text=text if separator else line, kind="legacy_statement",
+            ))
 
-        Args:
-            player_id: The speaking player's character ID.
-            message: The spoken message.
-        """
+    def _refresh_discussion_projection(self) -> None:
+        self.state.discussion_history = [
+            f"{e.speaker_name}: {e.text}" for e in self.state.discussion_events
+            if not e.audience
+        ]
+
+    def add_discussion(
+        self, player_id: str, message: str, *, action_id: str = "",
+        kind: str = "statement", target_id: str | None = None,
+        presented_clue_ids: tuple[str, ...] = (), reply_to: str | None = None,
+        audience: tuple[str, ...] = (), claims: tuple[StatementClaim, ...] = (),
+        corrections: tuple[str, ...] = (), legacy: bool = False,
+    ) -> DiscussionEvent:
+        """Append a sourced utterance and update the public compatibility view."""
+        self.migrate_discussion_history()
         char = self.get_character(player_id)
         char_name = char.name if char else player_id
-        self.state.discussion_history.append(f"{char_name}: {message}")
+        sequence = self.state.discussion_events[-1].sequence + 1 if self.state.discussion_events else 1
+        event = DiscussionEvent(
+            event_id=f"e{sequence}", sequence=sequence,
+            speaker_id=player_id, speaker_name=char_name, text=str(message),
+            phase=None if legacy else self.state.phase,
+            round=None if legacy else self.state.round,
+            action_id=action_id, kind=kind, target_id=target_id,
+            presented_clue_ids=tuple(presented_clue_ids), reply_to=reply_to,
+            audience=tuple(audience), claims=tuple(claims), corrections=tuple(corrections),
+        )
+        self.state.discussion_events.append(event)
+        self._refresh_discussion_projection()
+        return event
 
     def get_game_summary(self) -> str:
         """Get a summary of the game result.

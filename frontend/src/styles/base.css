@@ -167,15 +167,6 @@ input::placeholder, textarea::placeholder {
   100% { transform: translateY(0) rotate(var(--paper-tilt, 0deg)); }
 }
 
-/* 大幕黑场：合拢 → 细缝 → 开合，总时长随 --transition-slow */
-@keyframes curtain-reveal {
-  0%, 7% { opacity: 1; clip-path: inset(0 0 0 0); }
-  32% { opacity: 1; clip-path: inset(49.5% 0 49.5% 0); }
-  55%, 62% { opacity: 1; clip-path: inset(49% 0 49% 0); }
-  85% { opacity: 1; clip-path: inset(0 0 0 0); }
-  100% { opacity: 0; clip-path: inset(0 0 0 0); }
-}
-
 /* 打字机光标闪烁 */
 @keyframes typewriter-caret {
   0%, 60% { opacity: 1; }

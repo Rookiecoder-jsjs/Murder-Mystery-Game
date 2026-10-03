@@ -10,6 +10,10 @@
   overflow-y: auto;
 }
 
+.reveal-deduction { margin: 12px 0; border-bottom: 1px solid var(--paper-line); padding: 8px 0; }
+.reveal-deduction summary, .reveal-section > summary { min-height: 44px; cursor: pointer; overflow-wrap: anywhere; }
+.reveal-deduction p { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+
 .reveal-loading {
   display: flex;
   justify-content: center;

@@ -26,6 +26,7 @@ export function IntroductionPanel() {
   const submitIntroduction = async () => {
     try {
       await introduce(message.trim())
+      await nextPhase()
     } catch (error) {
       showError(error)
     }

@@ -10,6 +10,8 @@
 - `frontend/`：React 19 + TypeScript + Vite 的 Web 客户端。
 - `miniprogram/`：Taro 4 + React 18 + TypeScript 的微信小程序客户端，复用同一套后端 API。
 
+安卓独立运行开发版见 [实施记录与迁移方案](docs/android-port-plan.md)。`frontend/android/` 使用 Capacitor + Chaquopy；`mobile_engine/` 提供本地任务、SQLite 与模型适配。构建按源码白名单复用 `backend/app`，不得复制 `.env`、电脑存档或日志。APK 内运行游戏引擎，由原生层保存密钥并请求模型服务，不启动 HTTP 后端。当前采用竖屏手机布局；文档其余目标设计不代表全部完成。
+
 游戏阶段及其字符串值必须保持一致：
 
 `introduction` → `investigation` → `discussion` → `voting` → `reveal`
@@ -57,7 +59,7 @@ codegraph status
 - `miniprogram/src/services/`：小程序 HTTP/API 封装。
 - `miniprogram/src/store/`：小程序游戏状态。
 - `miniprogram/src/features/game/`、`miniprogram/src/pages/`、`miniprogram/src/components/`：小程序业务功能、页面和展示组件。
-- `scripts/`：跨平台开发启动器。动态端口由后端写入 `backend/.port.json`，前端开发服务器读取该文件进行代理配置。
+- `scripts/`：跨平台开发启动器。动态端口由后端原子写入 `backend/.port.json`；联合启动器核对本次 launch_id、PID 与 HTTP 就绪后，通过 BACKEND_PORT 固定前端代理。单独启动前端仍读取端口文件。
 
 ## 架构与实现规则
 
@@ -68,8 +70,19 @@ codegraph status
 5. 修改 API 时同时检查四处：后端路由/Schema、Web `frontend/src/api/`、小程序 `miniprogram/src/services/` 与类型、对应测试。
 6. 流式对话接口使用 SSE。修改事件名、数据结构、终止事件或超时行为时，必须同步更新 Web 端解析器和小程序端兼容逻辑，并覆盖失败/断流场景。
 7. 会话持久化是可插拔的：默认内存存储；设置 `SESSIONS_DIR` 后使用 JSON 文件存储。新增状态字段时必须提供缺省值或迁移兼容逻辑。
-8. 游戏阶段、投票、指认、平票重投和揭晓的行为属于核心规则。改变阶段转换或胜负判定时，必须先补充或修改 `backend/tests/test_game_manager.py` 及相关服务/API 测试。
-9. 面向玩家的文案以中文为主，保持现有游戏术语、阶段名称和错误提示风格；不要无理由改动既有文案或 API 字段的中英文命名。
+8. 新开局玩家只分配非凶手角色。揭晓接口只允许终局访问，终局不可重新推进或指认；速推每轮需实际调查与发言（线索耗尽免调查），最后一轮允许补查。「返回搜证」只做本轮补查，下一轮必须经独立 next-investigation-round 动作推进。相关轮次字段须兼容旧快照缺省值。
+9. SSE 回复由会话后台任务记录和保存，断流不能取消本轮记忆/历史写入；AI 回应期间拒绝并发游戏动作。文件存档需原子写入。
+10. 单人游戏按玩家最终选择结案；确认后先持久化终局，不等待 AI 表决；人物判断只在用户请求 ballot-advice 时生成，使用揭晓前冻结的角色视图，失败则弃权且不改胜负。游戏阶段、投票、指认和揭晓的行为属于核心规则。改变阶段转换或胜负判定时，必须先补充或修改 `backend/tests/test_game_manager.py` 及相关服务/API 测试。
+11. 剧本本人知识使用 `self_knowledge` / `objectives`；`cover_story` 仅为对外说辞，不能提升为事实；`solution` 证据映射在游玩中仅供作者审稿，终局可经揭晓接口展示证据链，不得自动把全知 `secret`、`backstory`、`alibi` 下发给玩家或无辜 AI。速推线索按 `discovery_round` 解锁，加载和生成须校验前置引用与循环依赖。
+    新剧本的结构修复与证据一致性修复分别限次；按字段原子应用补丁，保留角色、线索 ID，禁止整表替换；仅在开局前允许纠正与真实行凶者不一致的真凶字段，之后必须重新审查身份与本人作案原文。所有修补结果必须重新通过结构与语义审查后才能保存，不对已开始的游戏自动改写剧本。
+    新剧本负面审稿必须修稿，不得靠一次笼统复核放行。正面审稿须返回从真相识别的实际致死者 ID 和该角色本人作案知识原文，后端核对指定真凶与原文归属；制作结果 production 随正文原子保存；成品开局、旧档兼容读取、恢复与复盘不触发在线审稿或画像生成。审稿契约升级只影响新制作版本，不重新审查旧成品。
+12. 定向质问可传 `target_id` / `presented_clue_ids`；出示证据须检查持有权并持久化公开状态，无辜角色应回应证据证实的本人经历。
+13. 角色上下文统一由 `ContextAssembler` 生成；先权限筛选再检索，使用同一行动的冻结快照。事件和文书内容保留证言属性，不得因摘要、旧发言或模型推理自动升级为事实。
+14. `discussion_events` 是权威对话记录，`discussion_history` 仅为公共兼容投影；新会话不再保存独立 `ai_memories`。SSE 先推送已记录并保存的问题（带 action_id/kind），客户端收到确认后才清除正文和本次出示的证据；询问对象沿用当前选择。失败前保留正文、对象和证据组合，讨论历史同样返回这两个可选字段，禁止重复乐观回显。AI 发言由逐句提交的 `segments` 拼成唯一正文，经来源及覆盖全部分句的一致性检查后才能推送/保存；迁移旧存档不得推断缺失的轮次、时间或来源。
+    分句审查同时提供完整句子上下文，保留未知语气的作用范围；不能因同句出现“不知道”而放过独立的行动断言。修复失败时只能引用可见证据或直接相关的本人原文，不能用无关秘密或重复掩饰代替对出示证据的回应。
+    上下文序列化保持公共案情、本角色资料在前，动态轮次、公开状态、来源白名单和当前问题在后；工具定义不得随来源/候选人变化。权限与引用仍由后端检查。历史按时间顺序呈现，不能为缓存跨角色共享私密知识或复用过期权限；缓存命中只依据供应商实际 usage，固定前缀指纹不是命中证明。
+15. 官方 DeepSeek V4 的剧本原稿保留低强度思考；审稿保留低强度思考，字段修补使用非思考 JSON 输出，仍执行全部结构、身份和语义校验。模型输入去重不得改变存档原文或丢弃部分引用。手机生成进度只报告真实阶段，不按等待时间推断百分比。
+16. 面向玩家的文案以中文为主，保持现有游戏术语、阶段名称和错误提示风格；不要无理由改动既有文案或 API 字段的中英文命名。NPC 正文不得展示内部来源/角色编号或编码标记。玩家历史原文保持不变，展示层可将规范的询问/出示证据标记转为中文标签；不能擅自翻译玩家内容。
 
 ## 代码风格
 
@@ -118,6 +131,7 @@ cd backend && python -m pytest tests/test_game_manager.py -v
 Web 验证：
 
 ```bash
+cd frontend && npm test
 cd frontend && npm run lint
 cd frontend && npm run build
 ```
@@ -126,6 +140,7 @@ cd frontend && npm run build
 
 ```bash
 cd miniprogram && pnpm install --frozen-lockfile
+cd miniprogram && pnpm test
 cd miniprogram && pnpm run typecheck
 cd miniprogram && pnpm run build:weapp
 ```
@@ -134,7 +149,7 @@ cd miniprogram && pnpm run build:weapp
 
 ## 配置、数据与安全
 
-- 密钥只放在 `backend/.env`，不要提交 `.env`、API key、访问令牌或真实用户数据。
+- 现有 Web/小程序部署的模型密钥只放在 `backend/.env`。安卓独立版按设计由用户在手机输入，由原生层使用 Android Keystore 管理的加密密钥保护 API key；不得复制电脑 `.env` 到 APK。不要提交 `.env`、API key、访问令牌或真实用户数据，不把密钥写入前端构建变量、游戏存档或日志。
 - 启动时后端会校验必需的 LLM 配置；缺少密钥时的快速失败属于预期行为，不要通过硬编码默认密钥规避。
 - `backend/assets/portraits/`、`backend/sessions/`、`backend/.port.json` 和各端构建产物属于运行时/生成文件，除非任务明确要求，不要提交。
 - 处理剧本 JSON 时保留合法 JSON、UTF-8 编码和现有字段语义；不要把日志、推理过程或密钥写入存档。

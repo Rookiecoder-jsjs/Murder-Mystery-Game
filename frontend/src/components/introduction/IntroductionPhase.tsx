@@ -2,8 +2,9 @@
 import { useState } from 'react';
 import { User, Play, ArrowRight } from 'lucide-react';
 import { useGame } from '../../context/useGame';
-import { Button, Card, Avatar, useToast } from '../common';
+import { Button, Card, Avatar, RoleScript, useToast } from '../common';
 import './IntroductionPhase.css';
+import { isAndroid } from '../../api/native';
 
 export function IntroductionPhase() {
   const { state, introduce, nextPhase } = useGame();
@@ -20,6 +21,7 @@ export function IntroductionPhase() {
     setIsSubmitting(true);
     try {
       await introduce(customIntro || undefined);
+      await nextPhase();
     } catch (err) {
       notify(err instanceof Error ? err.message : '自我介绍失败', 'error');
     } finally {
@@ -98,6 +100,8 @@ export function IntroductionPhase() {
         </div>
       </Card>
 
+      <RoleScript player={state.player} expanded={!isAndroid} />
+
       {!hasResults && (
         <Card className="introduction-input-card">
           <h4 className="introduction-input-title">你的自我介绍</h4>
@@ -119,7 +123,7 @@ export function IntroductionPhase() {
             className="introduction-submit"
           >
             <Play size={16} />
-            开始自我介绍
+            开始调查
           </Button>
         </Card>
       )}

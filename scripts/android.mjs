@@ -1,0 +1,16 @@
+// Build the offline bundle before invoking the checked-in Gradle wrapper.
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+if (Number(process.versions.node.split('.')[0]) < 22) {
+  console.error('Android 构建需要 Node.js 22 或更高版本。'); process.exit(1);
+}
+function run(command, args, cwd) {
+  const result = spawnSync(command, args, { cwd, stdio: 'inherit', env: process.env });
+  if (result.error) { console.error(result.error.message); process.exit(1); }
+  if (result.status !== 0) process.exit(result.status || 1);
+}
+run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'android:sync'], path.join(root, 'frontend'));
+run(process.platform === 'win32' ? 'gradlew.bat' : './gradlew', [':app:assembleDebug', '--console=plain'], path.join(root, 'frontend/android'));
+console.log('APK: frontend/android/app/build/outputs/apk/debug/app-debug.apk');

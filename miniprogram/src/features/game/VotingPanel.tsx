@@ -21,7 +21,7 @@ export function VotingPanel() {
     if (!selected) return
     const modal = await Taro.showModal({
       title: `把票投给 ${selected.name}？`,
-      content: '表决将与其他人物的判断一起封存。确认后无法单独更改。',
+      content: '你的最终选择决定胜负，确认后立即结案。结案后可按需查看人物判断。',
       confirmText: '确认投票',
       confirmColor: '#9d3328',
     })
@@ -61,7 +61,7 @@ export function VotingPanel() {
         <Text>!</Text>
         <View>
           <Text>最后判断</Text>
-          <Text>选中人物后仍可查看肖像全貌；点击底部按钮才会正式落票。</Text>
+          <Text>你的最终选择决定胜负。结案后可按需查看人物判断，不影响胜负。</Text>
         </View>
       </View>
 

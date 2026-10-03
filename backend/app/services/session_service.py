@@ -22,12 +22,18 @@ import asyncio
 import json
 import os
 import random
+import tempfile
+import threading
+import time
 import uuid
 from dataclasses import asdict
-from typing import Any, AsyncIterable, Dict, List, Optional, Protocol
+from typing import Any, AsyncIterable, Callable, Dict, List, Optional, Protocol
 
-from fastapi import HTTPException
-from openai import OpenAI
+from typing import TYPE_CHECKING
+from app.core.errors import GameError, ModelInterrupted
+from app.core.runtime import is_embedded
+if TYPE_CHECKING:
+    from openai import OpenAI
 
 from app.agents.roleplay_character import RoleplayCharacter
 from app.core.config import get_config
@@ -39,9 +45,14 @@ from app.domain.game_manager import (
     normalize_mode,
 )
 from app.domain.models import GameState, PlayerState, StoryArchive
+from app.domain.context import DiscussionEvent, RoleContext
+from app.services.context_service import ContextAssembler, ContextBudgetExceeded
 
 
 logger = get_logger(__name__)
+
+# Advisory ballots must not hold the player's verdict behind a stalled model.
+NPC_VOTE_TIMEOUT_SECONDS = 30.0
 
 
 # ---------------------------------------------------------------------------
@@ -82,8 +93,18 @@ class JsonFileSessionStore:
 
     def save(self, snapshot: Dict[str, Any]) -> None:
         path = self._path(snapshot["game_id"])
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(snapshot, f, ensure_ascii=False, indent=2)
+        # Background replies and HTTP teardown may save simultaneously.
+        # Publish a complete file so readers never see a truncated JSON.
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=self._dir,
+                                             suffix=".tmp", delete=False) as f:
+                temporary = f.name
+                json.dump(snapshot, f, ensure_ascii=False, indent=2)
+            os.replace(temporary, path)
+        finally:
+            if temporary and os.path.exists(temporary):
+                os.remove(temporary)
 
     def load_all(self) -> list[Dict[str, Any]]:
         if not os.path.isdir(self._dir):
@@ -124,11 +145,15 @@ def _restore_state(raw: Dict[str, Any], archive: StoryArchive) -> GameState:
         round=raw.get("round", 1),
         max_rounds=max_rounds_for_mode(mode),
         investigation_count=raw.get("investigation_count", 0),
+        investigated_round=raw.get("investigated_round", 0),
+        discussed_round=raw.get("discussed_round", 0),
         min_investigation_rounds=raw.get("min_investigation_rounds", 2),
         eliminated_id=raw.get("eliminated_id"),
         votes_record=list(raw.get("votes_record", [])),
+        ballot_details=list(raw.get("ballot_details", [])),
         discussion_history=list(raw.get("discussion_history", [])),
-        game_ended=raw.get("game_ended", False),
+        discussion_events=[DiscussionEvent.from_dict(e) for e in raw.get("discussion_events", [])],
+        game_ended=raw.get("game_ended", False) or raw.get("phase") == "reveal",
         winner=raw.get("winner"),
         reveal_triggered=raw.get("reveal_triggered", False),
         last_event=raw.get("last_event"),
@@ -163,7 +188,10 @@ class GameSession:
         human_player_id: str,
         roleplay_client: OpenAI,
         mode: str = "classic",
+        game_id: Optional[str] = None,
     ) -> None:
+        self.game_id = game_id or str(uuid.uuid4())
+        self._init_runtime()
         self.archive = archive
         self.game = GameManager(archive, mode=mode)
         self.human_player_id = human_player_id
@@ -189,20 +217,122 @@ class GameSession:
 
         self._distribute_initial_clues()
 
-    def _distribute_initial_clues(self) -> None:
-        # 速推模式：场景线索留给玩家当调查方向，开局随机抽取
-        # （玩家与 AI 都是）不能碰它们——否则开局即公开一条方向，
-        # 并把它泄露进所有 AI 的上下文
-        exclude_scene = self.game.state.mode == "quick"
-        self.game.distribute_random_clues(
-            self.human_player_id, 1, exclude_scene=exclude_scene,
+    def _init_runtime(self) -> None:
+        self.discussion_task: Optional[asyncio.Task] = None
+        self.pending_discussion: Optional[dict] = None
+        self.pending_ballots: Optional[dict] = None
+        self.last_activity = time.time()
+        self._busy = False
+        self._persistence_lock = asyncio.Lock()
+        self._persist: Callable[[], None] = lambda: None
+
+    def set_persistence_callback(self, callback: Callable[[], None]) -> None:
+        """Bind the registry's snapshot writer to background discussion work."""
+        self._persist = callback
+
+    async def _save_background(self) -> None:
+        try:
+            async with self._persistence_lock:
+                if is_embedded():
+                    self._persist()  # Short SQLite commit on the engine thread, never the UI thread.
+                else:
+                    await asyncio.to_thread(self._persist)
+        except Exception as exc:
+            logger.warning("保存后台讨论失败: %s", exc)
+
+    @property
+    def is_speaking(self) -> bool:
+        return self.discussion_task is not None and not self.discussion_task.done()
+
+    def ensure_playable(self) -> None:
+        """Reject mutations after the verdict or during another AI action."""
+        if self.game.state.game_ended or self.game.current_phase == GamePhase.REVEAL:
+            raise GameError(status_code=400, detail="游戏已经结束")
+        if self._busy or self.is_speaking:
+            raise GameError(status_code=409, detail="角色正在回应，请稍后再操作")
+        if self.pending_discussion:
+            raise GameError(status_code=409, detail="上一轮讨论未完成，请先继续该任务")
+
+    def _investigated_this_round(self) -> bool:
+        return (
+            self.game.state.investigated_round == self.game.state.round
+            or not self.game.get_available_clues(self.human_player_id)
         )
+
+    def _completed_this_round(self) -> bool:
+        return (
+            self._investigated_this_round()
+            and self.game.state.discussed_round == self.game.state.round
+        )
+
+    def phase_payload(self) -> Dict[str, Any]:
+        status = self.get_game_status()
+        return {key: status[key] for key in (
+            "phase", "round", "investigation_options", "last_event", "available_actions", "round_progress",
+        )}
+
+    def advance_phase(self) -> Dict[str, Any]:
+        """Advance only playable stages; votes exclusively decide the verdict."""
+        self.ensure_playable()
+        phase = self.game.current_phase
+        if phase == GamePhase.VOTING:
+            raise GameError(status_code=400, detail="请先完成投票")
+        if self.game.state.mode == "quick":
+            if phase == GamePhase.DISCUSSION:
+                raise GameError(status_code=400, detail="速推模式请使用「下一轮调查」或「进入投票」推进")
+            if phase == GamePhase.INVESTIGATION and not self._investigated_this_round():
+                raise GameError(status_code=400, detail="请先调查一条线索，再进入讨论")
+        if phase == GamePhase.DISCUSSION and self.game.state.round < self.game.state.max_rounds:
+            self.game.state.round += 1
+        else:
+            self.game.next_phase()
+        return self.phase_payload()
+
+    def return_to_investigation(self) -> Dict[str, Any]:
+        """Return for supplemental investigation without advancing quick rounds."""
+        self.ensure_playable()
+        phase = self.game.current_phase
+        if phase not in (GamePhase.DISCUSSION, GamePhase.VOTING):
+            raise GameError(status_code=400, detail="只能在讨论或投票阶段返回搜证")
+        was_revote = phase == GamePhase.VOTING
+        quick = self.game.state.mode == "quick"
+        self.game.set_phase(GamePhase.INVESTIGATION)
+        if was_revote:
+            self.game.reset_votes()
+        if not quick:
+            self.game.distribute_random_clues(self.human_player_id, 1)
         for char_id in self.ai_characters:
-            board = self.game.get_clue_board(char_id)
-            if board.available:
-                self.game.distribute_random_clues(
-                    char_id, 1, exclude_scene=exclude_scene,
-                )
+            self.game.grant_role_clues(char_id)
+        return self.phase_payload()
+
+    def start_next_round(self) -> Dict[str, Any]:
+        """Open the next quick investigation round after completed play."""
+        self.ensure_playable()
+        try:
+            self.game.start_next_investigation_round(self.human_player_id)
+        except ValueError as exc:
+            raise GameError(400, str(exc)) from exc
+        for char_id in self.ai_characters:
+            self.game.grant_role_clues(char_id)
+        return self.phase_payload()
+
+    def start_voting(self) -> Dict[str, Any]:
+        self.ensure_playable()
+        if self.game.current_phase != GamePhase.DISCUSSION:
+            raise GameError(status_code=400, detail="当前不是讨论阶段")
+        if self.game.state.mode == "quick":
+            if self.game.state.round < self.game.state.max_rounds:
+                raise GameError(status_code=400, detail="请完成三轮调查和讨论后再进入投票")
+            if not self._completed_this_round():
+                raise GameError(status_code=400, detail="请先完成本轮调查并发表推论，再进入投票")
+        self.game.set_phase(GamePhase.VOTING)
+        self.game.reset_votes()
+        return self.phase_payload()
+
+    def _distribute_initial_clues(self) -> None:
+        """Personal clue ownership follows the script, never a random draw."""
+        for char in self.archive.characters:
+            self.game.grant_role_clues(char.id)
 
     # -- persistence ---------------------------------------------------------
 
@@ -212,21 +342,20 @@ class GameSession:
         Includes scene-clue reveal flags (they mutate the archive at
         runtime) so a restored game sees the same clue board.
         """
+        self.game.migrate_discussion_history()
         return {
+            "schema_version": 3,
             "game_id": game_id,
             "story_id": self.archive.id,
             "human_player_id": self.human_player_id,
+            "pending_discussion": self.pending_discussion,
+            "pending_ballots": self.pending_ballots,
+            "last_activity": self.last_activity,
             "mode": self.game.state.mode,
             "state": asdict(self.game.state),
             "revealed_clue_ids": [
                 c.id for c in self.archive.clues if c.reveal_to_all
             ],
-            # AI 角色的私有对话记忆 —— 不落盘则重启后所有角色失忆；
-            # list() 拷贝快照语义：此后流内 append 不会污染已取快照
-            "ai_memories": {
-                cid: list(ai.conversation_history)
-                for cid, ai in self.ai_characters.items()
-            },
         }
 
     @classmethod
@@ -238,6 +367,11 @@ class GameSession:
     ) -> "GameSession":
         """Reconstruct a session from a snapshot and its archive."""
         session = cls.__new__(cls)
+        session.game_id = snapshot["game_id"]
+        session._init_runtime()
+        session.pending_discussion = snapshot.get('pending_discussion')
+        session.pending_ballots = snapshot.get('pending_ballots')
+        session.last_activity = snapshot.get('last_activity', 0)
         session.archive = archive
         snapshot_state = snapshot.get("state", {})
         mode = snapshot.get("mode", snapshot_state.get("mode", "classic"))
@@ -260,7 +394,24 @@ class GameSession:
             if human_char else ""
         )
 
-        ai_memories = snapshot.get("ai_memories", {})
+        session.game.migrate_discussion_history()
+        # Legacy private buffers mostly duplicate the public history. Preserve
+        # unmatched entries as private quotations, without guessing chronology.
+        if snapshot.get("schema_version", 1) < 2:
+            for cid, memory in snapshot.get("ai_memories", {}).items():
+                if cid not in session.game.state.player_states:
+                    continue
+                for entry in memory:
+                    speaker = cid if entry.get("role") == "assistant" else session.human_player_id
+                    text = entry.get("message", "")
+                    if not isinstance(text, str) or not text:
+                        continue
+                    if any(e.speaker_id == speaker and e.text == text and
+                           (not e.audience or cid in e.audience)
+                           for e in session.game.state.discussion_events):
+                        continue
+                    session.game.add_discussion(speaker, text, audience=(cid,),
+                                                kind="legacy_memory", legacy=True)
         session.ai_characters = {}
         for char in archive.characters:
             if char.id != session.human_player_id:
@@ -271,7 +422,6 @@ class GameSession:
                     case=session.archive.case,
                     config=session.roleplay_config,
                 )
-                ai.conversation_history = ai_memories.get(char.id, [])
                 session.ai_characters[char.id] = ai
         return session
 
@@ -290,6 +440,8 @@ class GameSession:
             "public_identity": char.public_identity,
             "appearance": char.appearance,
             "portrait_url": char.portrait_url,
+            "role_script": char.role_script(),
+            "objectives": char.objectives or ["根据证据找出凶手", "解释自己的行踪"],
         }
 
     def get_all_characters(self, include_private: bool = False) -> List[Dict[str, Any]]:
@@ -345,6 +497,7 @@ class GameSession:
                     holder_name = holder.name
             return {
                 "id": entry.clue.id,
+                "title": entry.clue.lead,
                 "content": entry.clue.content,
                 "type": entry.clue.type,
                 "holder_name": holder_name,
@@ -367,23 +520,28 @@ class GameSession:
             actions = ["introduce"]
         elif phase == "investigation":
             actions = ["view_clues", "investigate", "discuss", "accuse"]
+            if self.game.state.mode == "quick" and not self._investigated_this_round():
+                actions.remove("discuss")
         elif phase == "discussion":
             actions = ["speak", "view_clues", "investigate", "accuse", "vote", "return_investigation"]
-            if self.game.state.mode == "quick":
-                # 动作列表必须与真实可调用的端点一致：
-                # - round < max：可返回搜证，还不能进投票；
-                # - round >= max：可进投票，返回搜证会被端点拒绝。
-                # investigate 讨论期始终可调用（方向见 investigation_options）。
-                if self.game.state.round >= self.game.state.max_rounds:
-                    actions.remove("return_investigation")
-                else:
-                    actions.remove("vote")
+            if self.game.state.mode == "quick" and (
+                self.game.state.round < self.game.state.max_rounds
+                or not self._completed_this_round()
+            ):
+                actions.remove("vote")
+            if (self.game.state.mode == "quick" and self._completed_this_round()
+                    and self.game.state.round < self.game.state.max_rounds):
+                actions.append("next_round")
         elif phase == "voting":
             actions = ["vote"]
         elif phase == "reveal":
             actions = []
         return {
-            "game_id": self.archive.id,
+            "game_id": self.game_id,
+            "story_id": self.archive.id,
+            "game_ended": self.game.state.game_ended,
+            "winner": self.game.state.winner,
+            "is_speaking": self.is_speaking,
             "phase": phase,
             "mode": self.game.state.mode,
             "is_quick_mode": self.game.state.mode == "quick",
@@ -398,11 +556,15 @@ class GameSession:
             "case_brief": self.get_case_brief(),
             "available_actions": actions,
             "investigation_count": self.game.state.investigation_count,
+            "round_progress": {"investigated": self._investigated_this_round(),
+                               "discussed": self.game.state.discussed_round == self.game.state.round},
             "investigation_options": self.get_investigation_options(),
             "last_event": self.game.state.last_event,
         }
 
     def get_reveal_info(self) -> Dict[str, Any]:
+        if self.game.current_phase != GamePhase.REVEAL or not self.game.state.game_ended:
+            raise GameError(status_code=400, detail="游戏尚未结束，不能查看真相")
         return {
             "story_content": self.archive.story_content,
             "winner": self.game.state.winner or "unknown",
@@ -411,56 +573,91 @@ class GameSession:
                 "background": self.archive.case.background,
                 "victim": self.archive.case.victim,
                 "crime": self.archive.case.crime,
-                "motive": self.archive.case.motive,
+                "motive": (self.game.get_character(self.game.killer_id).motive
+                           if self.archive.case.motive in ("", "详见真相")
+                           else self.archive.case.motive),
                 "true_killer": self.game.killer_id,
                 "true_killer_name": self._char_name(self.game.killer_id),
             },
             "characters": self.get_all_characters(include_private=True),
+            "player_verdict": {
+                "target": self._char_name(self.game.state.player_states[self.human_player_id].vote) if self.game.state.player_states[self.human_player_id].vote else "",
+                "correct": self.game.state.winner == "good",
+            },
+            "advice_state": ("running" if self._busy else "completed"
+                if len(self.pending_ballots['completed']) == len(self.pending_ballots['contexts']) else "available")
+                if self.pending_ballots else "unavailable",
+            "deductions": [{"conclusion": deduction['conclusion'], "evidence": [
+                {"clue_id": ref['clue_id'], "title": self.game.get_clue(ref['clue_id']).lead,
+                 "quote": ref['quote'], "discovered": ref['clue_id'] in {
+                     c.id for c in self.game.get_player_clues(self.human_player_id) + self.game.get_revealed_clues()}}
+                for ref in deduction['evidence']]} for deduction in self.archive.solution],
+            "votes": self.game.state.ballot_details or [{"voter": self._char_name(v["player_id"]),
+                       "target": self._char_name(v["target_id"]),
+                       "reason": v.get("reason", "")} for v in self.game.state.votes_record],
         }
 
     def get_discussion_history(self) -> List[Dict[str, str]]:
-        """Parse the shared discussion log into speaker/message pairs."""
-        messages = []
-        for line in self.game.state.discussion_history:
-            speaker, _, message = line.partition(": ")
-            messages.append({"speaker": speaker, "message": message})
-        return messages
+        """Project the public event log onto the existing client API."""
+        self.game.migrate_discussion_history()
+        return [{"speaker": e.speaker_name, "message": e.text, "action_id": e.action_id, "kind": e.kind}
+                for e in self.game.state.discussion_events if not e.audience]
 
     # -- context assembly ----------------------------------------------------
 
-    def _ai_context(self, char_id: str) -> Dict[str, Any]:
-        """Assemble the live game context for one AI character."""
-        return {
-            "known_clues": self.game.get_player_clues(char_id),
-            "revealed_clues": self.game.get_revealed_clues(),
-            "other_chars": list(self.archive.characters),
-            "discussion_history": self.game.state.discussion_history,
-            "case": self.archive.case,
-        }
+    def _ai_context(
+        self, char_id: str, *, events: tuple[DiscussionEvent, ...] | None = None,
+        action_id: str = "", current_event_id: str = "", user_input: str = "",
+    ) -> Dict[str, Any]:
+        """Freeze an allowed view before dispatching any worker for this action."""
+        if events is None:
+            self.game.migrate_discussion_history()
+            events = tuple(self.game.state.discussion_events)
+        ai = self.ai_characters[char_id]
+        return {"context": ContextAssembler.assemble(
+            character=ai.character, phase=self.game.current_phase, case=self.archive.case,
+            known_clues=self.game.get_player_clues(char_id),
+            revealed_clues=self.game.get_revealed_clues(),
+            other_chars=[c for c in self.archive.characters if c.id in self.game.alive_players],
+            events=events, user_input=user_input, user_persona=ai.user_persona,
+            game_id=self.game_id, action_id=action_id,
+            snapshot_seq=events[-1].sequence if events else 0, round=self.game.state.round,
+            current_event_id=current_event_id, token_budget=self.roleplay_config.context_token_budget,
+        )}
 
     # -- actions -------------------------------------------------------------
 
     async def player_introduce_async(self, message: str = "") -> Dict[str, Any]:
-        """Collect introductions: all AI characters respond concurrently."""
+        """Collect introductions once; retries reuse the recorded statements."""
+        self.ensure_playable()
+        if self.game.current_phase != GamePhase.INTRODUCTION:
+            raise GameError(status_code=400, detail="当前不是自我介绍阶段")
+        self.game.migrate_discussion_history()
+        if self.game.state.discussion_history:
+            history = self.get_discussion_history()
+            name = self._char_name(self.human_player_id)
+            return {
+                "player_introduction": next(m["message"] for m in history if m["speaker"] == name),
+                "ai_introductions": [m for m in history if m["speaker"] != name],
+                "new_phase": self.game.state.phase,
+            }
         human_char = self.game.get_character(self.human_player_id)
         player_intro = message or (
             f"大家好，我是{human_char.name}，{human_char.public_identity}。"
         )
 
-        loop = asyncio.get_running_loop()
 
-        async def _intro(ai: RoleplayCharacter):
-            return await loop.run_in_executor(None, ai.respond_introduction)
-
-        responses = await asyncio.gather(*(
-            _intro(ai) for ai in self.ai_characters.values()
-        ))
-
+        action_id = str(uuid.uuid4())
         ai_introductions = []
-        for ai, response in zip(self.ai_characters.values(), responses):
-            ai_introductions.append({"speaker": ai.name, "message": response})
-            self.game.add_discussion(ai.character_id, response)
-        self.game.add_discussion(self.human_player_id, player_intro)
+        for ai in self.ai_characters.values():
+            character = ai.character
+            response = character.public_introduction or f"大家好，我是{character.name}，{character.public_identity}。"
+            ai_introductions.append({"speaker": ai.name, "message": response,
+                                     "action_id": action_id, "kind": "introduction"})
+            self.game.add_discussion(
+                ai.character_id, response, action_id=action_id, kind="introduction",
+            )
+        self.game.add_discussion(self.human_player_id, player_intro, action_id=action_id, kind="introduction")
 
         # Do NOT auto-advance the phase — the frontend shows the
         # introductions and explicitly moves to investigation.
@@ -491,13 +688,14 @@ class GameSession:
             "document": "文书",
         }
         options = []
-        for clue in self.game.get_available_clues(self.human_player_id)[:2]:
+        for clue in self.game.get_available_clues(self.human_player_id):
             label = type_labels.get(clue.type, "线索")
-            source = "案发现场" if clue.holder_id == "scene" else "相关人物口供"
+            source = "案发现场" if clue.holder_id == "scene" else self._char_name(clue.holder_id)
+            lead = clue.lead or f"{source}的{label}"
             options.append({
                 "id": clue.id,
-                "title": f"追查{label}",
-                "description": f"从{source}寻找新的突破，可能改写当前时间线。",
+                "title": f"调查{lead}",
+                "description": f"第{self.game.state.round}轮 · 核对{source}的{label}，调查后获得结果。",
                 "kind": clue.type,
             })
         return options
@@ -522,29 +720,32 @@ class GameSession:
         Usable in the investigation phase and mid-discussion; errors out
         when nothing remains to find.
         """
+        self.ensure_playable()
         if self.game.current_phase not in (
             GamePhase.INVESTIGATION, GamePhase.DISCUSSION,
         ):
-            raise HTTPException(status_code=400, detail="当前阶段不能搜证")
+            raise GameError(status_code=400, detail="当前阶段不能搜证")
 
         if self.game.state.mode == "quick":
             options = self.get_investigation_options()
             if not options:
-                raise HTTPException(status_code=400, detail="已经没有更多线索了")
+                raise GameError(status_code=400, detail="已经没有更多线索了")
             selected_id = lead_id or options[0]["id"]
             if selected_id not in {item["id"] for item in options}:
-                raise HTTPException(status_code=400, detail="请选择当前可调查的方向")
+                raise GameError(status_code=400, detail="请选择当前可调查的方向")
             found = self.game.distribute_clue(self.human_player_id, selected_id)
         else:
             found = self.game.distribute_random_clues(self.human_player_id, 1)
         if not found:
-            raise HTTPException(status_code=400, detail="已经没有更多线索了")
+            raise GameError(status_code=400, detail="已经没有更多线索了")
+        self.game.state.investigated_round = self.game.state.round
         event = self._event_for_clue(found[0]) if self.game.state.mode == "quick" else None
         self.game.state.last_event = event
         return {
             "found": [
                 {
                     "id": c.id,
+                    "title": c.lead,
                     "content": c.content,
                     "type": c.type,
                     "holder_name": self._char_name(c.holder_id),
@@ -554,16 +755,18 @@ class GameSession:
             "clue_board": self.get_clue_board(),
             "investigation_options": self.get_investigation_options(),
             "event": event,
+            "available_actions": self.get_game_status()["available_actions"],
         }
 
     def accuse(self, character_name: str) -> Dict[str, Any]:
+        self.ensure_playable()
         target_id = self.game.get_character_id_by_name(character_name)
         if not target_id:
-            raise HTTPException(status_code=400, detail=f"找不到角色: {character_name}")
+            raise GameError(status_code=400, detail=f"找不到角色: {character_name}")
         correct, message = self.game.accuse(self.human_player_id, target_id)
         if not correct and "不能" in message:
             # domain rejected the target itself (self/dead) — surface as 400
-            raise HTTPException(status_code=400, detail=message)
+            raise GameError(status_code=400, detail=message)
         return {
             "correct": correct,
             "message": message,
@@ -571,131 +774,218 @@ class GameSession:
             "winner": self.game.state.winner,
         }
 
+    def validate_discussion(self, target_id: Optional[str], clue_ids: list[str]) -> None:
+        """Validate a directed question and evidence without revealing anything."""
+        self.ensure_playable()
+        if self.game.current_phase != GamePhase.DISCUSSION:
+            raise GameError(status_code=400, detail="当前不是讨论阶段")
+        if target_id and (target_id not in self.ai_characters or target_id not in self.game.alive_players):
+            raise GameError(status_code=400, detail="请选择在场的其他角色")
+        known = {c.id for c in self.game.get_player_clues(self.human_player_id)} | {
+            c.id for c in self.game.get_revealed_clues()}
+        if any(cid not in known for cid in clue_ids):
+            raise GameError(status_code=400, detail="只能出示你已掌握的证据")
+
     async def player_speak_async(
-        self, message: str
+        self, message: str, target_id: Optional[str] = None,
+        presented_clue_ids: Optional[list[str]] = None, action_id: Optional[str] = None,
+        include_question: bool = False,
     ) -> AsyncIterable[Dict[str, Any]]:
-        """Yield each AI response as soon as that character finishes —
-        multiple AIs run concurrently via thread-pool offload.
+        """Stream a session-owned round that survives client disconnection.
 
-        Yields dicts shaped ``{"speaker": <name>, "message": <text>}``.
-        The caller is responsible for echoing the human player's own
-        message (the frontend already shows it optimistically).
+        Recording and persistence happen in the background producer, never
+        in the transport consumer. The session keeps the task alive until
+        every worker has updated its memory and recorded its reply.
         """
-        self.game.add_discussion(self.human_player_id, message)
-
-        loop = asyncio.get_running_loop()
-
-        async def _respond(char_id: str, ai: RoleplayCharacter):
-            ai_state = self.game.state.player_states.get(char_id)
-            if not ai_state or not ai_state.is_alive:
-                return None
-            ctx = self._ai_context(char_id)
-            response = await loop.run_in_executor(
-                None,
-                lambda: ai.respond(
-                    user_input=message,
-                    phase=self.game.current_phase,
-                    **ctx,
-                ),
-            )
-            return (char_id, ai.name, response)
-
-        tasks = [
-            asyncio.create_task(_respond(cid, ai))
-            for cid, ai in self.ai_characters.items()
-        ]
-        for coro in asyncio.as_completed(tasks):
-            result = await coro
-            if result is None:
-                continue
-            char_id, name, response = result
-            self.game.add_discussion(char_id, response)
-            yield {"speaker": name, "message": response}
-
-    async def player_speak_collect(self, message: str) -> List[Dict[str, Any]]:
-        """Batch variant of ``player_speak_async`` for non-streaming
-        endpoints — awaits every AI response into one list."""
-        return [m async for m in self.player_speak_async(message)]
-
-    async def vote_async(self, character_name: str) -> Dict[str, Any]:
-        """Submit the player's vote and collect AI votes concurrently.
-
-        Votes are cleared at round start, each player's vote replaces
-        their previous one, and AI replies are parsed by name or ID.
-        """
-        target_id = self.game.get_character_id_by_name(character_name)
-        if not target_id:
-            raise HTTPException(status_code=400, detail=f"找不到角色: {character_name}")
-        if not target_id or not self.game.can_vote(self.human_player_id):
-            raise HTTPException(status_code=400, detail="当前无法投票")
-
-        self.game.submit_vote(self.human_player_id, target_id)
-
-        loop = asyncio.get_running_loop()
-        alive_ids = [
-            pid for pid, st in self.game.state.player_states.items() if st.is_alive
-        ]
-        alive_set = set(alive_ids)
-
-        async def _vote(char_id: str, ai: RoleplayCharacter):
-            """Collect one AI's vote with a retry + random fallback.
-
-            ``check_voting_result`` only opens the ballot once *every* alive
-            player has voted, so a single AI whose vote comes back empty (a
-            hard failure or an unparseable tool reply) would stall the round
-            forever. Retry once via LLM; if still nothing, cast a random
-            alive target.
-            """
-            ctx = self._ai_context(char_id)
-
-            def _try_once() -> tuple[str, str]:
-                # Pass only get_vote's accepted keys — ctx carries extra
-                # "case", and get_vote() does not accept it (TypeError).
-                target, reason = ai.get_vote(
-                    known_clues=ctx["known_clues"],
-                    revealed_clues=ctx["revealed_clues"],
-                    other_chars=ctx["other_chars"],
-                    discussion_history=ctx["discussion_history"],
-                )
-                if target in alive_set and target != char_id:
-                    return target, reason or ""
-                return "", ""
-
-            chosen, reason = await loop.run_in_executor(None, _try_once)
-            if not chosen:
-                chosen, reason = await loop.run_in_executor(None, _try_once)
-            if not chosen:
-                candidates = [pid for pid in alive_ids if pid != char_id]
-                chosen = random.choice(candidates) if candidates else ""
-                reason = ""
-                if chosen:
-                    logger.warning(
-                        "[Vote] %s 投票结果无法解析，回退为随机选择 %s",
-                        ai.name, self._char_name(chosen),
-                    )
-            return char_id, ai.name, chosen, reason
-
-        results = await asyncio.gather(*(
-            _vote(cid, ai)
-            for cid, ai in self.ai_characters.items() if cid in alive_set
-        ))
-
-        votes_view: Dict[str, str] = {}
-        for char_id, name, chosen, reason in results:
-            if chosen in alive_set and chosen != char_id:
-                self.game.submit_vote(char_id, chosen, reason=reason)
-            if chosen:
-                votes_view[name] = self._char_name(chosen)
-
-        ended, result_msg = self.game.check_voting_result()
-        return {
-            "votes": votes_view,
-            "result": result_msg,
-            "game_ended": self.game.state.game_ended,
-            "winner": self.game.state.winner,
-            "phase": self.game.state.phase,
-            "all_submitted": len(self.game.get_votes()) >= len(self.game.alive_players),
+        clue_ids = presented_clue_ids or []
+        self.validate_discussion(target_id, clue_ids)
+        self.game.present_clues(self.human_player_id, clue_ids)
+        if target_id:
+            message = f"【询问{self._char_name(target_id)}】{message}"
+        if clue_ids:
+            message += "\n【出示证据】" + "、".join(clue_ids)
+        action_id = action_id or str(uuid.uuid4())
+        current_event = self.game.add_discussion(
+            self.human_player_id, message, action_id=action_id, kind="question",
+            target_id=target_id, presented_clue_ids=tuple(clue_ids),
+        )
+        events = tuple(self.game.state.discussion_events)
+        recipients = {cid: ai for cid, ai in self.ai_characters.items()
+                      if cid in self.game.alive_players and (not target_id or cid == target_id)}
+        try:
+            contexts = {cid: self._ai_context(
+                cid, events=events, action_id=action_id,
+                current_event_id=current_event.event_id, user_input=message,
+            ) for cid in recipients}
+        except ContextBudgetExceeded as exc:
+            await self._save_background()
+            logger.warning("讨论上下文过大: %s", exc)
+            raise GameError(status_code=413, detail="本案资料超过当前上下文容量") from exc
+        self.pending_discussion = {
+            'action_id': action_id, 'event_id': current_event.event_id,
+            'message': message, 'phase': self.game.current_phase.value,
+            'contexts': {cid: asdict(ctx['context']) for cid, ctx in contexts.items()},
+            'completed': {},
         }
+        await self._save_background()
+        async for item in self.resume_speak_async(include_question=include_question):
+            yield item
+
+    async def resume_speak_async(self, include_question: bool = False) -> AsyncIterable[Dict[str, Any]]:
+        """Continue a persisted round with its original frozen role contexts."""
+        if self.is_speaking:
+            raise GameError(409, '角色正在回应，请稍后再操作')
+        pending = self.pending_discussion
+        if not pending:
+            return
+        queue: asyncio.Queue = asyncio.Queue()
+        phase = GamePhase(pending['phase'])
+
+        async def respond(char_id: str, raw_context: dict) -> None:
+            if char_id in pending['completed']:
+                return
+            ai = self.ai_characters[char_id]
+            context = RoleContext.from_dict(raw_context)
+            try:
+                response = await asyncio.to_thread(ai.respond, user_input=pending['message'], phase=phase, context=context)
+            except ModelInterrupted:
+                raise
+            except Exception as exc:
+                logger.warning('角色 %s 回应失败: %s', ai.name, exc)
+                response = '[回复失败]'
+            self.game.add_discussion(
+                char_id, response, action_id=pending['action_id'], reply_to=pending['event_id'],
+                kind='delivery_error' if response == '[回复失败]' else 'statement',
+                claims=getattr(response, 'claims', ()), corrections=getattr(response, 'corrections', ()),
+            )
+            message = {'speaker': ai.name, 'message': response,
+                       'action_id': pending['action_id'], 'kind': 'delivery_error' if response == '[回复失败]' else 'statement'}
+            pending['completed'][char_id] = message
+            await self._save_background()
+            queue.put_nowait(message)
+
+        async def finish_round() -> None:
+            try:
+                results = await asyncio.gather(*(
+                    respond(cid, ctx) for cid, ctx in pending['contexts'].items()
+                ), return_exceptions=True)
+                failure = next((r for r in results if isinstance(r, BaseException)), None)
+                if failure:
+                    queue.put_nowait(failure)
+                else:
+                    self.game.state.discussed_round = self.game.state.round
+                    self.pending_discussion = None
+            finally:
+                await self._save_background()
+                queue.put_nowait(None)
+
+        self.discussion_task = asyncio.create_task(finish_round())
+        if include_question:
+            yield {'speaker': self._char_name(self.human_player_id), 'message': pending['message'],
+                   'action_id': pending['action_id'], 'kind': 'question'}
+        while True:
+            item = await queue.get()
+            if item is None:
+                break
+            if isinstance(item, BaseException):
+                raise item
+            yield item
+
+    async def player_speak_collect(
+        self, message: str, target_id: Optional[str] = None,
+        presented_clue_ids: Optional[list[str]] = None, action_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Collect the same persistent round for the non-SSE client."""
+        return [m async for m in self.player_speak_async(message, target_id, presented_clue_ids, action_id)]
+
+    async def vote_async(self, character_name: str, action_id: Optional[str] = None) -> Dict[str, Any]:
+        """Persist the player's verdict locally; NPC opinions are optional."""
+        if (action_id and self.game.state.game_ended and self.pending_ballots
+                and self.pending_ballots.get('action_id') == action_id):
+            return self._verdict_payload("已保存你的最终判断")
+        self.ensure_playable()
+        target_id = self.game.get_character_id_by_name(character_name)
+        if not target_id or target_id == self.human_player_id or target_id not in self.game.alive_players:
+            raise GameError(400, "请选择有效嫌疑人，不能选择自己或已出局角色")
+        if not self.game.can_vote(self.human_player_id):
+            raise GameError(400, "当前无法投票")
+        action_id = action_id or str(uuid.uuid4())
+        events = tuple(self.game.state.discussion_events)
+        contexts = {}
+        for cid in self.ai_characters:
+            if cid in self.game.alive_players:
+                try:
+                    contexts[cid] = asdict(self._ai_context(cid, events=events, action_id=action_id)['context'])
+                except ContextBudgetExceeded:
+                    logger.warning("角色 %s 表决上下文过大，跳过可选意见", cid)
+        self.pending_ballots = {'action_id': action_id, 'contexts': contexts, 'completed': {}}
+        self.game.submit_vote(self.human_player_id, target_id)
+        _, result_msg = self.game.resolve_player_verdict(self.human_player_id)
+        self.game.record_ballot_advice(self.human_player_id, target_id, "玩家最终判断")
+        # Do not swallow a failed terminal save. Mobile also commits the task
+        # and snapshot atomically before acknowledging completion.
+        if is_embedded():
+            self._persist()
+        else:
+            await asyncio.to_thread(self._persist)
+        return self._verdict_payload(result_msg)
+
+    def _verdict_payload(self, result_msg: str) -> Dict[str, Any]:
+        """Public, repeatable response for an already committed verdict."""
+        target_id = self.game.state.player_states[self.human_player_id].vote
+        return {
+            'votes': {self._char_name(self.human_player_id): self._char_name(target_id)},
+            'vote_reasons': {}, 'result': result_msg, 'game_ended': True,
+            'winner': self.game.state.winner, 'phase': self.game.state.phase,
+            'all_submitted': True,
+        }
+
+    async def collect_ballot_advice(self) -> Dict[str, Any]:
+        """Collect optional terminal opinions; completed roles never run again."""
+        if not self.game.state.game_ended or self.game.current_phase != GamePhase.REVEAL:
+            raise GameError(400, "请先完成最终判断")
+        if self._busy:
+            raise GameError(409, "人物判断正在生成")
+        pending = self.pending_ballots
+        if not pending or len(pending['completed']) == len(pending['contexts']):
+            return self.get_reveal_info()
+
+        async def collect(cid: str, raw: dict) -> None:
+            if cid in pending['completed']:
+                return
+            ai = self.ai_characters[cid]
+            context = RoleContext.from_dict(raw)
+            chosen, reason = '', ''
+            try:
+                async with asyncio.timeout(None if is_embedded() else NPC_VOTE_TIMEOUT_SECONDS):
+                    for _ in range(2):
+                        chosen, reason = await asyncio.to_thread(ai.get_vote, context=context)
+                        if chosen in self.game.alive_players and chosen != cid:
+                            break
+                        chosen = ''
+            except ModelInterrupted:
+                raise
+            except TimeoutError:
+                reason = "人物判断超时，弃权"
+            except Exception:
+                reason = "未能完成判断，弃权"
+            if chosen not in self.game.alive_players or chosen == cid:
+                chosen = ''
+            self.game.record_ballot_advice(cid, chosen, reason or ("未提供理由" if chosen else "未能完成判断，弃权"))
+            pending['completed'][cid] = True
+            await self._save_background()
+
+        self._busy = True
+        try:
+            results = await asyncio.gather(*(collect(cid, raw) for cid, raw in pending['contexts'].items()),
+                                           return_exceptions=True)
+            failure = next((r for r in results if isinstance(r, BaseException)), None)
+            if failure:
+                raise failure
+        finally:
+            self._busy = False
+            await self._save_background()
+        return self.get_reveal_info()
 
 
 # ---------------------------------------------------------------------------
@@ -716,12 +1006,14 @@ class SessionManager:
         self._story_service = story_service
         self._store = store or InMemorySessionStore()
         self._sessions: Dict[str, GameSession] = {}
+        self._save_lock = threading.Lock()
 
     def create_session(
         self,
         topic: Optional[str] = None,
         archive: Optional[StoryArchive] = None,
         mode: str = "classic",
+        game_id: Optional[str] = None,
     ) -> tuple[str, GameSession]:
         """Create a new game session.
 
@@ -734,10 +1026,18 @@ class SessionManager:
             if not archive:
                 raise RuntimeError("生成案件失败")
 
-        char_ids = [c.id for c in archive.characters]
+        if archive.case.true_killer not in {c.id for c in archive.characters}:
+            raise ValueError("剧本缺少有效的凶手身份")
+        char_ids = [c.id for c in archive.characters
+                    if c.id != archive.case.true_killer and not c.is_killer]
+        if not char_ids:
+            raise ValueError("剧本没有可供玩家扮演的非凶手角色")
         human_id = random.choice(char_ids)
-        session = GameSession(archive, human_id, self._roleplay_client, mode=mode)
-        game_id = str(uuid.uuid4())
+        game_id = game_id or str(uuid.uuid4())
+        if game_id in self._sessions:
+            return game_id, self._sessions[game_id]
+        session = GameSession(archive, human_id, self._roleplay_client, mode=mode, game_id=game_id)
+        session.set_persistence_callback(lambda: self.save(game_id))
         self._sessions[game_id] = session
         self._store.save(session.to_snapshot(game_id))
         logger.info("Created session %s for story %s", game_id, archive.id)
@@ -746,14 +1046,16 @@ class SessionManager:
     def get(self, game_id: str) -> GameSession:
         session = self._sessions.get(game_id)
         if not session:
-            raise HTTPException(status_code=404, detail="游戏不存在")
+            raise GameError(status_code=404, detail="游戏不存在")
         return session
 
     def save(self, game_id: str) -> None:
         session = self._sessions.get(game_id)
         if session is None:
             return
-        self._store.save(session.to_snapshot(game_id))
+        with self._save_lock:
+            session.last_activity = time.time()
+            self._store.save(session.to_snapshot(game_id))
 
     def load_all_persisted(self) -> int:
         """Restore all sessions from the store into memory.
@@ -779,6 +1081,7 @@ class SessionManager:
             except Exception as e:
                 logger.warning("Skipping corrupt session %s: %s", game_id, e)
                 continue
+            self._sessions[game_id].set_persistence_callback(lambda gid=game_id: self.save(gid))
             count += 1
         if count:
             logger.info("Restored %d session(s) from disk", count)

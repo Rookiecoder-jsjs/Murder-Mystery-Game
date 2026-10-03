@@ -9,6 +9,8 @@ interface ModalProps {
   title?: string;
   children: React.ReactNode;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
+  footer?: React.ReactNode;
 }
 
 export function Modal({
@@ -17,6 +19,8 @@ export function Modal({
   title,
   children,
   size = 'md',
+  className = '',
+  footer,
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +45,7 @@ export function Modal({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={dialogRef}
-        className={`modal modal-${size}`}
+        className={`modal modal-${size} ${className}`}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -55,6 +59,7 @@ export function Modal({
           </button>
         </div>
         <div className="modal-content">{children}</div>
+        {footer && <div className="modal-footer">{footer}</div>}
       </div>
     </div>
   );

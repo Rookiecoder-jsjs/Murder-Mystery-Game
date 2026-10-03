@@ -1,14 +1,22 @@
 // Reveal Phase — 真相揭晓（数据缺失时自愈式补取）
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Trophy, Skull, Home } from 'lucide-react';
 import { useGame } from '../../context/useGame';
-import { Button, Card, Badge, LoadingSpinner } from '../common';
+import { Button, Card, Badge, LoadingSpinner, useToast } from '../common';
 import './RevealPhase.css';
 
 export function RevealPhase() {
   const navigate = useNavigate();
-  const { state, resetGame, loadReveal } = useGame();
+  const { state, resetGame, loadReveal, collectBallotAdvice } = useGame();
+  const { notify } = useToast();
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const requestAdvice = async () => {
+    setAdviceLoading(true);
+    try { await collectBallotAdvice(); }
+    catch (error) { notify(error instanceof Error ? error.message : '人物判断未完成，可稍后继续', 'error'); }
+    finally { setAdviceLoading(false); }
+  };
 
   // 直接进入揭晓（如轮询带过来的）而 revealInfo 缺失时，主动补取
   useEffect(() => {
@@ -73,6 +81,21 @@ export function RevealPhase() {
       </div>
 
       <div className="reveal-content">
+        {state.revealInfo.player_verdict?.target && <Card variant="gold-border">
+          <h3>你的最终判断</h3>
+          <p>你选择了 {state.revealInfo.player_verdict.target}，{state.revealInfo.player_verdict.correct ? '指认正确' : '指认错误'}。</p>
+          <p>实际真凶：{state.revealInfo.case_info.true_killer_name}</p>
+        </Card>}
+        {!!state.revealInfo.deductions?.length && <Card>
+          <h3>关键证据复盘</h3>
+          {state.revealInfo.deductions.map((step, i) => <details className="reveal-deduction" key={i}>
+            <summary>{step.conclusion}</summary>
+            {step.evidence.map((evidence, j) => <div key={j}>
+              <strong>{evidence.title || '定案证据'} · {evidence.discovered ? '本局已掌握' : '本局未发现'}</strong>
+              <p>{evidence.quote}</p>
+            </div>)}
+          </details>)}
+        </Card>}
         <Card className="reveal-story-card" variant="gold-border">
           <div className="reveal-section">
             <h3 className="reveal-section-title">
@@ -121,12 +144,26 @@ export function RevealPhase() {
 
           <div className="reveal-divider" />
 
-          <div className="reveal-section">
-            <h4 className="reveal-label">完整故事</h4>
+          <details className="reveal-section">
+            <summary className="reveal-label">展开完整故事</summary>
             <p className="reveal-story-text">{state.revealInfo.story_content}</p>
-          </div>
+          </details>
         </Card>
       </div>
+
+      {!!state.revealInfo.votes?.length && (
+        <Card>
+          <h3>人物表决与理由</h3>
+          <p>本局结果按你的最终选择判定。</p>
+          {state.revealInfo.votes.map((ballot) => (
+            <p key={ballot.voter}><strong>{ballot.voter} → {ballot.target}</strong>：{ballot.reason || '未提供理由'}</p>
+          ))}
+        </Card>
+      )}
+      {['available', 'running'].includes(state.revealInfo.advice_state || '') && <Card>
+        <p>可以额外生成角色依据本局证据作出的判断，需要连接模型服务。</p>
+        <Button onClick={requestAdvice} isLoading={adviceLoading}>查看人物判断</Button>
+      </Card>}
 
       <div className="reveal-actions">
         <Button variant="primary" size="lg" onClick={handleBackHome}>

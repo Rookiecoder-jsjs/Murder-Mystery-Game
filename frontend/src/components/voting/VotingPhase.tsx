@@ -1,5 +1,5 @@
 // Voting Phase — 投票、等待计票、结果展示
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Vote, AlertTriangle, Check, ArrowLeft } from 'lucide-react';
 import { useGame } from '../../context/useGame';
 import { Button, Card, Avatar, Modal, useToast } from '../common';
@@ -12,17 +12,8 @@ export function VotingPhase() {
   const { notify } = useToast();
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
   const [isVoting, setIsVoting] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [voteResult, setVoteResult] = useState<VoteResponse | null>(null);
-
-  // 等待计票的计时提示
-  useEffect(() => {
-    if (!isVoting) return;
-    setElapsed(0);
-    const timer = window.setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => window.clearInterval(timer);
-  }, [isVoting]);
 
   const handleVote = async () => {
     if (!selectedCharacter || isVoting) return;
@@ -68,9 +59,8 @@ export function VotingPhase() {
           <div>
             <h4>投票规则</h4>
             <p>
-              所有存活角色各投一票，达到法定票数（存活人数的 2/3 + 1）
-              即可淘汰得票最高者。淘汰凶手则好人胜利；投错则凶手逃脱。
-              平局或票数不足时回到讨论阶段继续推理。
+              你的最终选择决定本局胜负：指认凶手则好人胜利，选错则凶手逃脱。
+              结案后可按需查看人物判断，不改变你的结果。
             </p>
           </div>
         </div>
@@ -80,9 +70,9 @@ export function VotingPhase() {
       {isVoting && (
         <Card className="voting-waiting">
           <div className="voting-waiting-spinner" aria-hidden="true" />
-          <p className="voting-waiting-title">唱票中…</p>
+          <p className="voting-waiting-title">正在保存最终判断…</p>
           <p className="voting-waiting-hint">
-            各位角色正在权衡与抉择（已等待 {elapsed} 秒）
+            保存后即刻揭晓真相
           </p>
         </Card>
       )}
@@ -183,7 +173,7 @@ export function VotingPhase() {
             你确定要投票给 <strong>{selectedCharacter}</strong> 吗？
           </p>
           <p className="voting-confirm-hint">
-            等待其他角色投票期间可以重新投票改主意
+            确认后立即结案，请先核对你的证据
           </p>
           <div className="voting-confirm-actions">
             <Button variant="ghost" onClick={() => setShowConfirmModal(false)}>

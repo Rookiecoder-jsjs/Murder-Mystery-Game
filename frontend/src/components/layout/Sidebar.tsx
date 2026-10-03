@@ -2,7 +2,7 @@
 
 import { Users, MessageSquare, Lightbulb, ScrollText, X } from 'lucide-react';
 import { useGame } from '../../context/useGame';
-import { Avatar, Badge } from '../common';
+import { Avatar, Badge, RoleScript, EvidenceNotebook } from '../common';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -21,6 +21,13 @@ export function Sidebar({ drawerOpen, onClose }: SidebarProps) {
           <X size={16} />
         </button>
       </div>
+
+      <RoleScript player={state.player} />
+
+      <details className="sidebar-section sidebar-evidence-section">
+        <summary className="sidebar-section-title"><Lightbulb size={14} />证据案卷 · 随时查阅</summary>
+        <EvidenceNotebook />
+      </details>
 
       <div className="sidebar-section">
         <h3 className="sidebar-section-title">

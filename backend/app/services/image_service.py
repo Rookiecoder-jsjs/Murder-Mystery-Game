@@ -19,13 +19,14 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from app.core.config import QwenImageConfig, get_config
+from app.core.runtime import data_directory
 from app.core.logging import get_logger
 from app.domain.models import CaseData, ScriptCharacter, StoryArchive
 
 
 logger = get_logger(__name__)
 
-_BACKEND_DIR = Path(__file__).resolve().parents[2]
+_BACKEND_DIR = data_directory()
 PORTRAITS_DIR = _BACKEND_DIR / "assets" / "portraits"
 _SAFE_ID = re.compile(r"^[A-Za-z0-9_-]+$")
 _MAX_IMAGE_BYTES = 20 * 1024 * 1024
@@ -57,6 +58,20 @@ def ensure_portraits_dir() -> None:
 def portrait_url(story_id: str, character_id: str, suffix: str = ".png") -> str:
     """Return the stable API-relative URL for one persisted portrait."""
     return f"/assets/portraits/{_safe_id(story_id)}/{_safe_id(character_id)}{suffix}"
+
+
+def normalize_portraits(archive: StoryArchive) -> None:
+    """Clear stale local URLs and recover already persisted character assets."""
+    for character in archive.characters:
+        url = character.portrait_url
+        if url and not url.startswith("/assets/portraits/"):
+            continue  # External assets retain their existing client fallback.
+        character.portrait_url = ""
+        for suffix in (".png", ".jpg", ".webp"):
+            candidate = PORTRAITS_DIR / _safe_id(archive.id) / f"{_safe_id(character.id)}{suffix}"
+            if candidate.is_file() and candidate.stat().st_size:
+                character.portrait_url = portrait_url(archive.id, character.id, suffix)
+                break
 
 
 def build_portrait_prompt(character: ScriptCharacter, case: CaseData) -> str:
@@ -96,6 +111,7 @@ class PortraitService:
         The upstream API is asynchronous. A small thread pool keeps the story
         creation latency reasonable without burst-submitting the whole cast.
         """
+        normalize_portraits(archive)
         if not self.is_configured:
             logger.info("未配置 DASHSCOPE_API_KEY，跳过角色肖像生成")
             return 0

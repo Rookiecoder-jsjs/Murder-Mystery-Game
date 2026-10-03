@@ -9,9 +9,16 @@ import './index.scss'
 export default function RevealPage() {
   const router = useRouter()
   const gameId = router.params.gameId || ''
-  const { state, loadReveal, resetGame } = useGame()
+  const { state, loadReveal, resetGame, collectBallotAdvice } = useGame()
   const [loading, setLoading] = useState(!state.revealInfo)
   const [failed, setFailed] = useState(false)
+  const [adviceLoading, setAdviceLoading] = useState(false)
+  const requestAdvice = async () => {
+    setAdviceLoading(true)
+    try { await collectBallotAdvice() }
+    catch (error) { showError(error) }
+    finally { setAdviceLoading(false) }
+  }
 
   const fetchReveal = async () => {
     if (!gameId) {
@@ -112,10 +119,22 @@ export default function RevealPage() {
             </View>
 
             <View className='reveal-page__facts'>
+              {reveal.player_verdict?.target && <View><Text>你的选择</Text><Text>{reveal.player_verdict.target} · {reveal.player_verdict.correct ? '正确' : '错误'}</Text></View>}
               <View><Text>受害者</Text><Text>{reveal.case_info.victim}</Text></View>
               <View><Text>罪行</Text><Text>{reveal.case_info.crime}</Text></View>
               <View><Text>最终结果</Text><Text>{goodWin ? '真相被揭开' : '真凶逃离审判'}</Text></View>
             </View>
+
+            {!!reveal.deductions?.length && <View className='paper-card'>
+              <Text className='field-label'>关键证据复盘</Text>
+              {reveal.deductions.map((step, index) => <View key={index}>
+                <Text>{step.conclusion}</Text>
+                {step.evidence.map((item, i) => <View key={i}>
+                  <Text>{item.title || '定案证据'} · {item.discovered ? '本局已掌握' : '本局未发现'}</Text>
+                  <Text>{item.quote}</Text>
+                </View>)}
+              </View>)}
+            </View>}
 
             <View className='reveal-page__truth paper-card'>
               <View className='reveal-page__truth-head'>
@@ -124,6 +143,17 @@ export default function RevealPage() {
               </View>
               <Text className='reveal-page__story'>{reveal.story_content}</Text>
             </View>
+
+            {!!reveal.votes?.length && (
+              <View className='paper-card'>
+                <Text className='field-label'>人物表决与理由 · 本局按你的选择判定</Text>
+                {reveal.votes.map((ballot) => (
+                  <View key={ballot.voter}><Text>{ballot.voter} → {ballot.target}：{ballot.reason || '未提供理由'}</Text></View>
+                ))}
+              </View>
+            )}
+            {['available', 'running'].includes(reveal.advice_state || '') && <Button className='secondary-button'
+              loading={adviceLoading} disabled={adviceLoading} onClick={requestAdvice}>连接模型 · 查看人物判断</Button>}
 
             {characters.length > 0 && (
               <View className='reveal-page__aftermath'>

@@ -3,6 +3,7 @@
 import json
 import os
 import socket
+import tempfile
 
 
 PORT_FILE = os.path.join(os.path.dirname(__file__), "..", "..", ".port.json")
@@ -37,5 +38,12 @@ def write_port_file(port: int) -> None:
     """Write the backend port to .port.json for the frontend to discover."""
     port_file = os.path.abspath(PORT_FILE)
     os.makedirs(os.path.dirname(port_file), exist_ok=True)
-    with open(port_file, "w") as f:
-        json.dump({"backend_port": port}, f)
+    fd, temporary = tempfile.mkstemp(dir=os.path.dirname(port_file), suffix=".port.tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump({"backend_port": port, "pid": os.getpid(),
+                       "launch_id": os.getenv("DEV_LAUNCH_ID", "")}, f)
+        os.replace(temporary, port_file)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)

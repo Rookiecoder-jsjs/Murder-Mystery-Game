@@ -15,7 +15,8 @@ import './index.scss'
 export default function GamePage() {
   const router = useRouter()
   const gameId = router.params.gameId || ''
-  const { state, resumeGame } = useGame()
+  const { state, resumeGame, refreshGame } = useGame()
+  const [scriptOpen, setScriptOpen] = useState(false)
   const [initializing, setInitializing] = useState(false)
   const [loadFailed, setLoadFailed] = useState(false)
   const redirectedRef = useRef(false)
@@ -45,11 +46,19 @@ export default function GamePage() {
   }, [gameId])
 
   useEffect(() => {
-    if (state.phase === 'reveal' && gameId && !redirectedRef.current) {
+    if (state.gameId !== gameId || state.phase === 'reveal' || state.isLoading) return
+    const timer = setInterval(() => {
+      refreshGame().catch(() => undefined)
+    }, state.isSpeaking ? 3000 : 5000)
+    return () => clearInterval(timer)
+  }, [gameId, state.gameId, state.phase, state.isLoading, state.isSpeaking, refreshGame])
+
+  useEffect(() => {
+    if (state.gameId === gameId && state.phase === 'reveal' && gameId && !redirectedRef.current) {
       redirectedRef.current = true
       Taro.redirectTo({ url: `/pages/reveal/index?gameId=${gameId}` })
     }
-  }, [state.phase, gameId])
+  }, [state.gameId, state.phase, gameId])
 
   const renderPhase = () => {
     switch (state.phase) {
@@ -90,6 +99,20 @@ export default function GamePage() {
       />
       <PhaseTimeline phase={state.phase} />
       <View className='paper-stage game-page__stage'>
+        {state.player?.role_script && (
+          <View className='game-role-script paper-card'>
+            <Button className='ghost-button' onClick={() => setScriptOpen(!scriptOpen)}>
+              {scriptOpen ? '收起我的剧本' : '阅读我的角色剧本'}
+            </Button>
+            {(scriptOpen || state.phase === 'introduction') && (
+              <View>
+                <Text className='game-role-script__text'>{state.player.role_script}</Text>
+                <Text className='field-label'>你的任务</Text>
+                {state.player.objectives?.map((goal) => <Text key={goal} className='game-role-script__goal'>· {goal}</Text>)}
+              </View>
+            )}
+          </View>
+        )}
         {renderPhase()}
       </View>
       {(initializing || state.isLoading) && (

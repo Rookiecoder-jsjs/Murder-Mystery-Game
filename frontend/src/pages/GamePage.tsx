@@ -11,6 +11,7 @@ import { VotingPhase } from '../components/voting';
 import { RevealPhase } from '../components/reveal';
 import { Button, LoadingSpinner, useToast } from '../components/common';
 import './GamePage.css';
+import { GameTaskPanel } from '../components/common/GameTaskPanel';
 
 const POLL_FAST_MS = 3000; // 讨论阶段
 const POLL_SLOW_MS = 5000;
@@ -47,7 +48,7 @@ export function GamePage() {
     resumeGame(routeGameId).catch((err: unknown) => {
       if (cancelled) return;
       if (apiErrorStatus(err) === 404) {
-        notify('找不到这局游戏，可能已随后端重启丢失', 'error');
+        notify('找不到这局游戏，请从首页选择已有存档', 'error');
         navigate('/', { replace: true });
       } else {
         setResumeError({
@@ -66,23 +67,39 @@ export function GamePage() {
     if (!isSameGame || state.gameEnded || state.phase === 'reveal') {
       return;
     }
-    const intervalId = window.setInterval(async () => {
-      const ok = await refreshStatus();
-      if (ok) {
-        failuresRef.current = 0;
-        setConnectionLost(false);
-        if (state.phase === 'investigation') {
-          refreshClues();
-        }
-      } else {
-        failuresRef.current += 1;
-        if (failuresRef.current >= FAILURES_BEFORE_BANNER) {
+    let cancelled = false;
+    let running = false;
+    let timer: number | undefined;
+    const delay = state.phase === 'discussion' ? POLL_FAST_MS : POLL_SLOW_MS;
+    const poll = async () => {
+      if (cancelled || running || document.hidden) return;
+      window.clearTimeout(timer);
+      running = true;
+      try {
+        const ok = await refreshStatus();
+        if (cancelled) return;
+        if (ok) {
+          failuresRef.current = 0;
+          setConnectionLost(false);
+          if (state.phase === 'investigation') await refreshClues();
+        } else if (++failuresRef.current >= FAILURES_BEFORE_BANNER) {
           setConnectionLost(true);
         }
+      } finally {
+        running = false;
+        if (!cancelled && !document.hidden) timer = window.setTimeout(() => void poll(), delay);
       }
-    }, state.phase === 'discussion' ? POLL_FAST_MS : POLL_SLOW_MS);
-
-    return () => window.clearInterval(intervalId);
+    };
+    const resume = () => { if (!document.hidden) void poll(); };
+    timer = window.setTimeout(() => void poll(), delay);
+    window.addEventListener('mystery:resume', resume);
+    document.addEventListener('visibilitychange', resume);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+      window.removeEventListener('mystery:resume', resume);
+      document.removeEventListener('visibilitychange', resume);
+    };
   }, [
     isSameGame,
     state.gameEnded,
@@ -146,6 +163,7 @@ export function GamePage() {
 
   return (
     <GameLayout>
+      <GameTaskPanel />
       <div className="game-page">{renderPhase()}</div>
     </GameLayout>
   );

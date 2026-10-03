@@ -4,12 +4,15 @@ import { ErrorBoundary, ToastProvider } from './components/common';
 import { GameProvider } from './context/GameContext';
 import { HomePage, GamePage } from './pages';
 import './styles/index.css';
+import './styles/mobile.css';
+import { MobileLifecycle } from './components/common/MobileLifecycle';
 
 function App() {
   return (
     <ToastProvider>
       <GameProvider>
         <BrowserRouter>
+          <MobileLifecycle />
           <ErrorBoundary>
             <Routes>
               <Route path="/" element={<HomePage />} />

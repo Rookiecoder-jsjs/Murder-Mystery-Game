@@ -24,6 +24,8 @@
 const { spawn, spawnSync } = require('node:child_process');
 const path = require('node:path');
 const fs = require('node:fs');
+const { randomUUID } = require('node:crypto');
+const { readyPort } = require('./backend-ready');
 
 const ROOT = path.resolve(__dirname, '..');
 const BACKEND_DIR = path.join(ROOT, 'backend');
@@ -69,12 +71,13 @@ function pipeLines(child, name, color) {
   });
 }
 
-function startProcess(name, cmd, args, cwd) {
+function startProcess(name, cmd, args, cwd, env = process.env) {
   const child = spawn(cmd, args, {
     cwd,
     stdio: ['ignore', 'pipe', 'pipe'],
     shell: false,
     windowsHide: true,
+    env,
   });
   pipeLines(child, name, COLORS[name] ?? 37);
   child.on('exit', (code, signal) => {
@@ -146,35 +149,28 @@ if (errors.length) {
 // --- Backend first ---------------------------------------------------------
 
 console.log(tag('main', COLORS.main), 'starting backend (python -m app.main)...');
-startProcess('backend', 'python', ['-m', 'app.main'], BACKEND_DIR);
+const launchId = randomUUID();
+const backend = startProcess('backend', 'python', ['-m', 'app.main'], BACKEND_DIR,
+  { ...process.env, DEV_LAUNCH_ID: launchId });
 
 // --- Wait for port file, then start frontend -------------------------------
 
 const waitStart = Date.now();
-const poller = setInterval(() => {
-  if (fs.existsSync(PORT_FILE)) {
-    clearInterval(poller);
-    try {
-      const data = JSON.parse(fs.readFileSync(PORT_FILE, 'utf-8'));
-      const elapsed = Date.now() - waitStart;
-      console.log(
-        tag('main', COLORS.main),
-        `backend ready on port ${data.backend_port} (${elapsed}ms) — starting frontend`,
-      );
-    } catch (e) {
-      console.log(tag('main', COLORS.main), 'backend port file unreadable — starting frontend anyway');
-    }
-    // Bypass the npm shell-PATH quirk on Windows: call the vite entry
-    // script directly via node.
-    startProcess('frontend', process.execPath, [VITE_BIN], FRONTEND_DIR);
+async function waitForBackend() {
+  const port = await readyPort(PORT_FILE, launchId, backend.pid);
+  if (exiting) return;
+  if (port) {
+    console.log(tag('main', COLORS.main),
+      `backend ready on port ${port} (${Date.now() - waitStart}ms) — starting frontend`);
+    startProcess('frontend', process.execPath, [VITE_BIN], FRONTEND_DIR,
+      { ...process.env, BACKEND_PORT: String(port) });
     return;
   }
   if (Date.now() - waitStart > PORT_FILE_TIMEOUT_MS) {
-    clearInterval(poller);
-    console.error(
-      tag('main', COLORS.main),
-      `backend did not write ${path.relative(ROOT, PORT_FILE)} within ${PORT_FILE_TIMEOUT_MS}ms — starting frontend anyway`,
-    );
-    startProcess('frontend', process.execPath, [VITE_BIN], FRONTEND_DIR);
+    console.error(tag('main', COLORS.err), 'backend readiness timed out — stopping');
+    shutdown(1);
+    return;
   }
-}, 100);
+  setTimeout(waitForBackend, 100);
+}
+void waitForBackend();

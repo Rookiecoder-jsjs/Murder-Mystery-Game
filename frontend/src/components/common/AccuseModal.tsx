@@ -35,16 +35,34 @@ export function AccuseModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="拘捕令" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="提前结案 · 拘捕令"
+      size="md"
+      className="accuse-dialog"
+      footer={
+        <div className="accuse-actions">
+          <Button variant="ghost" onClick={handleClose}>取消</Button>
+          <Button
+            variant="danger"
+            onClick={() => selected && onConfirm(selected)}
+            disabled={!selected}
+            isLoading={isAccusing}
+          >
+            签发拘捕令
+          </Button>
+        </div>
+      }
+    >
       <div className="accuse-modal">
         <div className="accuse-warning">
           <AlertTriangle size={18} />
           <p>
             缉捕权限仅余 <strong>{accusationPoints}</strong> 次。
-            签捕正确则好人胜利，错捕则真凶逍遥法外！
+            确认后立即结案，无法继续调查。签捕正确则好人胜利，错捕则真凶逃脱。
           </p>
         </div>
-
         <div className="accuse-suspects">
           <h4>在下列嫌犯中圈定一人：</h4>
           <div className="accuse-suspect-grid">
@@ -82,19 +100,6 @@ export function AccuseModal({
           </div>
         </div>
 
-        <div className="accuse-actions">
-          <Button variant="ghost" onClick={handleClose}>
-            取消
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => selected && onConfirm(selected)}
-            disabled={!selected}
-            isLoading={isAccusing}
-          >
-            签发拘捕令
-          </Button>
-        </div>
       </div>
     </Modal>
   );
