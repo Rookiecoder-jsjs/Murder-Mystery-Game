@@ -154,6 +154,7 @@ cd miniprogram && pnpm run build:weapp
 ## 配置、数据与安全
 
 - 现有 Web/小程序部署的模型密钥只放在 `backend/.env`。安卓独立版按设计由用户在手机输入，由原生层使用 Android Keystore 管理的加密密钥保护 API key；不得复制电脑 `.env` 到 APK。不要提交 `.env`、API key、访问令牌或真实用户数据，不把密钥写入前端构建变量、游戏存档或日志。
+- `npm run android:apk` 构建后自动执行 `scripts/audit-android-apk.py`，递归检查 APK / Chaquopy 归档并比对内置剧本和配图。发布前须检查通过；仅输出路径、校验值和结果，不输出密钥。可安装 APK 与 SHA-256 通过 GitHub Release 附件交付，不加入源码 Git。当前为开发签名预览版，提升 versionCode 时保留相同签名以支持覆盖升级。
 - 启动时后端会校验必需的 LLM 配置；缺少密钥时的快速失败属于预期行为，不要通过硬编码默认密钥规避。
 - `backend/assets/portraits/`、`backend/sessions/`、`backend/.port.json` 和各端构建产物属于运行时/生成文件，除非任务明确要求，不要提交。
 - 处理剧本 JSON 时保留合法 JSON、UTF-8 编码和现有字段语义；不要把日志、推理过程或密钥写入存档。

@@ -13,4 +13,5 @@ function run(command, args, cwd) {
 }
 run(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'android:sync'], path.join(root, 'frontend'));
 run(process.platform === 'win32' ? 'gradlew.bat' : './gradlew', [':app:assembleDebug', '--console=plain'], path.join(root, 'frontend/android'));
+run(process.platform === 'win32' ? 'python' : 'python3', ['scripts/audit-android-apk.py', 'frontend/android/app/build/outputs/apk/debug/app-debug.apk'], root);
 console.log('APK: frontend/android/app/build/outputs/apk/debug/app-debug.apk');
