@@ -4,14 +4,26 @@
   --app-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --font-display: 'Noto Serif SC', 'Songti SC', serif;
   overscroll-behavior: none;
+  height: 100%;
+  overflow: hidden;
 }
+.native-app body { height: 100%; min-height: 0; overflow: hidden; }
 .native-app #root {
   height: 100dvh;
+  min-height: 0;
   padding: var(--app-top) 0 var(--app-bottom);
   box-sizing: border-box;
+  overflow: hidden;
 }
 .native-app .game-shell { height: 100%; }
-.native-app .home-page { min-height: 100%; padding: 12px; }
+.native-app .home-page {
+  height: 100%;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.native-app .home-content { flex-shrink: 0; }
 .native-app .home-content { padding: 16px 14px; }
 .native-app .home-columns { display: flex; flex-direction: column; gap: 24px; }
 .native-app .home-col { min-width: 0; width: 100%; }

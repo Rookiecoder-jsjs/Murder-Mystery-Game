@@ -201,6 +201,15 @@
   box-shadow: 8rpx 14rpx 26rpx rgba(79, 57, 26, 0.24);
 }
 
+.case-file__cover {
+  display: block;
+  width: 100%;
+  height: 280rpx;
+  margin-bottom: 20rpx;
+  border-radius: 4rpx;
+  background: #26221e;
+}
+
 .case-file:nth-child(even) { transform: rotate(0.7deg); }
 .case-file:nth-child(odd) { transform: rotate(-0.45deg); }
 
@@ -316,3 +325,7 @@
 @keyframes skeleton {
   to { background-position: -200% 0; }
 }
+
+.archive-home__library-tabs { display: flex; gap: 16rpx; margin-bottom: 24rpx; }
+.archive-home__library-tabs button { flex: 1; }
+.case-file__summary { display: block; margin: 12rpx 0; font-size: 24rpx; line-height: 1.5; color: #5d574b; }

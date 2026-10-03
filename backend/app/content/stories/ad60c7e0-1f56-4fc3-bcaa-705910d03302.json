@@ -1,0 +1,338 @@
+{
+  "format_version": 1,
+  "metadata": {
+    "schema_version": 1,
+    "version": 1,
+    "summary": "寿宴之后，一瓶普通胃药夺走了主人的性命。五个人都碰过托盘，真正的交换发生在哪一步？",
+    "author": "本项目原创剧本组",
+    "license": "本项目原创内容，按仓库 LICENSE 授权；不含第三方剧本正文。",
+    "difficulty": "标准",
+    "estimated_minutes": 40
+  },
+  "archive": {
+    "id": "ad60c7e0-1f56-4fc3-bcaa-705910d03302",
+    "created_at": "2026-10-03 00:00:00",
+    "topic": "民国 · 标准推理",
+    "title": "白鹭旅馆的无字药瓶",
+    "case": {
+      "title": "白鹭旅馆的无字药瓶",
+      "background": "白鹭旅馆的周年寿宴刚散，旅馆主人贺伯安服药后突然倒地。五名知情人留在宴厅。药瓶、托盘和账本被原样封存；众人的争执集中在那瓶标签被水浸掉的胃药上。",
+      "victim": "贺伯安",
+      "crime": "贺伯安被害",
+      "true_killer": "char_1",
+      "motive": "详见证据链与真相",
+      "location": "白鹭旅馆二楼宴厅",
+      "time": "1934年秋"
+    },
+    "characters": [
+      {
+        "id": "char_1",
+        "name": "许澄",
+        "public_identity": "旅馆药房合伙人",
+        "secret": "",
+        "is_killer": true,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "贺伯安发现我拿廉价粉末冒充贵药，寿宴后要解除合伙并告我。我七点四十分接过原封胃药，在配药间独处五分钟，把药换成有毒晶粉，用我保管的私章重新封瓶。我把瓶子放回托盘时纸封有一点错位。后来标签被水浸掉，我打算把疑点推给侍者。",
+        "objectives": [
+          "保护调包药材的秘密",
+          "解释封口时回应私章与错位物证"
+        ],
+        "cover_story": "我只是核过瓶数，送出时药房的封口还在。",
+        "public_introduction": "大家好，我是许澄，旅馆药房合伙人。"
+      },
+      {
+        "id": "char_2",
+        "name": "赵芹",
+        "public_identity": "宴厅侍者",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "七点四十五分大家核对过托盘后，黄司机扣好透明罩，我端到宴厅。走廊有服务员一直陪我，罩的纸封没有破过。进厅时水壶渗水，浸掉了药瓶标签，经理让我擦干。我没打开过瓶子。曾替客人藏过一张欠账单，不想被经理发现。",
+        "objectives": [
+          "说明标签掉落的具体时间",
+          "承认藏账单但说明送药经过"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是赵芹，宴厅侍者。"
+      },
+      {
+        "id": "char_3",
+        "name": "孟维",
+        "public_identity": "旅馆经理",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我七点三十五分到四十五分一直在大厅与客人核对房账，大厅登记与客人签名都在。我催侍者尽快送胃药，并让她擦干湿托盘。我把房账的一笔收入挪去补赌债，贺老板还不知道。我在宴厅看见他亲手拆瓶封、服药。",
+        "objectives": [
+          "说明房账差额",
+          "帮助还原送药时间，不替别人作未知保证"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是孟维，旅馆经理。"
+      },
+      {
+        "id": "char_4",
+        "name": "贺霜",
+        "public_identity": "主人侄女",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我七点三十分与伯父争过遗产，他说暂不改遗嘱。七点四十分到四十五分，我在玻璃外墙的电话间打给姐姐，接线员记了时长，孟经理路过也见到我。随后我参加托盘核对，没碰药瓶。伯父服药时我在同桌。",
+        "objectives": [
+          "查明伯父死亡原因",
+          "如实说明遗产争执与通话"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是贺霜，主人侄女。"
+      },
+      {
+        "id": "char_5",
+        "name": "黄朔",
+        "public_identity": "旅馆司机",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我从药房把带完整纸封的胃药送来，药师让我签收，七点四十分当面交给许澄。七点四十五分我参加核对托盘并扣上透明罩。之前我私借旅馆车送货，怕老板追问。我和旁边两人见到侍者搬到宴厅，没有开罩。",
+        "objectives": [
+          "出示原始送药凭单",
+          "区分借车秘密与换药机会"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是黄朔，旅馆司机。"
+      }
+    ],
+    "clues": [
+      {
+        "id": "clue_1",
+        "content": "检验报告确认贺伯安死于药瓶内晶粉含有的致死毒物。杯内水、茶、酒及食物均未检出该毒物，身上无其他致命伤。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "死者与桌面饮食"
+      },
+      {
+        "id": "clue_2",
+        "content": "药瓶外标签已脱落，瓶口残留撕开的纸封。瓶中剩余晶粉与致死毒物一致；纸封的上下两半图案无法完全对齐。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "无字药瓶与纸封"
+      },
+      {
+        "id": "clue_3",
+        "content": "遗产便笺记下贺霜与贺伯安争执；孟维房账有一笔差额。两份记录均未提及药瓶内的粉末成分或药物接收。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "争执与房账"
+      },
+      {
+        "id": "clue_4",
+        "content": "药房留存同批胃药为无毒粉末，出库照片的瓶口纸封完整对齐。黄朔与药师七点三十五分签收，七点四十分旅馆门房记下将同一原封瓶交给许澄。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "药房留样与签收单"
+      },
+      {
+        "id": "clue_5",
+        "content": "七点四十五分核对托盘的照片中，瓶口纸封已经错位，纸封上印着一枚缺右下角的私章。标签当时仍完整可读；照片底片连续，送药前已由五人签字确认。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "走廊核对照片"
+      },
+      {
+        "id": "clue_6",
+        "content": "黄朔核对后封上透明罩，罩封至七点五十分进宴厅才由贺伯安拆开。陪送服务员连续陪同赵芹，确认渗水只浸湿外标签，途中无人开罩、开瓶或替换托盘。",
+        "type": "testimony",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "透明罩与陪送记录"
+      },
+      {
+        "id": "clue_7",
+        "content": "七点四十分至四十五分配药间由许澄独自使用，门房看守唯一入口。其余四人被分别记录在大厅、电话间及走廊，未进入；配药间无其他入口，内部此前已检查无人。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "配药间钥匙与值班表"
+      },
+      {
+        "id": "clue_8",
+        "content": "许澄私章有独有的右下缺角，与七点四十五分照片中新封印痕吻合；药房出库封口使用圆形公章，二者不同。许澄确认私章全程在自己钥匙链上，没有交给别人。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "私章与原封的比对"
+      },
+      {
+        "id": "clue_9",
+        "content": "同桌客人与贺霜确认贺伯安七点五十分亲手拆开纸封后服药，期间没人接近药瓶口。该时点之前整瓶都在透明罩内。",
+        "type": "testimony",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "主人拆瓶的见证"
+      },
+      {
+        "id": "clue_10",
+        "content": "贺伯安已写好解除许澄药房合伙的通知，并附调包药材的两批检验结果；收件副本日期为寿宴当日。该通知说明利益冲突，不独立证明换药。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "解除合伙通知"
+      }
+    ],
+    "story_content": "药房合伙人许澄被贺伯安发现调包昂贵药材，决定在寿宴期间灭口。晚七点四十分，她接收药房送来的原封胃药；七点四十分至四十五分独处配药间时，把胃药换成有毒晶粉，再用自己保管的私章重新盖住断开的纸封。七点四十五分整，五人在走廊点清托盘并拍照，随后黄司机封上透明罩，侍者原封送到宴厅。贺伯安七点五十分亲手拆开纸封服药，几分钟后死亡。检验确认致死毒物仅在药瓶内，酒、杯、水均无毒。七点四十五分照片已显示新封错位与许澄私章独有缺角，说明掉标签并不是换药时点。原封配送记录、走廊照片、全程封罩记录排除侍者、经理、侄女和司机；他们隐瞒账务或争执却没有碰瓶内药物的机会。",
+    "solution": [
+      {
+        "conclusion": "毒物来自服用的药瓶，而非宴席食物或饮水。",
+        "evidence": [
+          {
+            "clue_id": "clue_1",
+            "quote": "检验报告确认贺伯安死于药瓶内晶粉含有的致死毒物。杯内水、茶、酒及食物均未检出该毒物，身上无其他致命伤。"
+          },
+          {
+            "clue_id": "clue_2",
+            "quote": "药瓶外标签已脱落，瓶口残留撕开的纸封。瓶中剩余晶粉与致死毒物一致；纸封的上下两半图案无法完全对齐。"
+          },
+          {
+            "clue_id": "clue_9",
+            "quote": "同桌客人与贺霜确认贺伯安七点五十分亲手拆开纸封后服药，期间没人接近药瓶口。该时点之前整瓶都在透明罩内。"
+          }
+        ]
+      },
+      {
+        "conclusion": "药物在药房交出时无毒，且至走廊点验时纸封已被重新封过；标签脱落发生得更晚。",
+        "evidence": [
+          {
+            "clue_id": "clue_4",
+            "quote": "药房留存同批胃药为无毒粉末，出库照片的瓶口纸封完整对齐。黄朔与药师七点三十五分签收，七点四十分旅馆门房记下将同一原封瓶交给许澄。"
+          },
+          {
+            "clue_id": "clue_5",
+            "quote": "七点四十五分核对托盘的照片中，瓶口纸封已经错位，纸封上印着一枚缺右下角的私章。标签当时仍完整可读；照片底片连续，送药前已由五人签字确认。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "黄朔核对后封上透明罩，罩封至七点五十分进宴厅才由贺伯安拆开。陪送服务员连续陪同赵芹，确认渗水只浸湿外标签，途中无人开罩、开瓶或替换托盘。"
+          }
+        ]
+      },
+      {
+        "conclusion": "重新封口使用许澄全程保管的私章，她在交接后独占配药间；之后封罩排除了送药途中换药。",
+        "evidence": [
+          {
+            "clue_id": "clue_4",
+            "quote": "药房留存同批胃药为无毒粉末，出库照片的瓶口纸封完整对齐。黄朔与药师七点三十五分签收，七点四十分旅馆门房记下将同一原封瓶交给许澄。"
+          },
+          {
+            "clue_id": "clue_5",
+            "quote": "七点四十五分核对托盘的照片中，瓶口纸封已经错位，纸封上印着一枚缺右下角的私章。标签当时仍完整可读；照片底片连续，送药前已由五人签字确认。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "黄朔核对后封上透明罩，罩封至七点五十分进宴厅才由贺伯安拆开。陪送服务员连续陪同赵芹，确认渗水只浸湿外标签，途中无人开罩、开瓶或替换托盘。"
+          },
+          {
+            "clue_id": "clue_7",
+            "quote": "七点四十分至四十五分配药间由许澄独自使用，门房看守唯一入口。其余四人被分别记录在大厅、电话间及走廊，未进入；配药间无其他入口，内部此前已检查无人。"
+          },
+          {
+            "clue_id": "clue_8",
+            "quote": "许澄私章有独有的右下缺角，与七点四十五分照片中新封印痕吻合；药房出库封口使用圆形公章，二者不同。许澄确认私章全程在自己钥匙链上，没有交给别人。"
+          }
+        ]
+      },
+      {
+        "conclusion": "其余人的利益冲突不能解释换药时机；许澄面临解除合伙和调包追责。",
+        "evidence": [
+          {
+            "clue_id": "clue_3",
+            "quote": "遗产便笺记下贺霜与贺伯安争执；孟维房账有一笔差额。两份记录均未提及药瓶内的粉末成分或药物接收。"
+          },
+          {
+            "clue_id": "clue_7",
+            "quote": "七点四十分至四十五分配药间由许澄独自使用，门房看守唯一入口。其余四人被分别记录在大厅、电话间及走廊，未进入；配药间无其他入口，内部此前已检查无人。"
+          },
+          {
+            "clue_id": "clue_9",
+            "quote": "同桌客人与贺霜确认贺伯安七点五十分亲手拆开纸封后服药，期间没人接近药瓶口。该时点之前整瓶都在透明罩内。"
+          },
+          {
+            "clue_id": "clue_10",
+            "quote": "贺伯安已写好解除许澄药房合伙的通知，并附调包药材的两批检验结果；收件副本日期为寿宴当日。该通知说明利益冲突，不独立证明换药。"
+          }
+        ]
+      }
+    ],
+    "production": {},
+    "catalog": {}
+  },
+  "artwork": {
+    "version": 1,
+    "cover": "cover-v1.webp",
+    "portraits": {
+      "char_1": "char_1-v1.webp",
+      "char_2": "char_2-v1.webp",
+      "char_3": "char_3-v1.webp",
+      "char_4": "char_4-v1.webp",
+      "char_5": "char_5-v1.webp"
+    }
+  }
+}

@@ -34,11 +34,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const activeGameIdRef = useRef<string | null>(null);
 
   // 返回新建的 gameId，由页面负责导航到 /game/:gameId
-  const createGame = useCallback(async (topic: string, playerName?: string, mode: GameMode = 'classic') => {
+  const createGame = useCallback(async (topic: string, playerName?: string, mode: GameMode = 'classic', characterCount?: number) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const response = await api.createGame(topic, playerName, mode);
+      const response = await api.createGame(topic, playerName, mode, characterCount);
       activeGameIdRef.current = response.game_id;
       dispatch({
         type: 'GAME_CREATED',

@@ -27,6 +27,7 @@ from app.core.llm_trace import trace_llm_chat
 from app.core.logging import get_logger
 from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
 from app.domain.game_manager import GameManager
+from app.services.story_catalog import builtin_stories, parse_package, story_info, validate_character_count
 from app.services.image_service import PortraitService, delete_story_portraits, normalize_portraits
 
 
@@ -37,8 +38,8 @@ _STORY_WRITE_LOCK = threading.RLock()
 # ============ Prompt Template (from original project) ============
 
 CASE_PROMPT_TEMPLATE = """创建一个证据充分、可以实际推理的剧本杀案件，满足以下要求：
-优先保证案件可玩和证据闭环：安排4名嫌疑人，围绕一个核心诡计展开，避免为了增加反转引入无法调查的新事实。每个角色都必须完整填写本人知识和任务，不得只给第一个角色填写。
-采用适合手机阅读的精炼篇幅：10-12条线索，每条约60-120字；本人知识约120-200字，保留本人行动、秘密与可回应的证据；背景约100-160字，真相约220-350字。关系和动机各用一句，背景故事用三个短句；不反复誊写同一段案情。必要的时间、方向、数量、作案条件和排除依据必须完整，篇幅目标不能成为删掉关键事实的理由。
+优先保证案件可玩和证据闭环：{cast_requirement}，围绕一个核心诡计展开，避免为了增加反转引入无法调查的新事实。每个角色都必须完整填写本人知识和任务，不得只给第一个角色填写。
+采用适合手机阅读的精炼篇幅：{clue_requirement}条线索，每条约60-120字；本人知识约120-200字，保留本人行动、秘密与可回应的证据；背景约100-160字，真相约220-350字。关系和动机各用一句，背景故事用三个短句；不反复誊写同一段案情。必要的时间、方向、数量、作案条件和排除依据必须完整，篇幅目标不能成为删掉关键事实的理由。
 先确定唯一的 true_killer_id，再写该角色亲历的致命作案过程 truth，随后按这个真相写角色本人知识和可调查证据，最后写公开开场。禁止写到后面临时换凶手。真相的行凶者必须与 true_killer_id、is_killer 和本人作案记忆为同一个人；企图作案但没有致死的人不能被标成真凶。凶手知道自己如何致死，不得在 self_knowledge 中写“进门时已经死了、我确实没杀他”，掩饰只能放 cover_story。
 
 ## 1. 案件背景（沉浸式设定）
@@ -72,7 +73,7 @@ CASE_PROMPT_TEMPLATE = """创建一个证据充分、可以实际推理的剧本
 - 围绕核心案件安排角色利益和秘密，支线只用于动机与误导，不另设需要新证据才能解开的谜题。
 - 不强制隐藏身份或多重反转；优先让每个角色有清晰、可以核对的行动线。
 
-## 5. 线索设计（10-12条）
+## 5. 线索设计（{clue_requirement}条）
 物证类：直接指向凶手但可被栽赃
 人证类：证人可能有偏见、说谎或记忆错误
 旁证类：需要逻辑推理串联
@@ -436,14 +437,19 @@ def apply_story_updates(data: dict, patch: dict) -> dict:
 
 
 def generate_story(
-    topic: str, client: OpenAI, show_reasoning: bool = False,
+    topic: str, client: OpenAI, show_reasoning: bool = False, character_count: int | None = None,
 ) -> Optional[Dict[str, Any]]:
     """Generate once, then repair structure and evidence with separate budgets.
 
     At most two initial calls and two field repairs per validation stage.
     Every applied patch is revalidated and reviewed; no partial draft is saved.
     """
-    base_prompt = f"用户想要创建一个以「{topic}」为主题的剧本杀案件。\n\n{CASE_PROMPT_TEMPLATE}"
+    validate_character_count(character_count)
+    cast = (f"安排恰好{character_count}名嫌疑人（包含玩家扮演的一名角色，不包含受害者）"
+            if character_count else "先根据故事规划3—8名嫌疑人，再按确定的人物关系写案；不包含受害者，不为了凑数增加角色")
+    clue_range = f"{max(9, character_count * 2)}-{max(12, character_count * 3)}" if character_count else "10-20"
+    template = CASE_PROMPT_TEMPLATE.replace('{cast_requirement}', cast).replace('{clue_requirement}', clue_range)
+    base_prompt = f"用户想要创建一个以「{topic}」为主题的剧本杀案件。\n\n{template}"
     data = None
     for attempt in range(2):
         try:
@@ -452,6 +458,11 @@ def generate_story(
             content = generate_story_text(prompt, client, show_reasoning=show_reasoning)
             data = extract_story_json(content)
             if data is not None:
+                actual = len(data.get('characters', [])) if isinstance(data.get('characters'), list) else 0
+                if not 3 <= actual <= 8 or (character_count is not None and actual != character_count):
+                    logger.warning("生成的角色数量不符合要求: %s", actual)
+                    data = None
+                    continue
                 break
         except RuntimeError as exc:
             logger.warning("故事生成调用失败（第 %d 次）: %s", attempt + 1, exc)
@@ -711,6 +722,9 @@ def load_story(story_id: str) -> Optional[StoryArchive]:
     Returns:
         StoryArchive or None if not found.
     """
+    for archive in builtin_stories():
+        if archive.id == story_id:
+            return archive
     file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
 
     if not os.path.exists(file_path):
@@ -736,22 +750,21 @@ def list_stories() -> List[Dict[str, Any]]:
         List of story info dictionaries.
     """
     ensure_stories_dir()
+    builtins = builtin_stories()
+    builtin_ids = {a.id for a in builtins}
     stories = []
 
     for filename in os.listdir(STORIES_DIR):
         if filename.endswith(".json"):
             story_id = filename[:-5]
+            if story_id in builtin_ids:
+                continue
             archive = load_story(story_id)
             if archive and (not archive.production or archive.production.get("status") == "ready"):
-                stories.append({
-                    "id": archive.id,
-                    "title": archive.title,
-                    "topic": archive.topic,
-                    "created_at": archive.created_at,
-                    "num_characters": len(archive.characters)
-                })
+                if archive.id not in builtin_ids:
+                    stories.append(story_info(archive))
 
-    return sorted(stories, key=lambda x: x["created_at"], reverse=True)
+    return [story_info(a) for a in builtins] + sorted(stories, key=lambda x: x["created_at"], reverse=True)
 
 
 def delete_story(story_id: str) -> bool:
@@ -763,6 +776,8 @@ def delete_story(story_id: str) -> bool:
     Returns:
         True if deleted.
     """
+    if any(a.id == story_id for a in builtin_stories()):
+        return False
     with _STORY_WRITE_LOCK:
         file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
 
@@ -800,7 +815,8 @@ class StoryService:
     def create_story(
         self,
         topic: str,
-        show_reasoning: bool = False
+        show_reasoning: bool = False,
+        character_count: int | None = None,
     ) -> Optional[StoryArchive]:
         """Generate and save a new story.
 
@@ -817,8 +833,10 @@ class StoryService:
         Returns:
             StoryArchive or None on failure.
         """
+        validate_character_count(character_count)
         client = create_deepseek_client()
-        case_data = generate_story(topic, client, show_reasoning)
+        case_data = (generate_story(topic, client, show_reasoning, character_count=character_count)
+                     if character_count is not None else generate_story(topic, client, show_reasoning))
 
         if not case_data:
             return None
@@ -826,6 +844,8 @@ class StoryService:
         try:
             archive = parse_case_to_archive(case_data, topic)
             archive.validate(require_script=True, require_solution=True)
+            if character_count is not None and len(archive.characters) != character_count:
+                raise ValueError('剧本角色数量与指定人数不一致')
             GameManager.validate_quick_evidence_routes(archive)
         except (KeyError, TypeError, ValueError) as e:
             logger.error("案件数据结构不完整: %s", e)
@@ -936,3 +956,19 @@ class StoryService:
             True if deleted.
         """
         return delete_story(story_id)
+
+
+    def import_package(self, package: dict) -> dict:
+        """Install a new or higher imported version without touching active games."""
+        archive = parse_package(package)
+        with _STORY_WRITE_LOCK:
+            existing = self.get_story(archive.id)
+            if existing:
+                if existing.catalog.get('origin') != 'imported':
+                    raise ValueError('不能覆盖内置或自行生成的剧本，请使用独立剧本 ID')
+                if existing.to_dict() == archive.to_dict():
+                    return story_info(existing)
+                if archive.catalog['version'] <= existing.catalog.get('version', 1):
+                    raise ValueError('仅可安装更高版本的剧本；当前版本已保留')
+            save_story(archive)
+        return story_info(archive)

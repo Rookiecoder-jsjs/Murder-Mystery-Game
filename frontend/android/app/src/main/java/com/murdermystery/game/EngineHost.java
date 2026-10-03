@@ -32,8 +32,21 @@ final class EngineHost {
             File bundled = new File(context.getFilesDir(), "bundled-stories");
             directory.mkdirs(); bundled.mkdirs();
             for (String name : context.getAssets().list("stories")) {
+                if (name.equals("catalog")) continue;
                 try (var input = context.getAssets().open("stories/" + name);
                      var output = new FileOutputStream(new File(bundled, name))) {
+                    byte[] buffer = new byte[8192];
+                    int count;
+                    while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
+                }
+            }
+            File catalog = new File(bundled, "catalog");
+            catalog.mkdirs();
+            // Always replace bundled package files; the manifest chooses current
+            // versions. Active sessions keep their own embedded story snapshot.
+            for (String name : context.getAssets().list("stories/catalog")) {
+                try (var input = context.getAssets().open("stories/catalog/" + name);
+                     var output = new FileOutputStream(new File(catalog, name))) {
                     byte[] buffer = new byte[8192];
                     int count;
                     while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);

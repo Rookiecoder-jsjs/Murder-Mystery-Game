@@ -177,6 +177,9 @@ class StoryArchive:
     production: dict = field(default_factory=dict)
     """Persisted authoring result; absent for already saved legacy stories."""
 
+    catalog: dict = field(default_factory=dict)
+    """Public package metadata, frozen with the archive in each game snapshot."""
+
     def __post_init__(self) -> None:
         """Normalize holder_id drift at the archive boundary.
 
@@ -201,6 +204,8 @@ class StoryArchive:
         """Reject broken references and unreachable evidence before play."""
         if not isinstance(self.production, dict):
             raise ValueError("剧本制作记录格式错误")
+        if not isinstance(self.catalog, dict):
+            raise ValueError("剧本目录信息格式错误")
         char_ids = [c.id for c in self.characters]
         clue_ids = [c.id for c in self.clues]
         if len(char_ids) != len(set(char_ids)) or len(clue_ids) != len(set(clue_ids)):
@@ -316,6 +321,7 @@ class StoryArchive:
             "story_content": self.story_content,
             "solution": self.solution,
             "production": self.production,
+            "catalog": self.catalog,
         }
 
     @classmethod
@@ -340,6 +346,7 @@ class StoryArchive:
             story_content=data["story_content"],
             solution=data.get("solution", []),
             production=data.get("production", {}),
+            catalog=data.get("catalog", {}),
         )
 
     @staticmethod

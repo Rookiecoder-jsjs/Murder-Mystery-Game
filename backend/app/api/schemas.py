@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 class CreateGameRequest(BaseModel):
     topic: str = Field(..., min_length=1, max_length=200, description="剧本主题")
+    character_count: int | None = Field(None, strict=True, ge=3, le=8, description="角色人数（含玩家，不含受害者）；空为自动")
     player_name: Optional[str] = Field(None, max_length=50, description="玩家名字")
     mode: Literal["classic", "quick"] = Field("classic", description="游戏模式")
 
@@ -60,3 +61,7 @@ class ClueBoardResponse(BaseModel):
     clues: list[ClueInfo]
     scene_public_clues: list[ClueInfo]
     accusation_points: int
+
+
+class ImportStoryRequest(BaseModel):
+    package: dict

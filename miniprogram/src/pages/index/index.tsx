@@ -1,11 +1,12 @@
 import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
-import { Button, ScrollView, Text, View } from '@tarojs/components'
+import { Button, Image, ScrollView, Text, View } from '@tarojs/components'
 import { useCallback, useState } from 'react'
 import { CaseHeader, LoadingOverlay } from '@/components'
 import { gameApi } from '@/services/game-api'
 import { getLastGameId, useGame } from '@/store/game-context'
 import type { Story } from '@/types/game'
 import { showError } from '@/utils/feedback'
+import { resolveAssetUrl } from '@/config/env'
 import './index.scss'
 
 function displayDate(value: string): string {
@@ -14,6 +15,7 @@ function displayDate(value: string): string {
 
 export default function IndexPage() {
   const { loadGame } = useGame()
+  const [libraryTab, setLibraryTab] = useState<'builtin' | 'personal'>('builtin')
   const [stories, setStories] = useState<Story[]>([])
   const [loading, setLoading] = useState(true)
   const [storiesError, setStoriesError] = useState(false)
@@ -55,6 +57,24 @@ export default function IndexPage() {
     }
   }
 
+  const importPackage = async () => {
+    try {
+      const chosen = await Taro.chooseMessageFile({ count: 1, type: 'file', extension: ['json'] })
+      const file = chosen.tempFiles[0]
+      if (!file || file.size > 2 * 1024 * 1024) throw new Error('剧本包不能超过 2 MB')
+      setBusyLabel('正在检查并安装剧本包')
+      const data = Taro.getFileSystemManager().readFileSync(file.path, 'utf8')
+      if (typeof data !== 'string') throw new Error('请选择 JSON 剧本文件')
+      const packageData: unknown = JSON.parse(data)
+      await gameApi.importStory(packageData)
+      setLibraryTab('personal')
+      await refreshStories()
+    } catch (error) {
+      if (!(typeof error === 'object' && error && 'errMsg' in error && String(error.errMsg).includes('cancel'))) showError(error)
+    } finally { setBusyLabel('') }
+  }
+
+  const visibleStories = stories.filter(story => (story.origin === 'builtin') === (libraryTab === 'builtin'))
   const resumeLastGame = () => {
     if (!lastGameId) return
     Taro.navigateTo({ url: `/pages/game/index?gameId=${lastGameId}` })
@@ -66,7 +86,7 @@ export default function IndexPage() {
       <View className='archive-home__hero'>
         <Text className='archive-home__serial'>ARCHIVE / 1930</Text>
         <Text className='archive-home__title'>一案一生，{`\n`}入局即是证人</Text>
-        <Text className='archive-home__subtitle'>AI 即时构筑案件与人物，每一位嫌疑人都有自己的秘密。</Text>
+        <Text className='archive-home__subtitle'>先选原创精选剧本，也可自行生成新故事。</Text>
         <View className='archive-home__red-thread' />
         <View className='archive-home__stamp'>待{`\n`}立案</View>
         <Button className='archive-home__create' onClick={openNewCase}>
@@ -89,11 +109,15 @@ export default function IndexPage() {
         <View className='archive-home__section-head'>
           <View>
             <Text className='section-kicker'>CASE LIBRARY</Text>
-            <Text className='section-title'>旧案卷宗</Text>
+            <Text className='section-title'>精选与个人剧本</Text>
           </View>
           <Text className='archive-home__count'>{String(stories.length).padStart(2, '0')} 卷</Text>
         </View>
 
+        <View className='archive-home__library-tabs'>
+          <Button onClick={() => setLibraryTab('builtin')} disabled={libraryTab === 'builtin'}>精选剧本</Button>
+          <Button onClick={() => setLibraryTab('personal')} disabled={libraryTab === 'personal'}>我的剧本</Button>
+        </View>
         {loading ? (
           <View className='archive-home__skeletons'>
             {[0, 1, 2].map((item) => <View key={item} className='archive-home__skeleton' />)}
@@ -104,26 +128,28 @@ export default function IndexPage() {
             <Text>档案馆暂时无法连接后端</Text>
             <Button className='ghost-button archive-home__retry' onClick={refreshStories}>重新调取</Button>
           </View>
-        ) : stories.length === 0 ? (
+        ) : visibleStories.length === 0 ? (
           <View className='paper-card empty-state'>
             <Text className='empty-state__mark'>空</Text>
-            <Text>尚无旧案，创建第一卷案件吧</Text>
+            <Text>暂无此类剧本，可选择精选或导入新故事</Text>
           </View>
         ) : (
           <ScrollView className='archive-home__cases' scrollX enhanced showScrollbar={false}>
             <View className='archive-home__case-row'>
-              {stories.map((story, index) => (
+              {visibleStories.map((story, index) => (
                 <View key={story.id} className='case-file' onClick={() => openStory(story)}>
                   <View className='case-file__tab'>卷 {String(index + 1).padStart(2, '0')}</View>
                   <View className='case-file__pin' />
-                  <Text className='case-file__topic'>{story.topic}</Text>
+                  {story.cover_url && <Image className='case-file__cover' src={resolveAssetUrl(story.cover_url)} mode='aspectFill' lazyLoad />}
+                  <Text className='case-file__topic'>{story.origin === 'builtin' ? '原创精选' : '个人剧本'} · {story.difficulty || story.topic}</Text>
                   <Text className='case-file__title'>{story.title}</Text>
+                  {story.summary && <Text className='case-file__summary'>{story.summary}</Text>}
                   <View className='case-file__rule' />
                   <View className='case-file__meta'>
                     <Text>{story.num_characters || '—'} 位涉案人</Text>
                     <Text>{displayDate(story.created_at)}</Text>
                   </View>
-                  <View className='case-file__status'>可重开</View>
+                  <View className='case-file__status'>版本 {story.version || 1} · 可重开</View>
                   <Text className='case-file__open'>启封调查 →</Text>
                 </View>
               ))}
@@ -131,8 +157,9 @@ export default function IndexPage() {
           </ScrollView>
         )}
 
+        <Button className='ghost-button' onClick={importPackage}>导入剧本包（JSON，最多 2 MB）</Button>
         <View className='archive-home__footnote'>
-          <Text>＊ 所有案件均由 AI 即时生成</Text>
+          <Text>＊ 精选为预制成品，自行生成质量受模型影响</Text>
           <Text>人物肖像为剧情设定的视觉演绎</Text>
         </View>
       </View>

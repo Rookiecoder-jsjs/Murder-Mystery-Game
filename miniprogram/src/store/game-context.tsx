@@ -92,7 +92,7 @@ function reducer(state: GameState, action: Action): GameState {
 
 interface GameContextValue {
   state: GameState
-  createGame: (topic: string, mode?: GameMode) => Promise<string>
+  createGame: (topic: string, mode?: GameMode, characterCount?: number) => Promise<string>
   loadGame: (storyId: string, mode?: GameMode) => Promise<string>
   resumeGame: (gameId: string) => Promise<void>
   refreshGame: () => Promise<void>
@@ -154,10 +154,10 @@ export function GameProvider({ children }: PropsWithChildren) {
     })
   }, [])
 
-  const createGame = useCallback(async (topic: string, mode: GameMode = 'classic') => {
+  const createGame = useCallback(async (topic: string, mode: GameMode = 'classic', characterCount?: number) => {
     dispatch({ type: 'PATCH', payload: { isLoading: true, error: null } })
     try {
-      const result = await gameApi.createGame(topic, mode)
+      const result = await gameApi.createGame(topic, mode, characterCount)
       activeGameIdRef.current = result.game_id
       persistLastGame(result.game_id)
       dispatch({

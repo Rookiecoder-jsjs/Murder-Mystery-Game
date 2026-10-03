@@ -6,7 +6,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import asyncio
+
+from fastapi import APIRouter, Depends, HTTPException
+from app.api.schemas import ImportStoryRequest
 
 from app.api.dependencies import get_session_manager
 from app.services.session_service import SessionManager
@@ -21,3 +24,13 @@ async def list_available_stories(
 ) -> dict:
     """列出所有可用故事"""
     return {"stories": list_stories()}
+
+
+@router.post('/stories/import')
+async def import_story_package(request: ImportStoryRequest, manager: SessionManager = Depends(get_session_manager)) -> dict:
+    """Install a structurally validated data package locally."""
+    try:
+        story = await asyncio.to_thread(manager._story_service.import_package, request.package)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    return {'story': story}

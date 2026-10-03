@@ -240,6 +240,43 @@ class MobileRuntimeTests(unittest.TestCase):
                 self.assertFalse(any(module in __import__('sys').modules for module in ('fastapi', 'openai', 'dotenv')))
         asyncio.run(play())
 
+class CatalogMobileTests(unittest.TestCase):
+    def test_catalog_import_updates_only_new_games_and_invalid_counts_stay_offline(self):
+        async def check():
+            with tempfile.TemporaryDirectory() as directory:
+                transport = Transport()
+                runtime = Runtime(directory, BUNDLED, transport)
+                items = runtime.read('/stories')['stories']
+                self.assertEqual([s['num_characters'] for s in items if s['origin'] == 'builtin'], [3, 5, 7])
+                async def perform(endpoint, body):
+                    task = await runtime.command({'kind': 'start', 'id': str(uuid.uuid4()), 'endpoint': endpoint, 'body': body})
+                    for _ in range(400):
+                        result = runtime.store.get('tasks', task['id'])
+                        if result['state'] not in ('queued', 'running'):
+                            return result
+                        await asyncio.sleep(.005)
+                    self.fail('local task did not finish')
+                package = json.loads(next((BUNDLED / 'catalog').glob('ad*.json')).read_text())
+                package['archive']['id'] = str(uuid.uuid4())
+                package['metadata']['version'] = 1
+                first = await perform('/stories/import', {'package': package})
+                self.assertEqual(first['state'], 'done')
+                retry = await perform('/stories/import', {'package': package})
+                self.assertEqual(retry['state'], 'done')
+                loaded = await perform('/games/load', {'story_id': package['archive']['id']})
+                gid = loaded['result']['game_id']
+                package['metadata']['version'] = 2
+                package['archive']['title'] = '移动端修订版'
+                self.assertEqual((await perform('/stories/import', {'package': package}))['state'], 'done')
+                runtime = Runtime(directory, BUNDLED, transport)
+                self.assertEqual(runtime.manager.get(gid).archive.catalog['version'], 1)
+                self.assertEqual(runtime.stories.get_story(package['archive']['id']).catalog['version'], 2)
+                invalid = await perform('/games', {'topic': '不该请求模型', 'character_count': 9})
+                self.assertEqual(invalid['state'], 'failed')
+                self.assertEqual(invalid['status'], 422)
+                self.assertEqual(len(transport.calls), 0)
+        asyncio.run(check())
+
 
 if __name__ == '__main__':
     unittest.main()

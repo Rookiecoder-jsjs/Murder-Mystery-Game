@@ -18,9 +18,11 @@ import type {
 export const gameApi = {
   listStories: () => request<{ stories: Story[] }>('/stories'),
 
-  createGame: (topic: string, mode: GameMode = 'classic') => request<GameBootstrap>('/games', {
+  importStory: (packageData: unknown) => request<{ story: Story }>('/stories/import', { method: 'POST', data: { package: packageData } }),
+
+  createGame: (topic: string, mode: GameMode = 'classic', characterCount?: number) => request<GameBootstrap>('/games', {
     method: 'POST',
-    data: { topic, mode },
+    data: { topic, mode, character_count: characterCount },
     timeout: 360_000,
   }),
 

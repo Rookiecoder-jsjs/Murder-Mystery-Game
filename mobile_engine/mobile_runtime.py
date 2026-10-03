@@ -26,6 +26,9 @@ class Runtime:
         self.revision = 0
         configure_embedded(directory, lambda _kind: NativeModelClient(transport, self.store),
                            self.story_progress)
+        from app.services import story_catalog
+        if (Path(bundled) / 'catalog' / 'manifest.json').exists():
+            story_catalog.CONTENT_DIR = Path(bundled) / 'catalog'
         from app.services.story_service import StoryService
         from app.services.session_service import SessionManager
         stories = Path(directory) / 'stories'
@@ -63,7 +66,7 @@ class Runtime:
         view['label'] = {'games': '生成新案件', 'load': '新开一局', 'introduce': '开场介绍',
             'speak': '本次询问', 'stream': '本次询问', 'vote': '保存最终判断', 'ballot-advice': '人物判断',
             'investigate': '调查证据', 'next-investigation-round': '下一轮调查',
-            'return-to-investigation': '补充调查', 'start-voting': '进入表决', 'next-phase': '推进阶段'}.get(action, '游戏操作')
+            'import': '安装剧本包', 'return-to-investigation': '补充调查', 'start-voting': '进入表决', 'next-phase': '推进阶段'}.get(action, '游戏操作')
         manager = getattr(self, 'manager', None)
         session = manager._sessions.get(game_id) if manager else None
         if session:
@@ -196,6 +199,11 @@ class Runtime:
 
     async def mutate(self, task: dict) -> dict:
         endpoint, body = task['endpoint'], task['body']
+        if endpoint == '/stories/import':
+            try:
+                return {'story': await asyncio.to_thread(self.stories.import_package, body.get('package'))}
+            except ValueError as error:
+                raise GameError(422, str(error)) from error
         if endpoint in ('/games', '/games/load'):
             # A completed creation remains discoverable even if UI response was lost.
             if task['id'] in self.manager.list_active():
@@ -207,10 +215,15 @@ class Runtime:
                     raise GameError(404, '剧本不存在或存档已损坏')
                 gid, session = self.manager.create_session(archive=archive, mode=body.get('mode', 'quick'), game_id=task['id'])
             else:
+                from app.services.story_catalog import validate_character_count
+                try:
+                    validate_character_count(body.get('character_count'))
+                except ValueError as error:
+                    raise GameError(422, str(error)) from error
                 topic = str(body.get('topic', '')).strip()
                 if not topic or len(topic) > 2000:
                     raise GameError(400, '请输入有效的案件主题')
-                archive = await asyncio.to_thread(self.stories.create_story, topic)
+                archive = await asyncio.to_thread(self.stories.create_story, topic, character_count=body.get('character_count'))
                 if archive is None:
                     raise GameError(422, '剧本生成或一致性审查未通过')
                 gid, session = self.manager.create_session(archive=archive, mode=body.get('mode', 'quick'), game_id=task['id'])

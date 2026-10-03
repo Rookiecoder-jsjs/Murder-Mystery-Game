@@ -1,0 +1,421 @@
+{
+  "format_version": 1,
+  "metadata": {
+    "schema_version": 1,
+    "version": 1,
+    "summary": "一批货物，两张提货单，七名滞留仓库的人。货梯的铃声与一处铅封，指向两段不同的时间。",
+    "author": "本项目原创剧本组",
+    "license": "本项目原创内容，按仓库 LICENSE 授权；不含第三方剧本正文。",
+    "difficulty": "进阶",
+    "estimated_minutes": 55
+  },
+  "archive": {
+    "id": "ad60c7e0-1f56-4fc3-bcaa-705910d03303",
+    "created_at": "2026-10-03 00:00:00",
+    "topic": "民国 · 进阶推理",
+    "title": "雾港双重提货单",
+    "case": {
+      "title": "雾港双重提货单",
+      "background": "凌晨港口起雾，仓库督办罗启死在二号货梯底部，七名值夜人员被留在仓库大厅。巡查时货梯已停在底层，登记簿却显示案发前没有载货下行。明早同一批货物似乎要由两张提货单领取。",
+      "victim": "罗启",
+      "crime": "罗启被害",
+      "true_killer": "char_1",
+      "motive": "详见证据链与真相",
+      "location": "申城雾港第三仓库",
+      "time": "1934年秋"
+    },
+    "characters": [
+      {
+        "id": "char_1",
+        "name": "姚衡",
+        "public_identity": "仓库账房",
+        "secret": "",
+        "is_killer": true,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我用两张提货单重复收钱，罗督办今晚发现新封号对不上。我十二点五十八分先盖外联，真正内联是看到一点零四分的新封号后才抄的。我领过临时检修钥匙，没归还。一点零六分我说要核单，把罗启引到二号梯门，解除安全联锁，在轿厢还在上层时把他推下。我随即拉空梯下行，想说事故发生在我离岗之后。",
+        "objectives": [
+          "用外联旧戳记掩饰真实行动时间",
+          "解释提货单差异与检修钥匙；证据成立时不得否认本人已发生的行为"
+        ],
+        "cover_story": "我十二点五十八分办完单就回账房了，后面没去二号梯。",
+        "public_introduction": "大家好，我是姚衡，仓库账房。"
+      },
+      {
+        "id": "char_2",
+        "name": "梁笙",
+        "public_identity": "夜班电工",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我十二点四十分把临时检修钥匙交给姚衡，借用簿由他签字。我主钥匙仍封在工具箱，封条到警方打开时完整。一点零二至十分我在配电房记录电压，与司炉员互相核对。我不知道姚衡后来是否用过钥匙。前天我漏报一次联锁故障，怕遭解雇。",
+        "objectives": [
+          "说明钥匙借用与联锁旁路",
+          "承认漏报，不替旁路使用者开脱"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是梁笙，夜班电工。"
+      },
+      {
+        "id": "char_3",
+        "name": "方舟",
+        "public_identity": "值夜司炉员",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "一点零二至十分我在配电房门侧记录汽压，梁笙一直在我眼前写电压。我违规把煤卖给过船主，罗督办打算查。我听见一点零七分二号梯铃，但不知道里面有没有货。我没有检修钥匙，也没去梯门。",
+        "objectives": [
+          "核对汽压、电压的连续记录",
+          "解释私卖煤的秘密"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是方舟，值夜司炉员。"
+      },
+      {
+        "id": "char_4",
+        "name": "唐苓",
+        "public_identity": "海关巡检员",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我一点零四分在二号梯口给新铅封与罗督办拍过一张照，随后到门房与船务员核对出口账，直到十分。照片是我亲手拍的，督办当时还能走动说话。我曾放行一件手续不全的私人行李，不愿被查。",
+        "objectives": [
+          "出示检查照片",
+          "区分私放行李与督办坠落"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是唐苓，海关巡检员。"
+      },
+      {
+        "id": "char_5",
+        "name": "季川",
+        "public_identity": "船务代理",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我在门房与唐苓一点零四分至十分逐行核出口账，轮班门卫一直在。外联十二点五十八分已经给我，但内联一直留在姚衡手上。我借高利贷付运费，拿过仓库货物抵债；我知道自己这张单应领多少货，不知道另一张单。",
+        "objectives": [
+          "说明自己提货单的交付顺序",
+          "查明为何同批货有另一张单"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是季川，船务代理。"
+      },
+      {
+        "id": "char_6",
+        "name": "钱絮",
+        "public_identity": "清点员",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "一点整至十分我与杜杉在封闭一号库逐箱计数，轮流在连续清点带上签名。两人没有离开。我发现新封号刚换，但没看到二号梯。我漏点过一箱货物并想补记录，怕督办处罚。",
+        "objectives": [
+          "还原清点工作的真实范围",
+          "说明漏点，不把库外声音当目击"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是钱絮，清点员。"
+      },
+      {
+        "id": "char_7",
+        "name": "杜杉",
+        "public_identity": "港口装卸班长",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "一点整至十分我和钱絮在一号库清点，彼此一直可见。我对督办扣工钱很不满，晚饭时争吵过。我听见货梯铃但看不见二号梯。我的装卸工具不能开启检修联锁。",
+        "objectives": [
+          "核对同伴清点时间",
+          "解释扣薪争执与二号梯距离"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是杜杉，港口装卸班长。"
+      }
+    ],
+    "clues": [
+      {
+        "id": "clue_1",
+        "content": "罗启的伤势符合从二号梯口直接坠入井底，死亡由坠落造成。梯井底部为首次落血地点，没有拖移血痕或先前致命伤；井内没有其他人或出口。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "梯井与伤检"
+      },
+      {
+        "id": "clue_2",
+        "content": "姚衡经手的两张提货单对应同一批三十箱货物，分别交给不同收货人；都盖十二点五十八分外联戳记。单据本身不证明经手人此后未离开账房。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "两张外联提货单"
+      },
+      {
+        "id": "clue_3",
+        "content": "督办记录了电工漏报、司炉私卖煤、清点漏箱与班长扣薪争执；船务代理欠债、巡检员漏手续也在记录中。各项均说明矛盾，不直接说明梯井旁路使用。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "岗位利益纠纷"
+      },
+      {
+        "id": "clue_4",
+        "content": "二号梯只有解除机械安全联锁才能在轿厢未到位时打开梯门。完整纸带记录一点零六分手动检修旁路开启，一点零七分轿厢空载下行，此前无下行。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "安全联锁与空载记录"
+      },
+      {
+        "id": "clue_5",
+        "content": "提货单内联压痕写的是新封号鹭字七三九。海关换封凭单记载该号一点零四分才在梯口首次启封公布，旧封号为鹭字七三六；打印封号此前保管在未拆封盒中。内联由姚衡签名确认亲手抄写。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "内联压痕与新封号"
+      },
+      {
+        "id": "clue_6",
+        "content": "唐苓一点零四分拍摄的检查底片中，罗启站在二号梯口核验新铅封，能正常走动；安全门关闭，透明梯井与周边无人。底片时间与换封回执交叉一致。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "梯口检查照片"
+      },
+      {
+        "id": "clue_7",
+        "content": "临时检修钥匙十二点四十分由姚衡签领，借条记下钥匙蜡封号六二；夜班只有这一把可用临时钥匙。未见归还记录，警方在姚衡衣袋找到钥匙，蜡封已破。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "检修钥匙借用簿"
+      },
+      {
+        "id": "clue_8",
+        "content": "旁路锁槽内蜡屑与六二号钥匙蜡封的颜色、配方一致；梁笙主钥匙箱整夜封条完好。该联锁须插入完整检修钥匙，普通装卸工具不能打开，现场没有强拆痕迹。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "旁路锁槽与封蜡"
+      },
+      {
+        "id": "clue_9",
+        "content": "一点零二至十分连续电压、汽压纸带有梁笙与方舟逐分钟交替核对签名，两人确认互相可见且从未离开；配电房不能直接进入二号梯口。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "配电房的双人记录"
+      },
+      {
+        "id": "clue_10",
+        "content": "一点零四分至十分唐苓与季川、轮班门卫逐行核对出口账，三人一直互相可见。门卫确认两人未离开，门房到梯口须经过门卫岗位。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "门房出口核账记录"
+      },
+      {
+        "id": "clue_11",
+        "content": "一点整至十分钱絮与杜杉在一号库连续清点并交替签名，二人全程互相可见；一号库与二号梯无内部通道，库门岗位确认两人没有出入。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "一号库的清点带"
+      },
+      {
+        "id": "clue_12",
+        "content": "督办扣留两份由姚衡署名的收款底单，合计售出同一批六十箱份额；仓内只有三十箱。底单与外联对应，督办已批注次晨向两收货人核对并追责姚衡。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "督办扣留的收款底单"
+      }
+    ],
+    "story_content": "仓库账房姚衡冒用两张提货单重复出售货物，被督办罗启识破。他在凌晨一点零六分把罗启骗进二号货梯检查假提货单，趁轿厢未到门口时推他入井，随后拉下空梯，装成普通坠落。他使用临时检修钥匙解除安全门联锁，并借外层提货单的十二点五十八分戳记伪造更早的不在场记录。外层与内联并非同一时点：内联压痕写着一点零四分才抄出的新封号。货梯纸带显示一点零六分手动旁路、零七分空载下行；死者坠落伤及井底血迹排除搬尸。只有姚衡有以旧封号登记领出的检修钥匙，钥匙未归还；旁路上的蜡屑与他的钥匙封蜡吻合，其他六人在可核对的连续岗位记录中。罗启的一点零四分检查照显示他仍活着、梯井无人，排除预先埋伏。其余人的走私、逃债、漏签虽有利益纠葛，均不能满足接近井口、开启联锁和改写内联的组合条件。",
+    "solution": [
+      {
+        "conclusion": "死者于一点零四分检查后在二号梯口坠落；一点零六分旁路开启制造了可推人入井的条件，空梯随后被放下。",
+        "evidence": [
+          {
+            "clue_id": "clue_1",
+            "quote": "罗启的伤势符合从二号梯口直接坠入井底，死亡由坠落造成。梯井底部为首次落血地点，没有拖移血痕或先前致命伤；井内没有其他人或出口。"
+          },
+          {
+            "clue_id": "clue_4",
+            "quote": "二号梯只有解除机械安全联锁才能在轿厢未到位时打开梯门。完整纸带记录一点零六分手动检修旁路开启，一点零七分轿厢空载下行，此前无下行。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "唐苓一点零四分拍摄的检查底片中，罗启站在二号梯口核验新铅封，能正常走动；安全门关闭，透明梯井与周边无人。底片时间与换封回执交叉一致。"
+          }
+        ]
+      },
+      {
+        "conclusion": "十二点五十八分外联不是内联写成时间，姚衡至少一点零四分以后还在处理本次新封号。",
+        "evidence": [
+          {
+            "clue_id": "clue_2",
+            "quote": "姚衡经手的两张提货单对应同一批三十箱货物，分别交给不同收货人；都盖十二点五十八分外联戳记。单据本身不证明经手人此后未离开账房。"
+          },
+          {
+            "clue_id": "clue_5",
+            "quote": "提货单内联压痕写的是新封号鹭字七三九。海关换封凭单记载该号一点零四分才在梯口首次启封公布，旧封号为鹭字七三六；打印封号此前保管在未拆封盒中。内联由姚衡签名确认亲手抄写。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "唐苓一点零四分拍摄的检查底片中，罗启站在二号梯口核验新铅封，能正常走动；安全门关闭，透明梯井与周边无人。底片时间与换封回执交叉一致。"
+          }
+        ]
+      },
+      {
+        "conclusion": "开启联锁需检修钥匙，姚衡签领且未归还的六二号钥匙与旁路蜡屑吻合；另一把主钥匙未动。",
+        "evidence": [
+          {
+            "clue_id": "clue_4",
+            "quote": "二号梯只有解除机械安全联锁才能在轿厢未到位时打开梯门。完整纸带记录一点零六分手动检修旁路开启，一点零七分轿厢空载下行，此前无下行。"
+          },
+          {
+            "clue_id": "clue_7",
+            "quote": "临时检修钥匙十二点四十分由姚衡签领，借条记下钥匙蜡封号六二；夜班只有这一把可用临时钥匙。未见归还记录，警方在姚衡衣袋找到钥匙，蜡封已破。"
+          },
+          {
+            "clue_id": "clue_8",
+            "quote": "旁路锁槽内蜡屑与六二号钥匙蜡封的颜色、配方一致；梁笙主钥匙箱整夜封条完好。该联锁须插入完整检修钥匙，普通装卸工具不能打开，现场没有强拆痕迹。"
+          }
+        ]
+      },
+      {
+        "conclusion": "其余六人在致死窗口都有连续相互核对的岗位记录，梯口照片又排除预先埋伏；姚衡的旧戳记无法提供这段时间的不在场证明。",
+        "evidence": [
+          {
+            "clue_id": "clue_5",
+            "quote": "提货单内联压痕写的是新封号鹭字七三九。海关换封凭单记载该号一点零四分才在梯口首次启封公布，旧封号为鹭字七三六；打印封号此前保管在未拆封盒中。内联由姚衡签名确认亲手抄写。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "唐苓一点零四分拍摄的检查底片中，罗启站在二号梯口核验新铅封，能正常走动；安全门关闭，透明梯井与周边无人。底片时间与换封回执交叉一致。"
+          },
+          {
+            "clue_id": "clue_9",
+            "quote": "一点零二至十分连续电压、汽压纸带有梁笙与方舟逐分钟交替核对签名，两人确认互相可见且从未离开；配电房不能直接进入二号梯口。"
+          },
+          {
+            "clue_id": "clue_10",
+            "quote": "一点零四分至十分唐苓与季川、轮班门卫逐行核对出口账，三人一直互相可见。门卫确认两人未离开，门房到梯口须经过门卫岗位。"
+          },
+          {
+            "clue_id": "clue_11",
+            "quote": "一点整至十分钱絮与杜杉在一号库连续清点并交替签名，二人全程互相可见；一号库与二号梯无内部通道，库门岗位确认两人没有出入。"
+          }
+        ]
+      },
+      {
+        "conclusion": "重复收款与督办追责形成灭口动机，须与时间、钥匙与排除链一起认定。",
+        "evidence": [
+          {
+            "clue_id": "clue_2",
+            "quote": "姚衡经手的两张提货单对应同一批三十箱货物，分别交给不同收货人；都盖十二点五十八分外联戳记。单据本身不证明经手人此后未离开账房。"
+          },
+          {
+            "clue_id": "clue_7",
+            "quote": "临时检修钥匙十二点四十分由姚衡签领，借条记下钥匙蜡封号六二；夜班只有这一把可用临时钥匙。未见归还记录，警方在姚衡衣袋找到钥匙，蜡封已破。"
+          },
+          {
+            "clue_id": "clue_8",
+            "quote": "旁路锁槽内蜡屑与六二号钥匙蜡封的颜色、配方一致；梁笙主钥匙箱整夜封条完好。该联锁须插入完整检修钥匙，普通装卸工具不能打开，现场没有强拆痕迹。"
+          },
+          {
+            "clue_id": "clue_12",
+            "quote": "督办扣留两份由姚衡署名的收款底单，合计售出同一批六十箱份额；仓内只有三十箱。底单与外联对应，督办已批注次晨向两收货人核对并追责姚衡。"
+          }
+        ]
+      }
+    ],
+    "production": {},
+    "catalog": {}
+  },
+  "artwork": {
+    "version": 1,
+    "cover": "cover-v1.webp",
+    "portraits": {
+      "char_1": "char_1-v1.webp",
+      "char_2": "char_2-v1.webp",
+      "char_3": "char_3-v1.webp",
+      "char_4": "char_4-v1.webp",
+      "char_5": "char_5-v1.webp",
+      "char_6": "char_6-v1.webp",
+      "char_7": "char_7-v1.webp"
+    }
+  }
+}

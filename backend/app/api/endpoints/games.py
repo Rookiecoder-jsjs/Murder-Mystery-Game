@@ -60,7 +60,7 @@ async def create_game(
     """创建新游戏"""
     try:
         game_id, session = await _create_in_thread(
-            manager, request.topic, request.mode,
+            manager, request.topic, request.mode, request.character_count,
         )
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -81,13 +81,13 @@ async def create_game(
 
 
 async def _create_in_thread(
-    manager: SessionManager, topic: str, mode: str = "classic"
+    manager: SessionManager, topic: str, mode: str = "classic", character_count: int | None = None
 ):
     """Run the blocking story generation in a worker thread."""
     import asyncio
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
-        None, lambda: manager.create_session(topic=topic, mode=mode),
+        None, lambda: manager.create_session(topic=topic, mode=mode, **({"character_count": character_count} if character_count is not None else {})),
     )
 
 

@@ -39,6 +39,10 @@ export function HomePage() {
   const navigate = useNavigate();
   const { createGame, loadGame } = useGame();
   const { notify } = useToast();
+  const [libraryTab, setLibraryTab] = useState<'builtin' | 'personal' | 'generate'>('builtin');
+  const [characterCount, setCharacterCount] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState('');
   const [topic, setTopic] = useState('');
   const [mode, setMode] = useState<GameMode>('quick');
   const [isLoadingGame, setIsLoadingGame] = useState(false);
@@ -98,12 +102,12 @@ export function HomePage() {
   }, [isCreating]);
 
   const handleCreateGame = async () => {
-    if (!topic.trim() || isCreating || isLoadingGame) return;
+    if (!topic.trim() || isCreating || isLoadingGame || isImporting) return;
     setError(null);
     setGenerationStage('正在准备生成任务');
     setIsCreating(true);
     try {
-      const gameId = await createGame(topic.trim(), undefined, mode);
+      const gameId = await createGame(topic.trim(), undefined, mode, characterCount ? Number(characterCount) : undefined);
       if (mounted.current) navigate(`/game/${gameId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : '创建游戏失败');
@@ -112,7 +116,7 @@ export function HomePage() {
   };
 
   const handleLoadGame = async (storyId: string) => {
-    if (isLoadingGame || isCreating) return;
+    if (isLoadingGame || isCreating || isImporting) return;
     setIsLoadingGame(true);
     setOpeningStory(storyId);
     setLoadError(null);
@@ -153,15 +157,40 @@ export function HomePage() {
         </header>}
 
         {isAndroid && <NativeHome hideTasks={isCreating} />}
-        <div className="home-columns">
-          <section className="home-col">
+        <div className="home-mode-picker" role="group" aria-label="选择游戏模式">
+              <button
+                type="button"
+                className={`home-mode-option${mode === 'quick' ? ' is-selected' : ''}`}
+                disabled={isCreating || isLoadingGame || isImporting}
+                onClick={() => setMode('quick')}
+              >
+                <span>速推模式</span>
+                <small>三轮推进 · 三轮调查与讨论</small>
+              </button>
+              <button
+                type="button"
+                className={`home-mode-option${mode === 'classic' ? ' is-selected' : ''}`}
+                disabled={isCreating || isLoadingGame || isImporting}
+                onClick={() => setMode('classic')}
+              >
+                <span>经典模式</span>
+                <small>自由调查 · 完整流程</small>
+              </button>
+            </div>
+        <nav className="library-tabs" aria-label="选择剧本来源">
+          {([['builtin', '精选剧本'], ['personal', '我的剧本'], ['generate', '自行生成']] as const).map(([value, label]) =>
+            <button key={value} type="button" aria-pressed={libraryTab === value} disabled={isCreating || isLoadingGame || isImporting}
+              onClick={() => setLibraryTab(value)}>{label}</button>)}
+        </nav>
+        <div className="home-columns home-columns--library">
+          <section className="home-col" hidden={libraryTab !== 'generate'}>
             <div className="home-section-head">
               <span className="giant-no" aria-hidden="true">
                 01
               </span>
               <h2 className="home-section-title">
                 <Sparkles size={18} className="home-create-icon" />
-                今夜新剧
+                自行生成
               </h2>
               <span className="head-fill" aria-hidden="true" />
             </div>
@@ -211,25 +240,16 @@ export function HomePage() {
             </div>
           ) : (
           <Card className="home-create-card" variant="gold-border">
-            <div className="home-mode-picker" role="group" aria-label="选择游戏模式">
-              <button
-                type="button"
-                className={`home-mode-option${mode === 'quick' ? ' is-selected' : ''}`}
-                onClick={() => setMode('quick')}
-              >
-                <span>速推模式</span>
-                <small>三轮推进 · 三轮调查与讨论</small>
-              </button>
-              <button
-                type="button"
-                className={`home-mode-option${mode === 'classic' ? ' is-selected' : ''}`}
-                onClick={() => setMode('classic')}
-              >
-                <span>经典模式</span>
-                <small>自由调查 · 完整流程</small>
-              </button>
-            </div>
 
+
+            <p className="library-note">AI 生成适合探索自定义题材，质量受模型影响，可能出现逻辑或人物表现不稳定。首次游玩推荐精选剧本。</p>
+            <label className="library-count">角色数量（含你扮演的 1 人，不含受害者）
+              <select value={characterCount} onChange={e => setCharacterCount(e.target.value)}>
+                <option value="">根据故事自动决定 · 3—8 人</option>
+                {[3, 4, 5, 6, 7, 8].map(count => <option key={count} value={count}>{count} 人 · {count - 1} 位 AI</option>)}
+              </select>
+            </label>
+            <p className="library-note">人数更多会增加生成篇幅和全员讨论的 API 消耗；游玩时可以定向询问。</p>
             <div className="home-input-group">
                 <input
                   type="text"
@@ -281,6 +301,7 @@ export function HomePage() {
           </section>
 
           <section
+            hidden={libraryTab === 'generate'}
             className={`home-col home-stories-section${isCreating ? ' home-stories-section--dim' : ''}`}
           >
             <div className="home-section-head">
@@ -289,11 +310,12 @@ export function HomePage() {
               </span>
               <h3 className="home-section-title">
                 <BookOpen size={18} />
-                保留剧目
+                {libraryTab === 'builtin' ? '精选剧本' : '我的剧本'}
               </h3>
               <span className="head-fill" aria-hidden="true" />
             </div>
 
+          <p className="library-note">{libraryTab === 'builtin' ? '原创成品 · 无需等待生成或再次审稿。AI 对话仍需联网及 API key。' : '这里保留自行生成、导入与旧版剧本。导入包仅做本地结构检查，不代表通过精选内容验收。'}</p>
           {isLoadingGame && <LoadingSpinner size="sm" text="正在打开剧本…" />}
           {isLoadingStories ? (
             <div className="home-loading">
@@ -304,26 +326,31 @@ export function HomePage() {
               <p>剧本列表加载失败</p>
               <span>{isAndroid ? '本地引擎未就绪，请重新打开应用' : '请确认后端服务已启动后刷新页面'}</span>
             </Card>
-          ) : stories.length === 0 ? (
+          ) : stories.filter(story => (story.origin === 'builtin') === (libraryTab === 'builtin')).length === 0 ? (
             <Card className="home-empty-stories">
-              <p>暂无已有剧本</p>
-              <span>创建一个新游戏开始你的推理之旅</span>
+              <p>暂无此类剧本</p>
+              <span>可切换精选剧本，或生成、导入新故事</span>
             </Card>
           ) : (
             <div className="shelf">
-              {stories.map((story, i) => (
+              {stories.filter(story => (story.origin === 'builtin') === (libraryTab === 'builtin')).map((story, i) => (
                 <button
                   key={story.id}
-                  className="shelf-book"
-                  disabled={isLoadingGame || isCreating}
+                  className={`shelf-book${story.cover_url ? ' shelf-book--illustrated' : ''}`}
+                  disabled={isLoadingGame || isCreating || isImporting}
                   onClick={() => handleLoadGame(story.id)}
                 >
+                  {story.cover_url && <img className="shelf-book-cover" src={story.cover_url} alt="" loading="lazy" />}
                   <span className="shelf-book-idx" aria-hidden="true">
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span className="shelf-book-main">
                     <span className="shelf-book-topic">{story.topic}</span>
                     <span className="shelf-book-title">{story.title}</span>
+                    {story.summary && <span className="library-summary">{story.summary}</span>}
+                    <span className="library-facts">{story.num_characters ?? '—'} 角色 · 你 + {(story.num_characters ?? 1) - 1} 位 AI
+                      {story.difficulty && ` · ${story.difficulty}`}{story.estimated_minutes && ` · 约 ${story.estimated_minutes} 分钟`}</span>
+                    {story.author && <span className="library-credit">{story.author} · 版本 {story.version ?? 1}</span>}
                     <span>{isLoadingGame && openingStory === story.id ? '正在开局…' : '新开一局 →'}</span>
                     {loadError?.storyId === story.id && <span className="home-error" role="alert">{loadError.message}</span>}
                   </span>
@@ -336,6 +363,29 @@ export function HomePage() {
             </div>
           )}
 
+          <div className="library-import">
+            <label>导入剧本包（JSON，最多 2 MB）
+              <input type="file" accept=".json,application/json" disabled={isCreating || isLoadingGame || isImporting} onChange={async e => {
+                const file = e.currentTarget.files?.[0];
+                e.currentTarget.value = '';
+                if (!file) return;
+                setImportError('');
+                setIsImporting(true);
+                try {
+                  if (file.size > 2 * 1024 * 1024) throw new Error('剧本包不能超过 2 MB');
+                  const packageData: unknown = JSON.parse(await file.text());
+                  await api.importStory(packageData);
+                  const response = await api.listStories();
+                  if (mounted.current) { setStories(response.stories); setLibraryTab('personal'); }
+                  notify('剧本包已安装；正在进行的游戏保留原版本', 'success');
+                } catch (err) {
+                  setImportError(err instanceof Error ? err.message : '导入失败');
+                } finally { setIsImporting(false); }
+              }} />
+            </label>
+            {isImporting && <LoadingSpinner size="sm" text="正在检查并安装剧本包…" />}
+            {importError && <p className="home-error" role="alert">{importError}</p>}
+          </div>
           <aside className="home-editorial">
             <p>
               真相

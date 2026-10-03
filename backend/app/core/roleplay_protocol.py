@@ -20,7 +20,7 @@ def statement_tool_spec() -> dict:
                 "segments": {"type": "array", "minItems": 1, "maxItems": 4, "description": "最多四句，总共不超过150字，只回答当前问题。", "items": {
                     "type": "object", "additionalProperties": False,
                     "properties": {
-                        "text": {"type": "string", "maxLength": 100, "description": "给玩家的一句中文原话，保留自然口吻及句末标点；一句只表达一个事实，不含来源ID。"},
+                        "text": {"type": "string", "maxLength": 100, "description": "给玩家的一句中文原话，保留句末标点；只表达一个事实，不含来源ID。本人经历和未知必须分两条，不能用逗号、但、至于接在同一句。"},
                         "kind": {"type": "string", "enum": ["observed", "reported", "inference", "cover", "aside"],
                                  "description": "observed引用本人事实或物证；reported转述文书/旧话；inference推测；cover仅引用self:cover；aside仅为情绪、问句或坦言未知。"},
                         "source_ids": {"type": "array", "items": {"type": "string"},
@@ -194,16 +194,22 @@ def _split_speech(speech: str, separators: str) -> list[str]:
     return segments
 
 
+def _clock_number(raw: str) -> int | None:
+    """Normalize clock numerals, including leading-zero Chinese minutes."""
+    if raw.isdecimal():
+        return int(raw)
+    digits = {c: i for i, c in enumerate("零一二三四五六七八九")}
+    if "十" in raw:
+        left, right = raw.split("十", 1)
+        if (not left or left in digits) and (not right or right in digits):
+            return (digits[left] if left else 1) * 10 + (digits[right] if right else 0)
+    elif raw and all(c in digits for c in raw):
+        return int("".join(str(digits[c]) for c in raw))
+    return None
+
+
 def _time_marks(text: str) -> set[str]:
     """Catch invented explicit clock times; equivalent numeral forms normalize."""
-    def number(raw: str) -> str:
-        if raw.isdecimal():
-            return str(int(raw))
-        digits = {c: i for i, c in enumerate("零一二三四五六七八九")}
-        if "十" in raw:
-            left, right = raw.split("十", 1)
-            return str(digits.get(left, 1) * 10 + digits.get(right, 0))
-        return str(digits.get(raw, raw))
     marks = set()
     for match in re.finditer(r"([0-9零一二三四五六七八九十]{1,3})([点时:：])(半|[0-9零一二三四五六七八九十]{1,3}分?)?", text):
         hour, separator, minute = match.groups()
@@ -216,11 +222,36 @@ def _time_marks(text: str) -> set[str]:
         # Leave ambiguous expressions to the semantic pass, not a clock regex.
         if separator == "点" and minute != "半" and not (minute or "").endswith("分"):
             continue
-        minute = "30" if minute == "半" else number((minute or "0").rstrip("分"))
-        hour_number = number(hour)
-        if hour_number.isdecimal():
-            hour_number = str(int(hour_number) % 12)
-        marks.add(f"{hour_number}:{minute}")
+        minute_number = 30 if minute == "半" else _clock_number((minute or "0").rstrip("分"))
+        hour_number = _clock_number(hour)
+        if hour_number is not None and minute_number is not None:
+            marks.add(f"{hour_number % 12}:{minute_number}")
+    return marks
+
+
+def _grounded_time_marks(text: str) -> set[str]:
+    """Recognize sub-times of explicit ranges, without certifying any action.
+
+    Two separate timestamps do not imply an interval. Cross-midnight and
+    ambiguous half-day ranges remain for semantic review, not extrapolation.
+    """
+    marks = _time_marks(text)
+    numeral = r"[0-9零一二三四五六七八九十]{1,3}"
+    pattern = (rf"(?P<h>{numeral})[点时](?P<m>整|{numeral}分?)"
+               rf"\s*(?:至|到|—|～|~)\s*(?:(?P<eh>{numeral})[点时])?"
+               rf"(?P<em>整|{numeral}分?)")
+    for match in re.finditer(pattern, text):
+        hour = _clock_number(match['h'])
+        end_hour = _clock_number(match['eh']) if match['eh'] else hour
+        minute = 0 if match['m'] == '整' else _clock_number(match['m'].rstrip('分'))
+        end_minute = 0 if match['em'] == '整' else _clock_number(match['em'].rstrip('分'))
+        if None in (hour, end_hour, minute, end_minute):
+            continue
+        if not (0 <= hour < 24 and 0 <= end_hour < 24 and 0 <= minute < 60 and 0 <= end_minute < 60):
+            continue
+        start, end = hour * 60 + minute, end_hour * 60 + end_minute
+        if 0 <= end - start <= 360:
+            marks.update(f"{(value // 60) % 12}:{value % 60}" for value in range(start, end + 1))
     return marks
 
 
@@ -278,7 +309,7 @@ def validate_statement(raw: str, context: RoleContext) -> CharacterReply:
         if kind == "cover" and (not role.get("can_use_cover", False) or kinds != {"cover"}):
             raise InvalidStatement(f"claims[{index}].kind：掩饰说辞仅限 self:cover 中明确提供的对外说法")
         if kind in {"observed", "cover"}:
-            supported = _time_marks("\n".join(sources[i].text for i in ids))
+            supported = set().union(*(_grounded_time_marks(sources[i].text) for i in ids))
             if not _asserted_times(text) <= supported:
                 raise InvalidStatement("新增了来源中没有的明确时间，请更正或说明无法确认")
         checked.append(StatementClaim(text, kind, tuple(dict.fromkeys(ids))))
@@ -288,7 +319,7 @@ def validate_statement(raw: str, context: RoleContext) -> CharacterReply:
             raise InvalidStatement("只能更正本次可见的本人旧发言")
     # Clock assertions omitted from claims must not bypass the provenance guard.
     claimed_times = _time_marks("\n".join(c.text for c in checked))
-    cited_times = _time_marks("\n".join(sources[i].text for c in checked for i in c.source_ids))
+    cited_times = set().union(*(_grounded_time_marks(sources[i].text) for c in checked for i in c.source_ids))
     if not _asserted_times(speech) <= claimed_times | cited_times:
         raise InvalidStatement("发言中的时间陈述缺少对应来源")
     if re.search(r"(?:clue:|event:|case:|self:)[\w]+", speech):

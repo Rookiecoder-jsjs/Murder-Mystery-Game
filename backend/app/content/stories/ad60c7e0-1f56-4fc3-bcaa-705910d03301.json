@@ -1,0 +1,266 @@
+{
+  "format_version": 1,
+  "metadata": {
+    "schema_version": 1,
+    "version": 2,
+    "summary": "暴雨封住小报馆，一声报时钟成了三个人共同的不在场证明。可那声钟，真的属于今晚吗？",
+    "author": "本项目原创剧本组",
+    "license": "本项目原创内容，按仓库 LICENSE 授权；不含第三方剧本正文。",
+    "difficulty": "入门",
+    "estimated_minutes": 25
+  },
+  "archive": {
+    "id": "ad60c7e0-1f56-4fc3-bcaa-705910d03301",
+    "created_at": "2026-10-03 00:00:00",
+    "topic": "民国 · 入门推理",
+    "title": "雨夜的最后一声钟",
+    "case": {
+      "title": "雨夜的最后一声钟",
+      "background": "晚上九点三十分，小报馆老板陆闻死在校样室。三名留守人员都记得九点二十分老板还在室内报时。警员封住报馆，请众人留在前厅，等候调查。窗外暴雨未停，桌上明天的头版还空着。",
+      "victim": "陆闻",
+      "crime": "陆闻被害",
+      "true_killer": "char_1",
+      "motive": "阻止陆闻将周砚伪造旧稿日期的证据交给警方",
+      "location": "申城望潮报馆",
+      "time": "1934年秋"
+    },
+    "characters": [
+      {
+        "id": "char_1",
+        "name": "周砚",
+        "public_identity": "报馆校样员",
+        "secret": "",
+        "is_killer": true,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "我负责装订校样。老板发现我替旧稿改过日期，说明天报警。今晚九点零八分我借送校样进门，用桌上的裁纸刀刺了他胸口。我把前晚的报时唱片放进带定时开关的留声机，拨到九点二十分播放后离开。九点二十分我已经在走廊，我可以用这声钟掩饰。那台电传机仍在收纸，我没能把纸带取走。",
+        "objectives": [
+          "保护旧稿日期的秘密",
+          "先以录音掩饰时间；被物证证实后回应本人动作"
+        ],
+        "cover_story": "我送完稿就离开了，九点二十分老板还在报时。",
+        "public_introduction": "大家好，我是周砚，报馆校样员。"
+      },
+      {
+        "id": "char_2",
+        "name": "沈禾",
+        "public_identity": "报馆电传员",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "九点零五分我和吴满进入传达间收电传，直到九点二十三分没离开。我们给同一条连续纸带交替编号并核对送达时间，彼此一直可见。我九点之前曾与老板争薪水，摔了杯子。九点二十分听到报时声，我以为他还活着，没看见声源。我知道校样室收纸机今晚也通着，但没进去。",
+        "objectives": [
+          "查清报时声的来源",
+          "承认争薪水而不把听到的声音当亲眼见人"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是沈禾，报馆电传员。"
+      },
+      {
+        "id": "char_3",
+        "name": "吴满",
+        "public_identity": "夜班送报员",
+        "secret": "",
+        "is_killer": false,
+        "clues": [],
+        "alibi": "",
+        "dialogue_style": "克制、具体地回答；证据证实本人隐瞒的经历时承认，不编造未知行动。",
+        "backstory": "",
+        "relationship_with_victim": "",
+        "motive": "",
+        "appearance": "",
+        "portrait_url": "",
+        "self_knowledge": "九点零五分至二十三分，我与沈禾在只有一扇封闭门的传达间共同收报，期间没有离开。我欠老板钱，他扣了我的车，我今天拿走欠条并撕了，碎片还在衣袋。九点二十分我听到报时，便以为老板没事。我只知道校样员进过校样室，不知道里面发生了什么。",
+        "objectives": [
+          "查明老板死亡原因",
+          "说明撕欠条不等于杀人"
+        ],
+        "cover_story": "",
+        "public_introduction": "大家好，我是吴满，夜班送报员。"
+      }
+    ],
+    "clues": [
+      {
+        "id": "clue_1",
+        "content": "陆闻胸前只有一道致命刺伤。裁纸刀上的新鲜血液与死者一致，伤口形状与刀刃吻合；未发现其他致命伤或毒物。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "校样桌与裁纸刀"
+      },
+      {
+        "id": "clue_2",
+        "content": "沈禾与吴满分别记下九点二十分听见报时声，二人都没有看到陆闻本人。前厅与校样室之间隔着走廊，无法从前厅看见室内。",
+        "type": "testimony",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "报时声的记录"
+      },
+      {
+        "id": "clue_3",
+        "content": "传达间附近有老板的碎杯，吴满衣袋有被撕欠条。杯与欠条上没有死者血迹；二人承认当晚分别争过薪水、撕过欠条。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 1,
+        "lead": "破碎杯子与欠条"
+      },
+      {
+        "id": "clue_4",
+        "content": "电传局保存了校样室收纸机发回的自动停机回执，接收时戳为九点零九分。警员复验：本次停机由新送入的白纸带被血浸湿、粘在死者胸口下扯断造成；未发现其他堵塞原因、预先染血或移位痕迹。纸带上的血来自胸前唯一的致命刺伤。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "校样室的连续纸带"
+      },
+      {
+        "id": "clue_5",
+        "content": "留声机设为九点二十分自动播放。唱片边沿有前晚日期，录音中报时之后紧接一声咳嗽与落杯声；今夜所听到的声响顺序与唱片相同。",
+        "type": "physical",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "留声机与报时唱片"
+      },
+      {
+        "id": "clue_6",
+        "content": "九点整关门前的检查记录：校样室只剩陆闻，地面、桌面及收纸机均清洁无血。窗户一直有完好的外封条，没有另一个入口或可供藏人的空间。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 2,
+        "lead": "封窗与室内检查"
+      },
+      {
+        "id": "clue_7",
+        "content": "校样室门的机械进出打点记录为九点零八分周砚进入、零九分周砚离开；九点整至三十分没有其他进出。值班员与前厅记录核对一致。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "唯一入口的机械记录"
+      },
+      {
+        "id": "clue_8",
+        "content": "九点零五分至二十三分，沈禾与吴满在连续电传纸带上交替写下编号、复核签名；纸带没有中断。二人确认全程同处一室互相可见，没有离开。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "传达间的联合收报记录"
+      },
+      {
+        "id": "clue_9",
+        "content": "陆闻署名的信附有周砚修改旧稿日期的原件与对照稿，写明明日上午交给警方。原件已由收件人核验；信只证明举报意图，不能单独证明杀人。",
+        "type": "document",
+        "holder_id": "scene",
+        "reveal_to_all": false,
+        "required_clue_id": null,
+        "discovery_round": 3,
+        "lead": "老板备好的交接信"
+      }
+    ],
+    "story_content": "校样员周砚为阻止陆闻把自己伪造旧稿日期的事交给警方，于九点零八分进入校样室，用裁纸刀刺死陆闻。周砚设置定时留声机，使前一晚录下的报时声在九点二十分播放，让众人误以为老板仍活着。刀上血液与胸部伤口一致。九点零九分，新白纸带被胸前刺伤的血浸湿并扯断，触发收纸机自动停机；电传局保存的停机回执给出了这个时点，证明陆闻在录音播放前已经遭受致命刺伤。九点整检查时现场无血、只有陆闻；九点整至三十分只有周砚跨过唯一入口。另两人在封闭传达间共同收报，窗户封条完好且无藏人空间。门的机械记录、自动停机回执、留声机唱片以及两人连续收报记录共同排除其余嫌疑人。",
+    "solution": [
+      {
+        "conclusion": "九点二十分的报时不能证明陆闻仍活着。",
+        "evidence": [
+          {
+            "clue_id": "clue_2",
+            "quote": "沈禾与吴满分别记下九点二十分听见报时声，二人都没有看到陆闻本人。前厅与校样室之间隔着走廊，无法从前厅看见室内。"
+          },
+          {
+            "clue_id": "clue_5",
+            "quote": "留声机设为九点二十分自动播放。唱片边沿有前晚日期，录音中报时之后紧接一声咳嗽与落杯声；今夜所听到的声响顺序与唱片相同。"
+          }
+        ]
+      },
+      {
+        "conclusion": "九点零九分收纸机自动停机时，陆闻已被刺伤流血，致命方式为裁纸刀刺伤。",
+        "evidence": [
+          {
+            "clue_id": "clue_1",
+            "quote": "陆闻胸前只有一道致命刺伤。裁纸刀上的新鲜血液与死者一致，伤口形状与刀刃吻合；未发现其他致命伤或毒物。"
+          },
+          {
+            "clue_id": "clue_4",
+            "quote": "电传局保存了校样室收纸机发回的自动停机回执，接收时戳为九点零九分。警员复验：本次停机由新送入的白纸带被血浸湿、粘在死者胸口下扯断造成；未发现其他堵塞原因、预先染血或移位痕迹。纸带上的血来自胸前唯一的致命刺伤。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "九点整关门前的检查记录：校样室只剩陆闻，地面、桌面及收纸机均清洁无血。窗户一直有完好的外封条，没有另一个入口或可供藏人的空间。"
+          }
+        ]
+      },
+      {
+        "conclusion": "在可成立的致死时间与封闭现场中，只有周砚进入；沈禾与吴满全程有相互核对的在场记录。",
+        "evidence": [
+          {
+            "clue_id": "clue_4",
+            "quote": "电传局保存了校样室收纸机发回的自动停机回执，接收时戳为九点零九分。警员复验：本次停机由新送入的白纸带被血浸湿、粘在死者胸口下扯断造成；未发现其他堵塞原因、预先染血或移位痕迹。纸带上的血来自胸前唯一的致命刺伤。"
+          },
+          {
+            "clue_id": "clue_6",
+            "quote": "九点整关门前的检查记录：校样室只剩陆闻，地面、桌面及收纸机均清洁无血。窗户一直有完好的外封条，没有另一个入口或可供藏人的空间。"
+          },
+          {
+            "clue_id": "clue_7",
+            "quote": "校样室门的机械进出打点记录为九点零八分周砚进入、零九分周砚离开；九点整至三十分没有其他进出。值班员与前厅记录核对一致。"
+          },
+          {
+            "clue_id": "clue_8",
+            "quote": "九点零五分至二十三分，沈禾与吴满在连续电传纸带上交替写下编号、复核签名；纸带没有中断。二人确认全程同处一室互相可见，没有离开。"
+          }
+        ]
+      },
+      {
+        "conclusion": "周砚面对即将交警方的举报，有明确灭口动机；动机须与时间和进入证据合用。",
+        "evidence": [
+          {
+            "clue_id": "clue_7",
+            "quote": "校样室门的机械进出打点记录为九点零八分周砚进入、零九分周砚离开；九点整至三十分没有其他进出。值班员与前厅记录核对一致。"
+          },
+          {
+            "clue_id": "clue_9",
+            "quote": "陆闻署名的信附有周砚修改旧稿日期的原件与对照稿，写明明日上午交给警方。原件已由收件人核验；信只证明举报意图，不能单独证明杀人。"
+          }
+        ]
+      }
+    ],
+    "production": {},
+    "catalog": {}
+  },
+  "artwork": {
+    "version": 1,
+    "cover": "cover-v1.webp",
+    "portraits": {
+      "char_1": "char_1-v1.webp",
+      "char_2": "char_2-v1.webp",
+      "char_3": "char_3-v1.webp"
+    }
+  }
+}

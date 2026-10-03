@@ -258,7 +258,7 @@ class TestManagerPersistence:
             restored.game.state.player_states["char_1"], PlayerState
         )
 
-    def test_load_skips_missing_story(self, tmp_path, sample_archive):
+    def test_frozen_story_survives_missing_catalog_entry(self, tmp_path, sample_archive):
         store = JsonFileSessionStore(str(tmp_path / "s"))
         mgr1 = SessionManager(
             roleplay_client=StubRoleplayClient(),
@@ -276,7 +276,14 @@ class TestManagerPersistence:
             story_service=_EmptyService(sample_archive),
             store=store,
         )
-        assert mgr2.load_all_persisted() == 0
+        assert mgr2.load_all_persisted() == 1
+        assert mgr2.get(game_id).archive.title == sample_archive.title
+        # Legacy snapshots without embedded content retain missing-story behavior.
+        legacy = store.load_all()[0]
+        legacy.pop('archive')
+        store.save(legacy)
+        mgr3 = SessionManager(StubRoleplayClient(), _EmptyService(sample_archive), store)
+        assert mgr3.load_all_persisted() == 0
 
 
 # ---------- restore helper ----------

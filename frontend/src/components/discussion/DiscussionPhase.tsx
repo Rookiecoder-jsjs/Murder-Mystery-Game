@@ -60,7 +60,9 @@ export function DiscussionPhase() {
   }, []);
 
   useEffect(() => {
-    if (followRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Smooth scrolling emits intermediate positions which look like the
+    // player scrolled away, disabling follow before the next reply arrives.
+    if (followRef.current) messagesEndRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
   }, [state.currentDiscussionMessages.length, isSpeaking]);
 
   useEffect(() => {
@@ -241,7 +243,7 @@ export function DiscussionPhase() {
         )}
         {isSpeaking && <TypingIndicator label="角色们正在思考回应" />}
         {!following && state.currentDiscussionMessages.length > readCount && <button type="button" className="discussion-new-messages"
-          onClick={() => { followRef.current = true; setFollowing(true); messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }}>查看新消息 ↓</button>}
+          onClick={() => { followRef.current = true; setFollowing(true); messagesEndRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' }); }}>查看新消息 ↓</button>}
         <div ref={messagesEndRef} />
       </div>
 

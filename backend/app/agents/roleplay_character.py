@@ -306,6 +306,12 @@ class RoleplayCharacter:
                     "task": "修复未通过的草稿：只依据原始资料，删除无依据的分句，纠正类别及引用，150字内。"
                             "优先回答当前质问和出示证据，不重复旧说辞或无关秘密。纯粹未知用 aside；"
                             "‘我没离开’‘我没看见’等本人经历须用 observed 和本人原文，不能藏入 aside。"
+                            "输出仍须为 submit_statement 的 segments 和 corrections，不能把整段回答塞进一条 aside。"
+                            "格式示例（不是本局事实）：有依据的‘我进入过房间。’独立登记 observed；"
+                            "‘我无法确认设备的其他细节。’另用 aside、空来源。"
+                            "若没有支持本人经历的原文，就删除该经历，不能从未知语气推断出来。"
+                            "‘我先前说/我此前说’是在转述历史，必须用 reported 引用实际 event: 原话；"
+                            "self:cover 只能支持当前掩饰，不能证明此前说过。不要在修稿中再次保留同一错误类别。"
                             "未知与事实分成完整句，别把半个问句独立提交。"
                             "rejected_draft 不是事实或历史，不能用它支持新发言。",
                     "validation_error": str(exc), "rejected_draft": raw[:4000],
@@ -465,7 +471,13 @@ class RoleplayCharacter:
             if not compatible and source.kind in {"document", "testimony"} and is_record_description(segment):
                 compatible = [{"kind": "reported"}]
             if not compatible:
-                raise InvalidStatement(f"分句「{segment[:100]}」的类别与来源 {source_id} 不符，请纠正类别")
+                guidance = (
+                    "当前掩饰须用 cover；‘我先前说/我此前说’须另用 reported，引用实际 event: 旧话，"
+                    "不能用 self:cover 证明历史。没有对应旧话就删除这段转述。"
+                    if source.kind == "cover" else
+                    "文书/旧话须用 reported；本人经历须用 observed 和本人知识原文。"
+                )
+                raise InvalidStatement(f"分句「{segment[:100]}」的类别与来源 {source_id} 不符。{guidance}")
             verified[index] = StatementClaim(segments[index], compatible[0]["kind"], (source_id,))
         return tuple(verified[i] for i in sorted(verified))
 

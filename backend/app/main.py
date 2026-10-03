@@ -37,6 +37,7 @@ from app.services.story_service import (
     ensure_stories_dir,
 )
 from app.services.image_service import PORTRAITS_DIR, ensure_portraits_dir
+from app.services.story_catalog import ARTWORK_DIR
 
 
 load_dotenv(ENV_FILE)
@@ -121,6 +122,12 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+)
+
+app.mount(
+    "/assets/story-library",
+    StaticFiles(directory=str(ARTWORK_DIR)),
+    name="story-library",
 )
 
 app.mount(

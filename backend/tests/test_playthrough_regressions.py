@@ -336,3 +336,25 @@ def test_fallback_acknowledges_footprints_instead_of_repeating_killer_alibi():
     assert '线索记载' in reply and '无法确认' in reply
     assert '一直在账房' not in reply and '刺入' not in reply
     assert all(c.kind == 'reported' for c in reply.claims)
+
+
+@pytest.mark.parametrize(('knowledge', 'speech', 'accepted'), [
+    ('一点整至十分我一直在一号库清点，没有离开。', '一点零四分到一点零八分我在一号库。', True),
+    ('一点零二分至一点十分我一直在配电房。', '一点04分到一点08分我在配电房。', True),
+    ('九点零五分至二十三分我全程在传达间。', '九点十分我在传达间。', True),
+    ('一点整至十分我一直在一号库。', '一点十一分我在一号库。', False),
+    ('一点零二分我到过配电房。一点十分我回去。', '一点零四分我在配电房。', False),
+    ('一点零四分我在门房。', '一点04分我在门房。', True),
+])
+def test_clock_subrange_requires_an_explicit_visible_interval(knowledge, speech, accepted):
+    archive = pawn()
+    character = archive.characters[1]
+    character.self_knowledge = knowledge
+    _, context = role_context(archive, character.id)
+    raw = json.dumps({'speech': speech, 'claims': [{'text': speech, 'kind': 'observed',
+        'source_ids': ['self:knowledge']}], 'corrections': []}, ensure_ascii=False)
+    if accepted:
+        assert validate_statement(raw, context) == speech
+    else:
+        with pytest.raises(InvalidStatement, match='明确时间'):
+            validate_statement(raw, context)

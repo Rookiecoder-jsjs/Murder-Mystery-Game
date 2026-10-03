@@ -88,7 +88,7 @@ def test_unfinished_production_is_not_published_or_opened(monkeypatch, tmp_path,
     monkeypatch.setattr(ss, 'STORIES_DIR', str(tmp_path / 'stories'))
     sample_archive.production = {'status': 'reviewing'}
     ss.save_story(sample_archive)
-    assert ss.list_stories() == []
+    assert sample_archive.id not in {story['id'] for story in ss.list_stories()}
     with pytest.raises(ValueError, match='尚未完成'):
         ss.StoryService().get_playable_story(sample_archive.id)
 

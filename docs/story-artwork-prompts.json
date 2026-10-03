@@ -1,0 +1,156 @@
+{
+  "generator": "Codex built-in imagegen",
+  "date": "2026-10-03",
+  "portraitStyle": "Original single character portrait for a Chinese mystery game, 1930s Shanghai. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, one Chinese adult, face centered, full head visible with comfortable margins; shoulders in frame, hands out of frame, eyes well lit, calm neutral dignified expression. Background softly blurred and subdued. No lettering, readable documents, logos, watermarks, modern objects, weapons, blood, villain coding, collage or extra people. All characters should feel equally credible suspects, no clues about guilt.",
+  "portraits": [
+    {
+      "id": "rain-char_1",
+      "description": "A Chinese man about 32, newspaper proofreader; neat short side-parted hair, thin round spectacles, plain dark wool vest over light cotton collared shirt, subtle print-office background."
+    },
+    {
+      "id": "rain-char_2",
+      "description": "A Chinese woman about 27, newspaper teleprinter operator; short softly waved bob, modest ivory blouse with dark cardigan, subtle print-office background."
+    },
+    {
+      "id": "rain-char_3",
+      "description": "A Chinese man about 40, overnight newspaper delivery worker; weathered friendly face, dark flat cloth cap, worn olive cotton work jacket, subtle print-office background."
+    },
+    {
+      "id": "hotel-char_1",
+      "description": "A Chinese man about 36, pharmacy business partner; carefully combed short hair, steel rim spectacles, dark tailored Chinese tunic with standing collar, blurred old hotel salon background."
+    },
+    {
+      "id": "hotel-char_2",
+      "description": "A Chinese woman about 25, hotel waiter; neat pinned-back hair, plain black-and-ivory service uniform without badges, blurred old hotel corridor background."
+    },
+    {
+      "id": "hotel-char_3",
+      "description": "A Chinese man about 48, hotel manager; narrow moustache, tidy side-parted hair, dark suit with white collar and restrained tie, blurred old hotel lobby background."
+    },
+    {
+      "id": "hotel-char_4",
+      "description": "A Chinese woman about 29, hotel banquet host's niece; neatly waved shoulder-length hair, modest burgundy qipao with simple piping and tiny pearl earrings, blurred hotel salon background."
+    },
+    {
+      "id": "hotel-char_5",
+      "description": "A Chinese man about 39, hotel chauffeur; sturdy square face, short cropped hair, dark chauffeur's jacket and plain peaked cloth cap without insignia, blurred hotel courtyard background."
+    },
+    {
+      "id": "harbor-char_1",
+      "description": "A Chinese man about 38, warehouse bookkeeper; narrow face, round tortoiseshell spectacles, neatly combed hair, brown vest and ivory shirt, blurred wooden warehouse office background."
+    },
+    {
+      "id": "harbor-char_2",
+      "description": "A Chinese man about 29, night-shift electrician; lean face, short tousled hair, indigo work jacket with simple cloth buttons, blurred warehouse electrical workshop background."
+    },
+    {
+      "id": "harbor-char_3",
+      "description": "A Chinese man about 45, boiler operator; broad round face, closely cropped hair, worn charcoal cotton work shirt with plain collar, blurred boiler-house background, no dirt on face."
+    },
+    {
+      "id": "harbor-char_4",
+      "description": "A Chinese woman about 32, customs inspector; firm but neutral gaze, dark hair in tidy low bun, dark olive high-collared uniform without insignia or weapons, blurred harbor office background."
+    },
+    {
+      "id": "harbor-char_5",
+      "description": "A Chinese man about 34, shipping agent; wavy side-parted hair, clean-shaven, brown tailored suit with pale shirt and modest tie, blurred harbor office background."
+    },
+    {
+      "id": "harbor-char_6",
+      "description": "A Chinese woman about 26, cargo inventory clerk; oval face, simple braided hair pinned at nape, plain pale blue cotton blouse and gray waistcoat, blurred warehouse aisle background."
+    },
+    {
+      "id": "harbor-char_7",
+      "description": "A Chinese man about 50, harbor stevedore foreman; broad sturdy face with a little gray at temples, navy cloth cap, rough brown cotton work jacket, blurred dock warehouse background."
+    }
+  ],
+  "coverStyle": "Generate an original polished illustration for a Chinese murder mystery mobile game. 1930s Shanghai, cinematic Art Deco noir, painterly realism, warm ivory paper grain with muted charcoal, sepia and subtle oxblood highlights. Landscape composition 1536x1024, no lettering, no text, no logos, no watermarks, no visible readable documents, no gore, no killer revealed. Strong focal point readable at thumbnail scale, intriguing but calm.",
+  "covers": [
+    {
+      "id": "rain-cover",
+      "scene": "Empty small newspaper office on a rainy night. Brass wall clock, wooden desk with a teleprinter and unprinted paper roll, rain-streaked window and one amber desk lamp. No people. The scene hints at an interrupted night shift, without revealing a solution."
+    },
+    {
+      "id": "hotel-cover",
+      "scene": "Elegant old Shanghai hotel banquet room after a birthday celebration, empty. An unlabelled amber medicine bottle and porcelain tea cup on a silver service tray in the foreground, a softly blurred white-egret inspired Art Deco screen and a chandelier behind. No people. Bottle has absolutely no label or symbols."
+    },
+    {
+      "id": "harbor-cover",
+      "scene": "Foggy Shanghai harbor warehouse at night, closed wooden cargo crates, two folded blank delivery sheets on a wooden accounting desk in foreground, a freight lift silhouette and distant ship lamps outside. No people, no readable markings. Cool mist contrasts with an amber warehouse lamp."
+    }
+  ],
+  "assets": [
+    {
+      "id": "rain-char_1",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03301/char_1-v1.webp"
+    },
+    {
+      "id": "rain-char_2",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03301/char_2-v1.webp"
+    },
+    {
+      "id": "rain-char_3",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03301/char_3-v1.webp"
+    },
+    {
+      "id": "hotel-char_1",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03302/char_1-v1.webp"
+    },
+    {
+      "id": "hotel-char_2",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03302/char_2-v1.webp"
+    },
+    {
+      "id": "hotel-char_3",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03302/char_3-v1.webp"
+    },
+    {
+      "id": "hotel-char_4",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03302/char_4-v1.webp"
+    },
+    {
+      "id": "hotel-char_5",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03302/char_5-v1.webp"
+    },
+    {
+      "id": "harbor-char_1",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_1-v1.webp"
+    },
+    {
+      "id": "harbor-char_2",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_2-v1.webp"
+    },
+    {
+      "id": "harbor-char_3",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_3-v1.webp"
+    },
+    {
+      "id": "harbor-char_4",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_4-v1.webp"
+    },
+    {
+      "id": "harbor-char_5",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_5-v1.webp"
+    },
+    {
+      "id": "harbor-char_6",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_6-v1.webp"
+    },
+    {
+      "id": "harbor-char_7",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/char_7-v1.webp"
+    },
+    {
+      "id": "rain-cover",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03301/cover-v1.webp"
+    },
+    {
+      "id": "hotel-cover",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03302/cover-v1.webp"
+    },
+    {
+      "id": "harbor-cover",
+      "path": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03303/cover-v1.webp"
+    }
+  ]
+}

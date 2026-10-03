@@ -36,6 +36,7 @@
   height: 100%;
   display: block;
   object-fit: cover;
+  object-position: 50% 30%;
   border-radius: 2px;
   filter: sepia(0.14) saturate(0.82) contrast(1.04);
 }

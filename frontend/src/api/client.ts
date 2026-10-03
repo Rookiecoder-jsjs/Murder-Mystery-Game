@@ -90,14 +90,18 @@ export const api = {
   listStories: () =>
     fetchApi<{ stories: Story[] }>('/stories'),
 
+  importStory: (packageData: unknown) => fetchApi<{ story: Story }>('/stories/import', {
+    method: 'POST', body: JSON.stringify({ package: packageData }),
+  }),
+
   // Games
   // 生成上限：后端内部有 1 次重试，5 分钟只兜"静默挂起"，不误杀慢但正常的生成
-  createGame: (topic: string, playerName?: string, mode: GameMode = 'classic') =>
+  createGame: (topic: string, playerName?: string, mode: GameMode = 'classic', characterCount?: number) =>
     fetchApi<CreateGameResponse>(
       '/games',
       {
         method: 'POST',
-        body: JSON.stringify({ topic, player_name: playerName, mode }),
+        body: JSON.stringify({ topic, player_name: playerName, mode, character_count: characterCount }),
       },
       300_000,
     ),

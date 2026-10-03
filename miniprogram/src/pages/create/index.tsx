@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import { Button, Text, Textarea, View } from '@tarojs/components'
+import { Button, Picker, Text, Textarea, View } from '@tarojs/components'
 import { useEffect, useState } from 'react'
 import { CaseHeader } from '@/components'
 import { useGame } from '@/store/game-context'
@@ -18,12 +18,13 @@ const GENERATION_STEPS = [
   '勾勒时代与案发现场',
   '建立人物关系与秘密',
   '推演诡计和证据闭环',
-  '绘制角色人物肖像',
+  '检查人物知识与证据',
   '密封完整案件卷宗',
 ]
 
 export default function CreatePage() {
   const { createGame } = useGame()
+  const [characterCount, setCharacterCount] = useState(0)
   const [topic, setTopic] = useState('')
   const [mode, setMode] = useState<GameMode>('quick')
   const [creating, setCreating] = useState(false)
@@ -41,7 +42,7 @@ export default function CreatePage() {
     setCreating(true)
     setElapsed(0)
     try {
-      const gameId = await createGame(trimmed, mode)
+      const gameId = await createGame(trimmed, mode, characterCount ? characterCount + 2 : undefined)
       Taro.redirectTo({ url: `/pages/game/index?gameId=${gameId}` })
     } catch (error) {
       showError(error)
@@ -50,7 +51,6 @@ export default function CreatePage() {
   }
 
   if (creating) {
-    const activeStep = Math.min(4, Math.floor(elapsed / 24))
     return (
       <View className='page-shell create-page'>
         <CaseHeader title='卷宗生成中' eyebrow='ARCHIVE IN PROGRESS' showBack />
@@ -61,10 +61,10 @@ export default function CreatePage() {
           <Text className='create-progress__topic'>《{topic}》</Text>
 
           <View className='create-progress__portraits'>
-            {[0, 1, 2, 3].map((item) => (
+            {Array.from({ length: characterCount ? characterCount + 2 : 3 }, (_, i) => i).map((item) => (
               <View
                 key={item}
-                className={`create-progress__portrait ${elapsed > item * 8 ? 'create-progress__portrait--ready' : ''}`}
+                className='create-progress__portrait'
                 style={{ animationDelay: `${item * 0.12}s` }}
               >
                 <View className='create-progress__silhouette'>?</View>
@@ -75,15 +75,15 @@ export default function CreatePage() {
 
           <View className='create-progress__ledger'>
             {GENERATION_STEPS.map((step, index) => (
-              <View key={step} className={`create-progress__step ${index < activeStep ? 'is-done' : ''} ${index === activeStep ? 'is-active' : ''}`}>
+              <View key={step} className='create-progress__step'>
                 <Text>{String(index + 1).padStart(2, '0')}</Text>
                 <Text>{step}</Text>
-                <Text>{index < activeStep ? '已归档' : index === activeStep ? '誊录中' : '等待'}</Text>
+                <Text>制作流程</Text>
               </View>
             ))}
           </View>
 
-          <Text className='create-progress__notice'>生成故事与肖像通常需要 1–3 分钟，请保持本页开启</Text>
+          <Text className='create-progress__notice'>正在等待剧本制作完成，请保持本页开启；人物数量以完成的剧本为准</Text>
         </View>
       </View>
     )
@@ -96,7 +96,7 @@ export default function CreatePage() {
         <View className='create-page__heading'>
           <Text className='section-kicker'>CASE APPLICATION</Text>
           <Text className='section-title'>给故事一个起点</Text>
-          <Text className='section-desc'>你只需提供一个主题。人物关系、诡计、线索与肖像将由 AI 完整构筑。</Text>
+          <Text className='section-desc'>AI 生成质量受模型影响，可能出现逻辑或人物表现不稳定。首次游玩推荐原创精选剧本。</Text>
         </View>
 
         <View className='create-form paper-card'>
@@ -112,11 +112,15 @@ export default function CreatePage() {
           />
           <View className='create-form__counter'>{topic.length} / 100</View>
 
+          <Text className='field-label'>角色人数（含你，不含受害者）</Text>
+          <Picker mode='selector' range={['自动决定 · 3—8 人', '3 人', '4 人', '5 人', '6 人', '7 人', '8 人']} value={characterCount} onChange={event => setCharacterCount(Number(event.detail.value))}>
+            <View style={{ padding: '24rpx 0' }}>{characterCount ? `${characterCount + 2} 人 · ${characterCount + 1} 位 AI` : '根据故事自动决定 · 3—8 人'} ▾</View>
+          </Picker>
           <Text className='field-label create-form__mode-label'>调查节奏</Text>
           <View className='create-form__modes'>
             <Button className={mode === 'quick' ? 'is-selected' : ''} onClick={() => setMode('quick')}>
               <Text>速推模式</Text>
-              <Text>三轮推进 · 10–15 分钟</Text>
+              <Text>三轮调查与讨论</Text>
             </Button>
             <Button className={mode === 'classic' ? 'is-selected' : ''} onClick={() => setMode('classic')}>
               <Text>经典模式</Text>
@@ -139,9 +143,9 @@ export default function CreatePage() {
         </View>
 
         <View className='create-page__promise'>
-          <View><Text>01</Text><Text>完整案件</Text><Text>多重反转与证据闭环</Text></View>
+          <View><Text>01</Text><Text>制作检查</Text><Text>检查结构与证据一致性</Text></View>
           <View><Text>02</Text><Text>鲜活角色</Text><Text>每个人都有隐秘动机</Text></View>
-          <View><Text>03</Text><Text>专属肖像</Text><Text>依据人物描述逐一生成</Text></View>
+          <View><Text>03</Text><Text>自选题材</Text><Text>质量受所用模型影响</Text></View>
         </View>
 
         <Button className='primary-button create-page__submit' disabled={!topic.trim()} onClick={handleCreate}>

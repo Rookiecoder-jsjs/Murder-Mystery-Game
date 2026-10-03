@@ -29,6 +29,7 @@ CASE_DATA = {
     "characters": [
         {"id": "char_1", "name": "张三", "self_knowledge": "我是真凶。", "objectives": ["隐瞒罪行"]},
         {"id": "char_2", "name": "李四", "self_knowledge": "我在大厅。", "objectives": ["调查凶手"]},
+        {"id": "char_3", "name": "王五", "self_knowledge": "我在门口。", "objectives": ["说明经历"]},
     ],
     "clues": [{"id": f"clue_{i}", "content": f"物证{i}", "holder_id": "scene",
                "discovery_round": i, "lead": f"现场{i}"} for i in (1, 2, 3)],

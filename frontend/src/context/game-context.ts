@@ -46,7 +46,7 @@ export interface GameState {
 
 export interface GameContextValue {
   state: GameState;
-  createGame: (topic: string, playerName?: string, mode?: GameMode) => Promise<string>;
+  createGame: (topic: string, playerName?: string, mode?: GameMode, characterCount?: number) => Promise<string>;
   loadGame: (storyId: string, mode?: GameMode) => Promise<string>;
   resumeGame: (gameId: string) => Promise<void>;
   refreshStatus: () => Promise<boolean>;

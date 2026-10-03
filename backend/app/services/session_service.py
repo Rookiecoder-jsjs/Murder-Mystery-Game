@@ -344,9 +344,10 @@ class GameSession:
         """
         self.game.migrate_discussion_history()
         return {
-            "schema_version": 3,
+            "schema_version": 4,
             "game_id": game_id,
             "story_id": self.archive.id,
+            "archive": self.archive.to_dict(),
             "human_player_id": self.human_player_id,
             "pending_discussion": self.pending_discussion,
             "pending_ballots": self.pending_ballots,
@@ -1014,6 +1015,7 @@ class SessionManager:
         archive: Optional[StoryArchive] = None,
         mode: str = "classic",
         game_id: Optional[str] = None,
+        character_count: int | None = None,
     ) -> tuple[str, GameSession]:
         """Create a new game session.
 
@@ -1022,7 +1024,8 @@ class SessionManager:
         if (topic is None) == (archive is None):
             raise ValueError("Provide exactly one of topic or archive")
         if topic is not None:
-            archive = self._story_service.create_story(topic, show_reasoning=True)
+            archive = (self._story_service.create_story(topic, show_reasoning=True, character_count=character_count)
+                       if character_count is not None else self._story_service.create_story(topic, show_reasoning=True))
             if not archive:
                 raise RuntimeError("生成案件失败")
 
@@ -1060,21 +1063,20 @@ class SessionManager:
     def load_all_persisted(self) -> int:
         """Restore all sessions from the store into memory.
 
-        Sessions whose underlying story archive is missing are skipped.
+        New snapshots own their story version. Legacy snapshots resolve their
+        old story ID once, then acquire a frozen archive on their next save.
         """
         count = 0
         for snap in self._store.load_all():
             game_id = snap.get("game_id")
             if not game_id or game_id in self._sessions:
                 continue
-            archive = self._story_service.get_story(snap["story_id"])
-            if not archive:
-                logger.warning(
-                    "Skipping session %s — story %s not found",
-                    game_id, snap["story_id"],
-                )
-                continue
             try:
+                archive = (StoryArchive.from_dict(snap['archive']) if 'archive' in snap
+                           else self._story_service.get_story(snap['story_id']))
+                if not archive or archive.id != snap['story_id']:
+                    raise ValueError('存档中的剧本缺失或 ID 不匹配')
+                archive.validate()
                 self._sessions[game_id] = GameSession.from_snapshot(
                     snap, archive, self._roleplay_client,
                 )
