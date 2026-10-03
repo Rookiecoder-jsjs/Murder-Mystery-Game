@@ -1,5 +1,13 @@
 # 安卓独立运行版设计与实施计划
 
+### Logo 统一与覆盖升级（2026-10-03）
+
+用户选定 A「案卷搜证」Logo；首页、favicon、五种密度的安卓桌面／圆形／自适应图标和启动图同步替换。发布 `v1.0.0-android-preview.2`，应用版本 `1.0.0-preview.2` / versionCode 15；README 下载链接指向新版，旧发布保留回退。图稿与派生资源构建说明见 [Logo 设计](logo-design.md)。
+
+最终 APK SHA-256：`b493e8a47df4a605621f8e8b1482fe89dfeedfc2a71a992b2de2580343ab1623`，26,445,358 bytes。递归检查1,314个条目，3个内置剧本包及18张配图与源码一致；没有本机 API key、.env、电脑数据库、存档或签名私钥。沿用现有开发签名，ADB覆盖安装成功，手机版本核对为15。安装前后手机游戏数据库、加密模型配置和草稿文件SHA-256全部一致，没有清除数据。
+
+验证：Web 5个测试文件、lint、TypeScript/Vite/Gradle构建、包内检查、签名和版本检查通过。手机仍锁屏，尚未完成新图标和首页的真机目测；本次未调用真实模型、推进游戏或执行电脑锁屏。
+
 ### 公开下载预览版（2026-10-03）
 
 发布 `v1.0.0-android-preview.1`，应用版本 `1.0.0-preview.1` / versionCode 14。沿用当前开发签名、应用 ID `com.murdermystery.game.debug`，arm64-v8a，minSdk 24。APK 作为 [GitHub Release 附件](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.1) 提供，不放入 Git 源码。README 增加下载、手机配置密钥、精选本选择、生成质量提示和构建说明。

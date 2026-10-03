@@ -1,4 +1,6 @@
-# 🎭 剧本杀 - Murder Mystery Game
+<img src="frontend/public/brand/logo-casefile-v2.png" width="72" height="72" alt="剧本杀 Logo" />
+
+# 剧本杀 - Murder Mystery Game
 
 ![Art Deco Noir Style](https://img.shields.io/badge/Style-Art%20Deco%20Noir-gold?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge)
@@ -14,10 +16,10 @@
 
 ## 📱 安卓下载与使用
 
-当前发布：**1.0.0-preview.1**（versionCode 14，开发签名，arm64-v8a，Android 7.0 / API 24 及以上）。
+当前发布：**1.0.0-preview.2**（versionCode 15，开发签名，arm64-v8a，Android 7.0 / API 24 及以上）。本版统一使用「案卷搜证」Logo，更新首页、网页 favicon、安卓桌面图标与启动图；同签名覆盖安装保留手机配置和存档。
 
-- [下载 APK：Murder-Mystery-1.0.0-preview.1-arm64.apk](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.1/Murder-Mystery-1.0.0-preview.1-arm64.apk)
-- [发布说明与校验文件](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.1)
+- [下载 APK：Murder-Mystery-1.0.0-preview.2-arm64.apk](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.2/Murder-Mystery-1.0.0-preview.2-arm64.apk)
+- [发布说明与校验文件](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.2)
 
 1. 在手机打开下载链接，安装 APK；系统要求时允许浏览器安装此应用。
 2. 打开「模型设置」，填写自己的 OpenAI 兼容 HTTPS 服务地址、API key 和模型名称。默认提供 DeepSeek 配置，也可按所用服务调整三个模型名称。

@@ -1,4 +1,6 @@
 /* HomePage — 案件号外：报头 + 双栏版面（今夜新剧 / 保留剧目） */
+.home-brand-title { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.brand-icon { display: block; width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; }
 
 .home-page {
   min-height: 100vh;

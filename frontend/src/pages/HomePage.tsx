@@ -134,7 +134,7 @@ export function HomePage() {
     <div className="home-page">
       <div className="home-content stage-paper">
         {isAndroid ? <header className="mobile-home-header">
-          <h1>剧本杀</h1><p>一人入戏，寻找真相</p>
+          <h1 className="home-brand-title"><img className="brand-icon" src="/brand/logo-casefile-v2.png" width="40" height="40" alt="" />剧本杀</h1><p>一人入戏，寻找真相</p>
         </header> : <header className="case-masthead">
           <div className="masthead-dateline">
             <span>深夜第 1024 期 · 号外</span>
@@ -142,7 +142,7 @@ export function HomePage() {
             <span>全城独家 · 每夜发售</span>
           </div>
           <div className="masthead-row">
-            <h1 className="home-logo font-display">剧本杀</h1>
+            <h1 className="home-logo home-brand-title font-display"><img className="brand-icon" src="/brand/logo-casefile-v2.png" width="40" height="40" alt="" />剧本杀</h1>
             <span className="extra-stamp" aria-hidden="true">
               号外 EXTRA
             </span>

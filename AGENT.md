@@ -58,6 +58,7 @@ codegraph status
 - `frontend/src/context/`：Web 游戏全局状态和动作。
 - `frontend/src/pages/`：页面级路由入口。
 - `frontend/src/components/`：按游戏阶段和通用能力拆分的 React 组件；样式与组件就近维护。
+- Logo 原图为 `docs/brand/logo-casefile-source.png`，Web 派生资源在 `frontend/public/brand/`。替换图稿后运行 `python3 scripts/build-brand-assets.py`（需要 Pillow）更新网页、各密度 Android 图标和启动图；按中央安全区留白，不使用电脑或手机配置作为资源。说明见 `docs/logo-design.md`。
 - `miniprogram/src/services/`：小程序 HTTP/API 封装。
 - `miniprogram/src/store/`：小程序游戏状态。
 - `miniprogram/src/features/game/`、`miniprogram/src/pages/`、`miniprogram/src/components/`：小程序业务功能、页面和展示组件。

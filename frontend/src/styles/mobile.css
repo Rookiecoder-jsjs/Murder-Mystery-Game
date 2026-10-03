@@ -112,7 +112,7 @@
 /* Phone-specific composition, rather than scaled desktop stationery. */
 .native-app .home-page { padding: 10px; }
 .native-app .home-content { padding: 14px; }
-.native-app .mobile-home-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--paper-line); }
+.native-app .mobile-home-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding-bottom: 12px; border-bottom: 1px solid var(--paper-line); }
 .native-app .mobile-home-header h1 { font-family: var(--font-display); font-size: 28px; letter-spacing: 3px; }
 .native-app .mobile-home-header p { font-size: 12px; color: var(--paper-ink-muted); }
 .native-app .native-home { margin: 12px 0 18px; padding: 10px 12px; }
