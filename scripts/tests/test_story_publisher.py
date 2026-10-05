@@ -70,6 +70,7 @@ class PublisherTests(unittest.TestCase):
         output.mkdir()
         info, report = publisher.make_bundle(source, output, commit, self.key, 'test')
         self.assertFalse(report['reused'])
+        original_files = report['files']
         original = (output / report['filename']).read_bytes()
         (root / 'unrelated.txt').write_text('source-only change')
         git('add', 'unrelated.txt')
@@ -77,6 +78,7 @@ class PublisherTests(unittest.TestCase):
         latest = git('rev-parse', 'HEAD')
         reused, report = publisher.make_bundle(source, output, latest, self.key, 'test')
         self.assertTrue(report['reused'])
+        self.assertEqual(report['files'], original_files)
         self.assertEqual(info, reused)
         self.assertEqual((output / report['filename']).read_bytes(), original)
         source.write_bytes(source.read_bytes() + b' ')

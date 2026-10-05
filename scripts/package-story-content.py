@@ -160,7 +160,7 @@ def make_bundle(source: Path, out: Path, commit: str, key: Path | None, key_id: 
                     raise ValueError('同版本内容变化，请提高 metadata.version')
             for path in source_files:
                 assert_source(path, old_commit)
-        report.update(reused=True, source_commit=old_commit)
+        report.update(reused=True, source_commit=old_commit, files=old['files'])
     else:
         files['bundle.json'] = json.dumps(envelope(manifest, 'MMG-BUNDLE-V1', key, key_id), separators=(',', ':')).encode()
         with tempfile.NamedTemporaryFile(dir=out, suffix='.tmp', delete=False) as temporary:
