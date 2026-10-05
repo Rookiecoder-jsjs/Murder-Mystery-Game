@@ -170,7 +170,7 @@ def test_native_validator_bounds_paths_and_rejects_unmapped_images(library):
     with pytest.raises(ValueError, match='目录无效'):
         content.validate_package(str(personal), digest)
     images = directory / 'images'
-    images.mkdir()
+    images.mkdir(exist_ok=True)
     (images / 'unmapped.webp').write_bytes(b'not-a-webp')
     with pytest.raises(ValueError, match='清单不同'):
         content.activate(sid, version, digest, str(personal))

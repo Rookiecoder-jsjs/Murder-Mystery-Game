@@ -1,0 +1,52 @@
+{
+  "generator": "Codex built-in imagegen",
+  "date": "2026-10-05",
+  "use_case": "historical-scene",
+  "common_prompt": "Landscape3:2 scene cover for an original Chinese detective game. Painterly cinematic realism, Art Deco noir, muted charcoal and warm sepia, fine ivory paper grain. Clear spatial depth and readable silhouettes at mobile card size. Public environment only; no people, corpses, blood, weapons, forensic reconstruction, solution clues, readable text, numbers, logos, watermarks, modern technology, title, border or collage.",
+  "covers": [
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+      "title": "玻璃花房的空白铭牌",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03304/cover-v2.webp",
+      "public_scene": "玻璃花房：旧植物馆的玻璃花房、植物展示桌和晚间灯光，小展牌只作为公开环境装饰。",
+      "source_filename": "exec-3db9cf76-0902-40a9-922c-4543591f328a.png",
+      "size": [
+        960,
+        640
+      ],
+      "bytes": 178472,
+      "sha256": "c3b1fc249e138dd2605f1afb1ec816b17e7f401db1b598a7f0dfd67b2d26923e",
+      "prompt_set": "Landscape3:2 scene cover for an original Chinese detective game. Painterly cinematic realism, Art Deco noir, muted charcoal and warm sepia, fine ivory paper grain. Clear spatial depth and readable silhouettes at mobile card size. Public environment only; no people, corpses, blood, weapons, forensic reconstruction, solution clues, readable text, numbers, logos, watermarks, modern technology, title, border or collage. Scene: A spacious old iron-and-glass greenhouse of an early twentieth century Chinese botanical museum, late evening before an exhibition handover. Dense potted palms and ferns, wooden botanical display tables, a small unlettered brass exhibition label, tiled paths, rain-glazed glass, warm period lamps and cool evening light. View down the aisle. No footprints or forensic reconstruction."
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "title": "潮汐之前的晚宴",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/cover-v2.webp",
+      "public_scene": "渡轮晚宴：改造为餐厅的旧渡轮、空宴会长桌、港口与潮汐远景。",
+      "source_filename": "exec-21d7dab7-2aee-4812-92a6-0dc4f915d56b.png",
+      "size": [
+        960,
+        640
+      ],
+      "bytes": 120970,
+      "sha256": "ef5e5fd0e10057dc65627aa6dfd4203816e028be260bc47cd1b99931189b8362",
+      "prompt_set": "Landscape3:2 scene cover for an original Chinese detective game. Painterly cinematic realism, Art Deco noir, muted charcoal and warm sepia, fine ivory paper grain. Clear spatial depth and readable silhouettes at mobile card size. Public environment only; no people, corpses, blood, weapons, forensic reconstruction, solution clues, readable text, numbers, logos, watermarks, modern technology, title, border or collage. Scene: A retired early twentieth century Chinese coastal ferry converted into a modest elegant restaurant for its final evening banquet. Wood-paneled dining saloon, single long banquet table with white linen, ceramic dishes and simple empty wine glasses, warm brass lamps, curved ship beams and portholes, tide and harbor lights beyond the windows. No mirrors or reflected figures, staged evidence or mystery mechanism."
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "title": "终场之前的返场",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/cover-v2.webp",
+      "public_scene": "剧院返场：空观众席、木制舞台、酒红幕布与简单客厅布景。",
+      "source_filename": "exec-c605004b-a9a9-4efe-ad3b-128081cecf6f.png",
+      "size": [
+        960,
+        640
+      ],
+      "bytes": 75436,
+      "sha256": "8ffa96a45d6d8763c1969c118407b3ba9bdcfcc352dfca9403492d505404a68e",
+      "prompt_set": "Landscape3:2 scene cover for an original Chinese detective game. Painterly cinematic realism, Art Deco noir, muted charcoal and warm sepia, fine ivory paper grain. Clear spatial depth and readable silhouettes at mobile card size. Public environment only; no people, corpses, blood, weapons, forensic reconstruction, solution clues, readable text, numbers, logos, watermarks, modern technology, title, border or collage. Scene: A historic Chinese city theater prepared for the final curtain of a charity performance. View from the rear of an empty small auditorium toward a warmly lit wooden proscenium stage, dark burgundy velvet curtains, worn polished timber seats, an old drawing-room stage set, brass sconces and subtle stage haze. No ropes, rigging detail, damaged equipment, falling objects or accident reconstruction."
+    }
+  ],
+  "private_story_sent": false,
+  "encoding": "Original1536x1024 PNG converted to960x640 WebP quality85; no semantic edits."
+}

@@ -69,7 +69,7 @@ class Transport:
 class MobileRuntimeTests(unittest.TestCase):
     def test_downloaded_content_adds_dynamic_cast_without_model_or_game_revision_change(self):
         from app.services import story_content_service as content
-        from app.core.content_protocol import content_fingerprint
+        from app.core.content_protocol import content_fingerprint, artwork_files
         async def check():
             with tempfile.TemporaryDirectory() as temporary:
                 directory = Path(temporary) / 'game'
@@ -81,14 +81,22 @@ class MobileRuntimeTests(unittest.TestCase):
                 for suffix in ['3304', '3305', '3306']:
                     sid = 'ad60c7e0-1f56-4fc3-bcaa-705910d0' + suffix
                     raw = (source / f'{sid}.json').read_bytes()
+                    package = json.loads(raw)
+                    version = package['metadata']['version']
+                    images = {name: (source.parent / 'images' / sid / name).read_bytes()
+                              for name in artwork_files(package)}
                     import hashlib
                     digest = hashlib.sha256(raw).hexdigest()
-                    pack = Path(temporary) / 'story-library/packs' / sid / f'v1-{digest}'
+                    pack = Path(temporary) / 'story-library/packs' / sid / f'v{version}-{digest}'
                     pack.mkdir(parents=True)
                     (pack / 'package.json').write_bytes(raw)
-                    (pack / 'complete.json').write_text(json.dumps({'story_id': sid, 'version': 1, 'sha256': digest,
-                        'fingerprint': content_fingerprint(raw, {}), 'min_engine_version': 1}))
-                    content.activate(sid, 1, digest, str(directory / 'stories'))
+                    if images:
+                        (pack / 'images').mkdir()
+                        for name, data in images.items():
+                            (pack / 'images' / name).write_bytes(data)
+                    (pack / 'complete.json').write_text(json.dumps({'story_id': sid, 'version': version, 'sha256': digest,
+                        'fingerprint': content_fingerprint(raw, images), 'min_engine_version': 1}))
+                    content.activate(sid, version, digest, str(directory / 'stories'))
                 self.assertEqual(runtime.revision, revision)
                 books = runtime.read('/stories')['stories']
                 self.assertEqual([book['num_characters'] for book in books if book['origin'] == 'builtin'], [3, 5, 7, 4, 6, 8])

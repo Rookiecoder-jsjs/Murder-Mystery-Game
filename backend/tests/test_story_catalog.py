@@ -53,10 +53,11 @@ def test_published_artwork_and_text_only_cases_stay_offline_and_frozen():
     for archive in catalog.builtin_stories():
         urls = [catalog.story_info(archive)['cover_url'],
                 *[c.portrait_url for c in archive.characters]]
-        # The first release retains its complete illustrations. New text-only
-        # packages use the client's case-file/initials fallback, without AI calls.
-        illustrated = archive.id.endswith(('3301', '3302', '3303'))
-        assert all(bool(url) == illustrated for url in urls)
+        # All six cases have a published cover. The first three also retain
+        # portraits; new cases continue using initials without online generation.
+        assert urls[0]
+        portraits = archive.id.endswith(('3301', '3302', '3303'))
+        assert all(bool(url) == portraits for url in urls[1:])
         for url in urls:
             if not url:
                 continue

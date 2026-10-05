@@ -2,8 +2,8 @@
   "format_version": 1,
   "metadata": {
     "schema_version": 1,
-    "version": 1,
-    "release_notes": "原创文字本体验预览，已通过本地结构与流程检查；真实模型及玩家体验评审尚未完成。",
+    "version": 2,
+    "release_notes": "新增原创场景封面。正文不变；已通过本地结构与流程检查，真实模型及玩家体验评审尚未完成。",
     "summary": "剧院义演的最后一幕变成坠落事故。八个人都能说出事故那一刻身在何处，却没人先问：危险是在开演前，还是在掌声中进入舞台的？",
     "author": "本项目原创剧本组",
     "license": "本项目原创内容，按仓库 AGPL-3.0-only 授权；未使用第三方小说的人物、正文或具体情节。",
@@ -562,5 +562,11 @@
     ],
     "production": {},
     "catalog": {}
+  },
+  "artwork": {
+    "version": 2,
+    "cover": "cover-v2.webp",
+    "portraits": {},
+    "retained_files": []
   }
 }
