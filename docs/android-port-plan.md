@@ -1,5 +1,16 @@
 # 安卓独立运行版设计与实施计划
 
+## 2026-10-05：独立剧本内容更新（preview.3）
+
+客户端版本为 1.0.0-preview.3 / versionCode 16，arm64-v8a / minSdk 24。APK 固定保留前三个基础本与18张配图，新增本通过签名 `.mmstory` 安装；目录修订与内容版本独立于 APK。首页精选库增加已下载、发现新本、目录检查、下载进度、取消重试与离线包安装，原生队列与游戏/模型任务分离。
+
+内容包、冻结存档、版本图片、命名空间隔离与发布契约见 [内容更新记录](story-content-updates.md)。content-r1 已上传六个包并从远端逐个核对长度和哈希，实际 Android 验证器的 JVM 验签/解包通过。三个新增文字本标为体验预览，未声称完成真实模型或玩家体验评审。
+
+验证：后端全套336项通过，补充恢复检测后内容服务11项通过；Web 6个测试文件及 lint/类型/构建通过；手机纯Python引擎6项、原生7项、发布工具3项通过。APK递归检查3本、18图及公开信任配置与源码一致，无密钥或电脑用户数据。
+
+手机同签名覆盖安装成功，versionCode核对为16；安装前后游戏数据库、加密模型配置和草稿文件校验值完全一致。未卸载或清除数据，也未执行电脑锁屏。手机仍锁屏，界面、实际联网/取消/重启与离线选择器验收待解锁；测试结论不能替代这些真机检查。
+
+
 ### Logo 统一与覆盖升级（2026-10-03）
 
 用户选定 A「案卷搜证」Logo；首页、favicon、五种密度的安卓桌面／圆形／自适应图标和启动图同步替换。发布 `v1.0.0-android-preview.2`，应用版本 `1.0.0-preview.2` / versionCode 15；README 下载链接指向新版，旧发布保留回退。图稿与派生资源构建说明见 [Logo 设计](logo-design.md)。
@@ -161,6 +172,7 @@
 
 ```bash
 cd frontend && npm ci && cd ..
+export ANDROID_USER_HOME=/home/bro/.config/.android  # 当前维护者的既有开发签名目录；其他开发者配置自己的路径
 npm run android:apk
 # 产物：frontend/android/app/build/outputs/apk/debug/app-debug.apk
 adb install -r frontend/android/app/build/outputs/apk/debug/app-debug.apk

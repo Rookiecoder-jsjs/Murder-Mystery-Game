@@ -1,6 +1,6 @@
 # 剧本内容独立更新
 
-状态：2026-10-05，Android 首期代码与 APK 构建已完成，签名目录和内容附件待发布，真机验收正在进行。已发布 preview.2 不具备此能力；需首次升级到 preview.3。本文记录实现契约与验收边界，实际测试见文末。
+状态：2026-10-05，Android 首期代码、构建和 content-r1 附件已完成，六个远端包已逐一核对哈希和签名；签名目录随本次提交启用，支持客户端为 preview.3。手机已同签名覆盖到 preview.3，配置与存档文件保留，界面/联网验收等待解锁。已发布 preview.2 不具备此能力；需首次升级到 preview.3。本文记录实现契约与验收边界，实际测试见文末。
 
 ## 目标与交付边界
 
@@ -206,7 +206,7 @@ Android 已注册原生 `libraryRead` / `libraryCommand` / `libraryImport`，前
 
 ## 发布渠道与制作验收
 
-使用现有 GitHub 仓库托管静态内容，用户无需提供自己的服务器。方案采用仓库 `content/catalog.json` 的 HTTPS 原始地址作为稳定目录，包放在独立的 `content-r<catalog_revision>` Release 附件中；受信公钥与固定目录地址已配置；内容 Release 与签名目录待发布。
+使用现有 GitHub 仓库托管静态内容，用户无需提供自己的服务器。方案采用仓库 `content/catalog.json` 的 HTTPS 原始地址作为稳定目录，包放在独立的 `content-r<catalog_revision>` Release 附件中；受信公钥与固定目录地址已配置，首份签名目录为修订 1；[content-r1 附件](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/content-r1)已经发布。
 
 固定目录地址为 `https://raw.githubusercontent.com/Rookiecoder-jsjs/Murder-Mystery-Game/master/content/catalog.json`。每个包使用固定标签的 `/releases/download/content-rN/<uuid>-vM.mmstory`，不能依赖仓库 `/releases/latest`，避免内容 Release 与 APK Release 混用。GitHub 的公开 Release/附件接口可不带访问令牌读取，发布流程参考 [Release 文档](https://docs.github.com/en/rest/releases/releases) 与 [附件文档](https://docs.github.com/en/rest/releases/assets)；实现时验证实际重定向链、下载可达性和客户端主机白名单。
 
@@ -248,6 +248,7 @@ Android 已注册原生 `libraryRead` / `libraryCommand` / `libraryImport`，前
 - 前端 6 个测试文件、lint、类型与 Android 构建通过；原生 7 项测试覆盖实际 P-256 验签、签名篡改、域混用、路径穿越、加密/符号链接 ZIP、文件哈希和目录格式拒绝。
 - 手机纯 Python 引擎 6 项通过：三本基础内容扩展到六本、动态人数、冻结存档与旧版私密事件迁移；假传输器没有发起模型调用。
 - 发布工具 3 项通过：真实 OpenSSL 验签、目录同修订复用与回退拒绝、固定 Git 源码和同版本包字节复用。
+- 组件在 320/360/412 像素及 125% 字体下，无横向溢出或嵌套按钮，主要操作触控区至少44px；发现页将新增内容排在不变基础本前。此项为桌面模拟，不能代替真机。
 - APK 递归检查通过：3 个基础剧本、18 张配图及受信公钥与源码一致，没有凭据或电脑用户数据。
 
 发布者在仓库外保管内容签名私钥。先提交正文、资源、许可与实现，再使用固定提交打包；不要把私钥路径作为仓库配置。示例：
@@ -262,4 +263,6 @@ python3 scripts/tests/test_story_publisher.py
 
 输出位于被 Git 忽略的 dist/story-content；逐项检查 report.json，上传固定标签附件并核对哈希后，再提交 catalog.json 到 content/catalog.json。工具不自动上传，也不调用审稿模型。源码改变、但正文/图片未变时继续复用旧包；正文/图片改变必须升 metadata.version。同目录修订的内容变化和回退均拒绝。
 
-真机取消、网络下载、进程中断、离线文件选择器与布局验收尚待完成；实际制造磁盘满或每个安装指令点断电未验证。当前不承诺后台持续下载、Range 续传、自动删除历史图片或任意第三方内容源。
+六个远端附件的长度和 SHA-256 核对通过，并由实际 Android ContentVerifier 在 JVM 上全部验签与解包。Redmi / Android 16 已同签名覆盖到 versionCode 16，升级前后 game.sqlite、加密 model-v1.xml 和 drafts-v1.xml 的 SHA-256 完全一致，没有卸载、清数据或执行电脑锁屏。
+
+真机取消、网络下载、进程中断、离线文件选择器与布局验收尚待解锁完成；实际制造磁盘满或每个安装指令点断电未验证。当前不承诺后台持续下载、Range 续传、自动删除历史图片或任意第三方内容源。

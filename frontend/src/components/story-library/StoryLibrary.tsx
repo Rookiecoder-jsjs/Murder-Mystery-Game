@@ -75,6 +75,12 @@ export function StoryLibrary({ disabled, openingStory, loadError, onOpen }: {
   };
   const onCancel = (id: string) => { void issue(() => libraryApi.cancel(id)); };
   const books = snapshot?.books.filter(book => tab === 'installed' ? book.installed_version !== null : !!book.available) ?? [];
+  if (tab === 'discover') {
+    // Put new content before unchanged APK cases; a completed download stays
+    // in this group so its card doesn't jump during progress refreshes.
+    const unchangedBase = (book: typeof books[number]) => Number(book.delivery === 'bundled' && book.latest_version === book.installed_version);
+    books.sort((a, b) => unchangedBase(a) - unchangedBase(b) || a.id.localeCompare(b.id));
+  }
   const checkTask = snapshot?.tasks.find(task => task.kind === 'check' && isLibraryTaskActive(task));
   const fileTask = snapshot?.tasks.find(task => task.kind === 'file');
   const updateCount = snapshot?.books.filter(book => book.installed_version !== null && book.can_download).length ?? 0;
