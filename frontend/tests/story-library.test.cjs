@@ -23,5 +23,6 @@ test('only active download stages keep polling; local import and errors have cor
   for (const state of ['complete', 'failed', 'cancelled', 'interrupted']) assert.equal(isLibraryTaskActive({ state }), false);
   assert.equal(libraryTaskLabel({ state: 'downloading', kind: 'file' }), '正在读取内容包');
   assert.equal(libraryTaskLabel({ state: 'failed', error: '空间不足' }), '空间不足');
+  assert.equal(libraryTaskLabel({ state: 'downloading', cancel_requested: true }), '正在取消下载');
   assert.equal(contentSize(0), '0 KB');
 });

@@ -69,9 +69,9 @@ final class StoryLibraryHost {
                 if (!task.terminal()) {
                     boolean installed = !task.storyId.isEmpty() && !task.digest.isEmpty()
                         && content.callAttr("is_installed", task.storyId, task.version, task.digest).toBoolean();
-                    task.state = installed ? "complete" : "interrupted";
-                    task.errorCode = installed ? "" : "INTERRUPTED";
-                    task.error = installed ? "" : task.kind.equals("check") ? "上次目录检查中断，请重新检查更新" : "应用上次运行被中断，请重试下载；已有剧本仍可游玩";
+                    task.state = installed ? "complete" : task.cancelled ? "cancelled" : "interrupted";
+                    task.errorCode = installed || task.cancelled ? "" : "INTERRUPTED";
+                    task.error = installed ? "" : task.cancelled ? "下载已取消" : task.kind.equals("check") ? "上次目录检查中断，请重新检查更新" : "应用上次运行被中断，请重试下载；已有剧本仍可游玩";
                     save(task);
                 }
                 tasks.put(task.id, task);
@@ -95,13 +95,15 @@ final class StoryLibraryHost {
             state = json.getString("state"); storyId = json.optString("story_id", ""); digest = json.optString("sha256", "");
             version = json.optInt("content_version", 0); downloaded = json.optLong("downloaded_bytes");
             total = json.optLong("total_bytes"); error = json.optString("error", ""); errorCode = json.optString("error_code", "");
+            cancelled = json.optBoolean("cancel_requested", state.equals("cancelled"));
         }
         synchronized boolean terminal() { return java.util.Arrays.asList("complete", "failed", "cancelled", "interrupted").contains(state); }
         synchronized JSONObject view() throws Exception {
             return new JSONObject().put("id", id).put("kind", kind).put("created", created).put("state", state)
                 .put("story_id", storyId).put("content_version", version).put("sha256", digest)
                 .put("downloaded_bytes", downloaded).put("total_bytes", total).put("error", error).put("error_code", errorCode)
-                .put("can_cancel", !terminal() && !committing);
+                .put("cancel_requested", cancelled && !terminal())
+                .put("can_cancel", !terminal() && !committing && !cancelled);
         }
     }
     private static JSONObject readJson(File source, int limit) throws Exception {
@@ -288,7 +290,8 @@ final class StoryLibraryHost {
             task.cancelled = true;
             if (task.connection != null) task.connection.disconnect();
             if (task.input != null) try { task.input.close(); } catch (java.io.IOException ignored) { /* Cancellation owns this stream. */ }
-            if (task.state.equals("queued")) { task.state = "cancelled"; save(task); }
+            if (task.state.equals("queued")) task.state = "cancelled";
+            save(task);
             return task.view();
         }
     }

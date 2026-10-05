@@ -4,7 +4,7 @@ import { contentSize, isLibraryTaskActive, libraryApi, libraryTaskLabel, type Li
 import './StoryLibrary.css';
 
 function TaskProgress({ task, onCancel }: { task: LibraryTask; onCancel: (id: string) => void }) {
-  const downloading = task.state === 'downloading';
+  const downloading = task.state === 'downloading' && !task.cancel_requested;
   const percent = task.total_bytes > 0 ? Math.min(100, Math.floor(task.downloaded_bytes * 100 / task.total_bytes)) : undefined;
   return <div className="content-task" role="status">
     <p>{libraryTaskLabel(task)}{downloading && (' · ' + contentSize(task.downloaded_bytes) + (task.total_bytes > 0 ? ' / ' + contentSize(task.total_bytes) : ''))}</p>

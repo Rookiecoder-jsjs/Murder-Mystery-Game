@@ -14,6 +14,7 @@ export interface LibraryTask {
   error: string;
   error_code: string;
   can_cancel: boolean;
+  cancel_requested?: boolean;
 }
 export interface LibraryBook extends Story {
   installed_version: number | null;
@@ -48,6 +49,7 @@ export function isLibraryTaskActive(task: LibraryTask): boolean {
   return ['queued', 'checking', 'downloading', 'verifying', 'installing'].includes(task.state);
 }
 export function libraryTaskLabel(task: LibraryTask): string {
+  if (task.cancel_requested && isLibraryTaskActive(task)) return '正在取消下载';
   if (task.error) return task.error;
   if (task.kind === 'file' && task.state === 'downloading') return '正在读取内容包';
   const labels: Record<LibraryTask['state'], string> = {

@@ -59,6 +59,7 @@ public class GameEnginePlugin extends Plugin {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
         // OEM providers may not assign a MIME type to .mmstory. Trust is
         // checked from the signed bytes after selection, never the extension.
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -66,10 +67,16 @@ public class GameEnginePlugin extends Plugin {
     }
     @ActivityCallback private void contentSelected(PluginCall call, ActivityResult result) {
         if (call == null) return;
-        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || result.getData().getData() == null) {
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) {
             call.resolve(new JSObject().put("cancelled", true)); return;
         }
-        var uri = result.getData().getData();
+        var selected = result.getData();
+        if (selected.getClipData() != null && selected.getClipData().getItemCount() != 1) {
+            call.reject("请一次选择一个官方内容包"); return;
+        }
+        var uri = selected.getData() != null ? selected.getData()
+            : selected.getClipData() != null ? selected.getClipData().getItemAt(0).getUri() : null;
+        if (uri == null) { call.reject("未收到内容包，请重新选择"); return; }
         libraryControl.execute(() -> {
             try {
                 if (!"content".equals(uri.getScheme())) throw new IllegalArgumentException();
