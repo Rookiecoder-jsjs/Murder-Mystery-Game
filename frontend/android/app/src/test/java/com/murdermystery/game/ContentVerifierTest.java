@@ -32,7 +32,7 @@ public class ContentVerifierTest {
         pair = generator.generateKeyPair();
         JSONObject config = new JSONObject().put("publisher", "tests")
             .put("keys", new JSONObject().put("test", Base64.getEncoder().encodeToString(pair.getPublic().getEncoded())))
-            .put("allowed_hosts", new JSONArray().put("github.com"));
+            .put("allowed_hosts", new JSONArray().put("github.com").put("api.github.com"));
         verifier = new ContentVerifier(config, value -> Base64.getDecoder().decode(value));
     }
     private byte[] sign(JSONObject payload, String domain) throws Exception {
@@ -81,6 +81,20 @@ public class ContentVerifierTest {
             .put("source_commit", "1".repeat(40)).put("files", rows);
     }
     private interface Operation { void run() throws Exception; }
+    @Test public void officialAssetFallbackBindsRepositoryTagNameAndSize() throws Exception {
+        String original = "https://github.com/tests/releases/download/content-r2/" + id + "-v2.mmstory";
+        String api = "https://api.github.com/repos/tests/releases/assets/123";
+        JSONObject asset = new JSONObject().put("id", 123).put("name", id + "-v2.mmstory").put("size", 1000)
+            .put("url", api).put("browser_download_url", original);
+        JSONObject release = new JSONObject().put("tag_name", "content-r2").put("assets", new JSONArray().put(asset));
+        assertEquals(api, verifier.releaseAssetUrl(original, release, 1000));
+        assertNull(verifier.releaseMetadataUrl("https://github.com/other/releases/download/content-r2/" + id + "-v2.mmstory"));
+        fails("PACKAGE_INVALID", () -> verifier.releaseAssetUrl(original, release, 999));
+        asset.put("url", "https://api.github.com/repos/other/releases/assets/123");
+        fails("PACKAGE_INVALID", () -> verifier.releaseAssetUrl(original, release, 1000));
+        asset.put("url", api); release.put("tag_name", "content-r1");
+        fails("PACKAGE_INVALID", () -> verifier.releaseAssetUrl(original, release, 1000));
+    }
     private void fails(String code, Operation operation) throws Exception {
         try { operation.run(); fail("invalid content accepted"); }
         catch (ContentVerifier.Failure error) { assertEquals(code, error.code); }

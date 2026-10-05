@@ -122,6 +122,33 @@ final class ContentVerifier {
         }
         return payload;
     }
+    String releaseMetadataUrl(String original) throws Exception {
+        String prefix = "https://github.com/" + config.getString("publisher") + "/releases/download/";
+        if (!original.startsWith(prefix)) return null;
+        String[] parts = original.substring(prefix.length()).split("/", -1);
+        if (parts.length != 2 || !parts[0].matches("content-r[1-9][0-9]*")
+            || !parts[1].matches("[a-f0-9-]{36}-v[1-9][0-9]*\\.mmstory")) return null;
+        return "https://api.github.com/repos/" + config.getString("publisher") + "/releases/tags/" + parts[0];
+    }
+    String releaseAssetUrl(String original, JSONObject release, int expectedBytes) throws Exception {
+        String metadata = releaseMetadataUrl(original);
+        if (metadata == null || !release.getString("tag_name").equals(metadata.substring(metadata.lastIndexOf('/') + 1)))
+            throw new Failure("PACKAGE_INVALID", "备用下载来源不匹配");
+        String name = original.substring(original.lastIndexOf('/') + 1);
+        JSONArray assets = release.getJSONArray("assets");
+        if (assets.length() > 2000) throw new Failure("PACKAGE_INVALID", "备用下载目录超过限制");
+        for (int i = 0; i < assets.length(); i++) {
+            JSONObject asset = assets.getJSONObject(i);
+            if (!name.equals(asset.optString("name"))) continue;
+            long assetId = asset.getLong("id");
+            String expected = "https://api.github.com/repos/" + config.getString("publisher") + "/releases/assets/" + assetId;
+            if (assetId <= 0 || integer(asset, "size", 1, ZIP_LIMIT) != expectedBytes
+                || !original.equals(asset.getString("browser_download_url")) || !expected.equals(asset.getString("url")))
+                throw new Failure("PACKAGE_INVALID", "备用下载附件不匹配");
+            allowedUrl(expected); return expected;
+        }
+        throw new java.io.IOException("官方附件暂不可用");
+    }
     private byte[] base64(String value) throws Exception {
         if (!value.matches("[A-Za-z0-9+/]+={0,2}") || value.length() % 4 != 0) throw new Exception("Base64 无效");
         return decoder.decode(value);

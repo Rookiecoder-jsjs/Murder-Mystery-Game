@@ -234,7 +234,7 @@ final class StoryLibraryHost {
             File staging = new File(root, "staging/" + task.id); staging.mkdirs();
             if (root.getUsableSpace() < selected.getInt("bytes") + 40L * 1024 * 1024 + 8L * 1024 * 1024) throw new ContentVerifier.Failure("NO_SPACE", "手机可用空间不足，请清理空间后重试");
             stage(task, "downloading"); File zip = new File(staging, "source.mmstory");
-            downloadFile(selected.getJSONArray("download_urls").getString(0), zip, task, selected.getInt("bytes"));
+            downloadPackage(selected, zip, task);
             if (zip.length() != selected.getInt("bytes") || !ContentVerifier.fileHash(zip).equals(task.digest)) throw new ContentVerifier.Failure("HASH_MISMATCH", "下载内容不完整或校验失败，请重试");
             installZip(zip, staging, task, selected);
         }));
@@ -357,7 +357,9 @@ final class StoryLibraryHost {
             connection.setConnectTimeout(15000); connection.setReadTimeout(20000);
             connection.setRequestProperty("Accept", accept);
             connection.setRequestProperty("User-Agent", "Murder-Mystery-Story-Library/1");
-            int status = connection.getResponseCode();
+            int status;
+            try { status = connection.getResponseCode(); }
+            catch (Exception error) { connection.disconnect(); task.connection = null; throw error; }
             if (status == 200) return connection;
             String location = connection.getHeaderField("Location"); connection.disconnect();
             if (java.util.Arrays.asList(301, 302, 303, 307, 308).contains(status) && location != null) {
@@ -389,6 +391,32 @@ final class StoryLibraryHost {
         HttpsURLConnection connection = open(url, task, "application/octet-stream");
         try (InputStream input = connection.getInputStream()) { copy(input, file, task, limit, true); }
         finally { connection.disconnect(); task.connection = null; }
+    }
+    private void downloadPackage(JSONObject entry, File file, Task task) throws Exception {
+        java.io.IOException last = null;
+        JSONArray addresses = entry.getJSONArray("download_urls");
+        for (int i = 0; i < addresses.length(); i++) {
+            if (task.cancelled) throw new Cancelled();
+            synchronized (task) { task.downloaded = 0; save(task); }
+            String original = addresses.getString(i);
+            try { downloadFile(original, file, task, entry.getInt("bytes")); return; }
+            catch (java.io.IOException error) { last = error; }
+            if (task.cancelled) throw new Cancelled();
+            String metadata = verifier.releaseMetadataUrl(original);
+            if (metadata == null) continue;
+            try {
+                HttpsURLConnection connection = open(metadata, task, "application/vnd.github+json");
+                JSONObject release;
+                try { release = ContentJson.parse(new String(ContentVerifier.readLimited(connection.getInputStream(), ContentVerifier.ENVELOPE_LIMIT), StandardCharsets.UTF_8)); }
+                finally { connection.disconnect(); task.connection = null; }
+                String fallback = verifier.releaseAssetUrl(original, release, entry.getInt("bytes"));
+                synchronized (task) { task.downloaded = 0; save(task); }
+                downloadFile(fallback, file, task, entry.getInt("bytes")); return;
+            } catch (java.io.IOException error) { last = error; }
+            synchronized (task) { task.downloaded = 0; save(task); }
+        }
+        if (last != null) throw last;
+        throw new java.io.IOException("官方附件暂不可用");
     }
     private void copy(InputStream input, File file, Task task, int limit, boolean expected) throws Exception {
         long lastSave = 0;
