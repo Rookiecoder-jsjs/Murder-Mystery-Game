@@ -1,15 +1,20 @@
 {
   "config_version": 1,
   "publisher": "Rookiecoder-jsjs/Murder-Mystery-Game",
-  "catalog_url": "https://raw.githubusercontent.com/Rookiecoder-jsjs/Murder-Mystery-Game/master/content/catalog.json",
+  "catalog_url": "https://api.github.com/repos/Rookiecoder-jsjs/Murder-Mystery-Game/contents/content/catalog.json?ref=master",
   "allowed_hosts": [
     "raw.githubusercontent.com",
     "github.com",
     "release-assets.githubusercontent.com",
     "objects.githubusercontent.com",
-    "github-releases.githubusercontent.com"
+    "github-releases.githubusercontent.com",
+    "api.github.com"
   ],
   "keys": {
     "official-content-2026-01": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzBF+Nga3tobChcViANmYcbkemL7/uoecho4j1bHONzce9FXr0rNbqRsohQ2rQaP7FMBkh1J403jLp95q+uc8XQ=="
-  }
+  },
+  "catalog_urls": [
+    "https://api.github.com/repos/Rookiecoder-jsjs/Murder-Mystery-Game/contents/content/catalog.json?ref=master",
+    "https://raw.githubusercontent.com/Rookiecoder-jsjs/Murder-Mystery-Game/master/content/catalog.json"
+  ]
 }

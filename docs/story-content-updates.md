@@ -1,6 +1,6 @@
 # 剧本内容独立更新
 
-状态：2026-10-05，Android 首期代码、构建和 content-r1 附件已完成，六个远端包已逐一核对哈希和签名；签名目录随本次提交启用，支持客户端为 preview.3。手机已同签名覆盖到 preview.3，配置与存档文件保留，界面/联网验收等待解锁。已发布 preview.2 不具备此能力；需首次升级到 preview.3。本文记录实现契约与验收边界，实际测试见文末。
+状态：2026-10-05，Android 首期代码、构建和 content-r1 附件已完成，六个远端包已逐一核对哈希和签名；签名目录随本次提交启用，支持客户端为 preview.3。手机已同签名覆盖到 preview.3，配置与存档文件保留，正在执行联网与离线安装验收。已发布 preview.2 不具备此能力；需首次升级到 preview.3。本文记录实现契约与验收边界，实际测试见文末。
 
 ## 目标与交付边界
 
@@ -132,7 +132,7 @@ ZIP 的全包哈希由签名目录约束；清单自己的签名及各文件哈�
 
 ## 下载、安装与本地存储
 
-官方文件使用 HTTPS，只允许预先配置的官方目录、附件及经验证的 GitHub CDN 重定向主机；重定向也需校验协议和主机，不接受任意地址。使用独立无鉴权内容下载器，不复用会附带模型密钥的 `NativeTransport`。提供连接/读取超时、手动重试和取消；失败返回真实原因，不自动切换未知公共代理。
+官方文件使用 HTTPS，只允许预先配置的官方 API/原始目录、附件及经验证的 GitHub CDN 重定向主机；重定向也需校验协议和主机，不接受任意地址。使用独立无鉴权内容下载器，不复用会附带模型密钥的 `NativeTransport`。提供连接/读取超时、手动重试和取消；失败返回真实原因，不自动切换未知公共代理。
 
 内容下载使用 Android 应用私有目录，不申请共享存储权限。应用专属文件的访问和卸载行为依据 [Android 存储文档](https://developer.android.com/training/data-storage/app-specific)：卸载会删除，覆盖更新保留的内容由迁移逻辑保证。目录规划：
 
@@ -208,7 +208,7 @@ Android 已注册原生 `libraryRead` / `libraryCommand` / `libraryImport`，前
 
 使用现有 GitHub 仓库托管静态内容，用户无需提供自己的服务器。方案采用仓库 `content/catalog.json` 的 HTTPS 原始地址作为稳定目录，包放在独立的 `content-r<catalog_revision>` Release 附件中；受信公钥与固定目录地址已配置，首份签名目录为修订 1；[content-r1 附件](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/content-r1)已经发布。
 
-固定目录地址为 `https://raw.githubusercontent.com/Rookiecoder-jsjs/Murder-Mystery-Game/master/content/catalog.json`。每个包使用固定标签的 `/releases/download/content-rN/<uuid>-vM.mmstory`，不能依赖仓库 `/releases/latest`，避免内容 Release 与 APK Release 混用。GitHub 的公开 Release/附件接口可不带访问令牌读取，发布流程参考 [Release 文档](https://docs.github.com/en/rest/releases/releases) 与 [附件文档](https://docs.github.com/en/rest/releases/assets)；实现时验证实际重定向链、下载可达性和客户端主机白名单。
+目录文件仍位于 master 的 content/catalog.json。客户端优先从 `https://api.github.com/repos/Rookiecoder-jsjs/Murder-Mystery-Game/contents/content/catalog.json?ref=master` 以 `Accept: application/vnd.github.raw+json` 取得同一原始信封，备用为 `https://raw.githubusercontent.com/Rookiecoder-jsjs/Murder-Mystery-Game/master/content/catalog.json`。这两个地址只来自 APK 公开配置；网络失败才尝试备用，验签失败直接拒绝。公开目录不需要 GitHub 令牌，约定见 [官方 Contents API](https://docs.github.com/en/rest/repos/contents#get-repository-content)。每个包使用固定标签的 `/releases/download/content-rN/<uuid>-vM.mmstory`，不能依赖仓库 `/releases/latest`，避免内容 Release 与 APK Release 混用。GitHub 的公开 Release/附件接口可不带访问令牌读取，发布流程参考 [Release 文档](https://docs.github.com/en/rest/releases/releases) 与 [附件文档](https://docs.github.com/en/rest/releases/assets)；实现时验证实际重定向链、下载可达性和客户端主机白名单。
 
 发布顺序为：完成正文及许可来源 → 本地结构/证据检查 → 编辑与实际体验评审 → 打包签名并生成报告 → 上传不可变包 → 从远端核对完整哈希与长度 → 最后发布签名目录。目录不能先指向尚未上传的包。未来镜像必须由同一签名目录列出并返回相同字节，不改用不受信代理。
 
@@ -265,4 +265,4 @@ python3 scripts/tests/test_story_publisher.py
 
 六个远端附件的长度和 SHA-256 核对通过，并由实际 Android ContentVerifier 在 JVM 上全部验签与解包。Redmi / Android 16 已同签名覆盖到 versionCode 16，升级前后 game.sqlite、加密 model-v1.xml 和 drafts-v1.xml 的 SHA-256 完全一致，没有卸载、清数据或执行电脑锁屏。
 
-真机取消、网络下载、进程中断、离线文件选择器与布局验收尚待解锁完成；实际制造磁盘满或每个安装指令点断电未验证。当前不承诺后台持续下载、Range 续传、自动删除历史图片或任意第三方内容源。
+真机14个旧存档公开摘要及 configured=true 保留，首页406像素无横向溢出。发现原始目录域名在手机网络上超时，而官方 API 约867ms返回相同7642字节目录，已补充该官方入口与备用顺序。真机下载、取消、重启及离线选择器复测仍在进行；实际制造磁盘满或每个安装指令点断电未验证。当前不承诺后台持续下载、Range 续传、自动删除历史图片或任意第三方内容源。

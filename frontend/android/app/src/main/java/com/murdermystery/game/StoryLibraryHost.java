@@ -50,6 +50,8 @@ final class StoryLibraryHost {
             ContentVerifier.ENVELOPE_LIMIT), StandardCharsets.UTF_8));
         verifier = new ContentVerifier(config);
         verifier.allowedUrl(config.getString("catalog_url"));
+        JSONArray mirrors = config.optJSONArray("catalog_urls");
+        if (mirrors != null) for (int i = 0; i < mirrors.length(); i++) verifier.allowedUrl(mirrors.getString(i));
         content = Python.getInstance().getModule("mobile_content");
         content.callAttr("configure", root.getAbsolutePath(), new File(context.getFilesDir(), "bundled-stories").getAbsolutePath());
         File cached = new File(root, "catalog/cache.json");
@@ -178,7 +180,7 @@ final class StoryLibraryHost {
         Task task = add("check");
         worker.execute(() -> run(task, () -> {
             stage(task, "checking");
-            byte[] bytes = downloadBytes(config.getString("catalog_url"), task, ContentVerifier.ENVELOPE_LIMIT);
+            byte[] bytes = downloadCatalog(task);
             JSONObject fresh = verifier.catalog(bytes);
             JSONObject old = catalog;
             if (old != null && (fresh.getInt("catalog_revision") < old.getInt("catalog_revision")
@@ -327,7 +329,7 @@ final class StoryLibraryHost {
             deleteTree(new File(root, "staging/" + task.id));
         }
     }
-    private HttpsURLConnection open(String address, Task task) throws Exception {
+    private HttpsURLConnection open(String address, Task task, String accept) throws Exception {
         for (int redirects = 0; redirects < 6; redirects++) {
             if (task.cancelled) throw new Cancelled();
             verifier.allowedUrl(address);
@@ -335,7 +337,8 @@ final class StoryLibraryHost {
             task.connection = connection;
             connection.setRequestMethod("GET"); connection.setInstanceFollowRedirects(false);
             connection.setConnectTimeout(15000); connection.setReadTimeout(20000);
-            connection.setRequestProperty("Accept", "application/octet-stream");
+            connection.setRequestProperty("Accept", accept);
+            connection.setRequestProperty("User-Agent", "Murder-Mystery-Story-Library/1");
             int status = connection.getResponseCode();
             if (status == 200) return connection;
             String location = connection.getHeaderField("Location"); connection.disconnect();
@@ -346,13 +349,26 @@ final class StoryLibraryHost {
         }
         throw new ContentVerifier.Failure("PACKAGE_INVALID", "内容下载重定向次数过多");
     }
+    private byte[] downloadCatalog(Task task) throws Exception {
+        JSONArray addresses = config.optJSONArray("catalog_urls");
+        if (addresses == null) addresses = new JSONArray().put(config.getString("catalog_url"));
+        java.io.IOException last = null;
+        for (int i = 0; i < addresses.length(); i++) {
+            if (task.cancelled) throw new Cancelled();
+            try { return downloadBytes(addresses.getString(i), task, ContentVerifier.ENVELOPE_LIMIT); }
+            catch (java.io.IOException error) { last = error; }
+        }
+        if (last != null) throw last;
+        throw new ContentVerifier.Failure("CATALOG_UNAVAILABLE", "官方目录地址尚未配置");
+    }
     private byte[] downloadBytes(String url, Task task, int limit) throws Exception {
-        HttpsURLConnection connection = open(url, task);
+        // GitHub's official contents API can return the identical raw envelope.
+        HttpsURLConnection connection = open(url, task, "application/vnd.github.raw+json");
         try { return ContentVerifier.readLimited(connection.getInputStream(), limit); }
         finally { connection.disconnect(); task.connection = null; }
     }
     private void downloadFile(String url, File file, Task task, int limit) throws Exception {
-        HttpsURLConnection connection = open(url, task);
+        HttpsURLConnection connection = open(url, task, "application/octet-stream");
         try (InputStream input = connection.getInputStream()) { copy(input, file, task, limit, true); }
         finally { connection.disconnect(); task.connection = null; }
     }
