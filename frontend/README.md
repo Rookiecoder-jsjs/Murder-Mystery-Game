@@ -1,73 +1,44 @@
-# React + TypeScript + Vite
+# 剧本杀 Web 与安卓界面
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[项目介绍与安卓下载](../README.md) · [完整开发指南](../docs/development.md)
 
-Currently, two official plugins are available:
+本目录提供 React 19、TypeScript、Vite 8 界面。浏览器版通过 FastAPI 与 SSE 调用后端；安卓复用同一界面，通过 Capacitor 桥接 APK 内的 Python 引擎。竖屏首页、调查、对质和表决都有移动端布局。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 本地开发
 
-## React Compiler
+环境要求：Node.js 22.12+。在项目根目录按 [开发指南](../docs/development.md#环境与首次启动) 配置 Python 依赖与 `backend/.env`，然后执行：
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm --prefix frontend ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+只启动界面时，在本目录执行 `npm run dev`；仍需已启动的后端。Vite 读取 `backend/.port.json` 配置开发代理，前端地址以终端输出为准。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 目录
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| 路径 | 用途 |
+| --- | --- |
+| `src/pages/` | 首页与游戏页面 |
+| `src/components/` | 阶段界面、案卷、对话和通用组件 |
+| `src/context/` | 游戏状态与动作同步 |
+| `src/api/` | 请求、SSE、安卓适配与数据类型 |
+| `src/styles/` | 全局主题与移动端样式 |
+| `public/brand/` | Logo、网页图标等品牌资源 |
+| `android/` | 安卓原生桥接、模型设置与内容下载 |
+
+业务组件通过现有 API 层调用，不分别实现请求。模型 API key 不应放在前端变量或构建资源中：Web 使用后端配置，安卓使用原生加密设置。
+
+## 验证与构建
+
+以下命令在本目录执行：
+
+```bash
+npm test
+npm run lint
+npm run build
 ```
+
+`npm run build:android` 构建安卓页面，`npm run android:sync` 同步到原生工程。完整 APK 构建在项目根目录执行 `npm run android:apk`，构建后会运行密钥与内容审计。
+
+安卓运行方式见 [实施记录](../docs/android-port-plan.md)，界面验收见 [UI 记录](../docs/android-ui-audit.md)，可独立下载的故事与配图见 [内容更新说明](../docs/story-content-updates.md)。
