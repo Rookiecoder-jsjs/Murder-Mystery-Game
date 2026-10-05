@@ -70,7 +70,8 @@ final class StoryLibraryHost {
                     boolean installed = !task.storyId.isEmpty() && !task.digest.isEmpty()
                         && content.callAttr("is_installed", task.storyId, task.version, task.digest).toBoolean();
                     task.state = installed ? "complete" : "interrupted";
-                    task.error = installed ? "" : "应用上次运行被中断，请重试下载；已有剧本仍可游玩";
+                    task.errorCode = installed ? "" : "INTERRUPTED";
+                    task.error = installed ? "" : task.kind.equals("check") ? "上次目录检查中断，请重新检查更新" : "应用上次运行被中断，请重试下载；已有剧本仍可游玩";
                     save(task);
                 }
                 tasks.put(task.id, task);
@@ -303,13 +304,20 @@ final class StoryLibraryHost {
             job.run(); synchronized (task) { task.state = "complete"; task.error = ""; }
         } catch (Exception error) {
             synchronized (task) {
+                String failedStage = task.state;
                 task.state = task.cancelled && !task.committing ? "cancelled" : "failed";
                 task.errorCode = error instanceof ContentVerifier.Failure ? ((ContentVerifier.Failure)error).code : "PACKAGE_INVALID";
                 task.error = error instanceof ContentVerifier.Failure ? error.getMessage() : "内容检查或安装失败，已有剧本已保留";
                 String message = String.valueOf(error.getMessage());
                 if (message.contains("ID_CONFLICT:")) { task.errorCode = "ID_CONFLICT"; task.error = "个人剧本使用了相同 ID，已保留个人内容"; }
                 if (message.contains("VERSION_CONFLICT:")) { task.errorCode = "VERSION_CONFLICT"; task.error = "内容版本冲突，已保留原版本"; }
-                if (error instanceof java.io.IOException || message.contains("Errno 28")) { task.errorCode = root.getUsableSpace() < 8L * 1024 * 1024 ? "NO_SPACE" : "CATALOG_UNAVAILABLE"; task.error = task.errorCode.equals("NO_SPACE") ? "手机空间不足，请清理后重试" : "下载连接中断或超时，请检查网络后重试"; }
+                if (error instanceof java.io.IOException || message.contains("Errno 28")) {
+                    boolean noSpace = message.contains("Errno 28") || root.getUsableSpace() < 8L * 1024 * 1024;
+                    boolean network = task.kind.equals("check") || (task.kind.equals("install") && failedStage.equals("downloading"));
+                    task.errorCode = noSpace ? "NO_SPACE" : network ? "CATALOG_UNAVAILABLE" : "PACKAGE_INVALID";
+                    task.error = noSpace ? "手机空间不足，请清理后重试" : network ? "下载连接中断或超时，请检查网络后重试" : "内容包读取或写入失败，请重新选择或下载";
+                }
+                if (BuildConfig.DEBUG) android.util.Log.w("MysteryContent", task.errorCode + ": " + error.getClass().getSimpleName());
                 if (task.state.equals("cancelled")) { task.error = "下载已取消"; task.errorCode = ""; }
                 if (task.kind.equals("check")) lastCheckError = task.error;
             }

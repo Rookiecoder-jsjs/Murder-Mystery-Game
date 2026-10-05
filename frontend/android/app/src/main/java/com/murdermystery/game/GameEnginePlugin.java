@@ -59,7 +59,8 @@ public class GameEnginePlugin extends Plugin {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
-        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/zip", "application/octet-stream"});
+        // OEM providers may not assign a MIME type to .mmstory. Trust is
+        // checked from the signed bytes after selection, never the extension.
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivityForResult(call, intent, "contentSelected");
     }
