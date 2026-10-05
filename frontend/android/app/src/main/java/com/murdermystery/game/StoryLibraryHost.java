@@ -26,9 +26,14 @@ import org.json.JSONObject;
 /** Process-owned content queue, independent of game commands and model keys. */
 final class StoryLibraryHost {
     private static StoryLibraryHost instance;
-    static synchronized StoryLibraryHost get(Context context) throws Exception {
-        if (instance == null) instance = new StoryLibraryHost(context.getApplicationContext());
-        return instance;
+    static StoryLibraryHost get(Context context) throws Exception {
+        // Asset preparation calls shared file helpers. Never hold this class
+        // monitor while waiting for the engine's preparation lock.
+        EngineHost.get(context).prepareAssets();
+        synchronized (StoryLibraryHost.class) {
+            if (instance == null) instance = new StoryLibraryHost(context.getApplicationContext());
+            return instance;
+        }
     }
     final File root;
     private final File personal;
@@ -42,7 +47,6 @@ final class StoryLibraryHost {
     private volatile String lastCheckError = "";
 
     private StoryLibraryHost(Context context) throws Exception {
-        EngineHost.get(context).prepareAssets();
         root = new File(context.getFilesDir(), "story-library");
         personal = new File(context.getFilesDir(), "game/stories");
         root.mkdirs(); new File(root, "tasks").mkdirs();
@@ -75,6 +79,9 @@ final class StoryLibraryHost {
                     save(task);
                 }
                 tasks.put(task.id, task);
+                // No worker from the previous process can still own staging.
+                // Packs and frozen-session images live outside this directory.
+                deleteTree(new File(root, "staging/" + task.id));
             } catch (Exception ignored) { /* Corrupt task files can't hide installed content. */ }
         }
     }
