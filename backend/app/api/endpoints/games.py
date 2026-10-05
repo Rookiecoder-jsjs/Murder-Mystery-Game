@@ -1,7 +1,3 @@
-# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
-# Licensed under the Apache License, Version 2.0 (the "License");
-# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
-
 """Game lifecycle endpoints — create, load, play actions.
 
 All handlers are ``async`` and every LLM call goes through the session's

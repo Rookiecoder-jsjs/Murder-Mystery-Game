@@ -1,6 +1,7 @@
 {
   "name": "murder-mystery-miniprogram",
   "version": "1.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "packageManager": "pnpm@11.5.1",
   "description": "剧本杀微信小程序端",

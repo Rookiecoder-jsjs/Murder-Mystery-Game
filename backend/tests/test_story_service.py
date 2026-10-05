@@ -1,7 +1,3 @@
-# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
-# Licensed under the Apache License, Version 2.0 (the "License");
-# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
-
 """Tests for StoryService.create_story portrait handling.
 
 Portrait generation must run in the background: the archive is saved and

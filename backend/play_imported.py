@@ -1,7 +1,3 @@
-# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
-# Licensed under the Apache License, Version 2.0 (the "License");
-# ========= Copyright 2023-2026 @ CAMEL-AI.org. All Rights Reserved. =========
-
 """Play an imported story - matching original CLI style."""
 
 import asyncio

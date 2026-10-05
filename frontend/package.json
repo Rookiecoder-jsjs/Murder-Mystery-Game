@@ -2,6 +2,7 @@
   "name": "murder-mystery-game-frontend",
   "private": true,
   "version": "1.0.0",
+  "license": "AGPL-3.0-only",
   "description": "AI-powered murder mystery game frontend",
   "type": "module",
   "scripts": {

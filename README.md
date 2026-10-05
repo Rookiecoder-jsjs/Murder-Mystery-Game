@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge)
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge)
 ![Tests](https://img.shields.io/badge/Tests-regression%20suite-brightgreen?style=for-the-badge)
-![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)
+![License](https://img.shields.io/badge/License-AGPL%203.0--only-green?style=for-the-badge)
 
 一个基于 OpenAI 兼容大模型 API 的 AI 剧本杀游戏。玩家可以与 AI 角色进行实时对话、调查线索、讨论案情、指认凶手，体验完整的剧本杀游戏流程。
 
@@ -547,9 +547,13 @@ A: `/speak` 等所有 AI 完成后一次性返回；`/speak/stream` 用 Server-S
 
 ## 📄 许可证
 
-本项目基于 Apache License 2.0 许可证开源。
+本项目当前采用 **GNU Affero General Public License v3.0 only（AGPL-3.0-only）**，完整条款见 [LICENSE](LICENSE)。
 
-Copyright 2023-2026 CAMEL-AI.org. All Rights Reserved.
+- **允许商用**、修改和再分发，需遵守许可证。
+- 分发本项目或其修改版（包括 APK）时，须按许可证向接收者提供对应源码；修改版通过网络让用户使用时，须向这些用户显著提供免费获取对应源码的入口。
+- 仅在本地自用且不分发、不向网络用户提供修改版，不要求因此公开私人修改。源码提供义务不意味着公开 API key、用户存档或无关的独立系统。
+
+许可变更从包含此变更的首个提交开始适用；此前已按 Apache 2.0 发布的版本保留原有授权，包括 `v1.0.0-android-preview.1`、`v1.0.0-android-preview.2`。第三方依赖和材料保留各自许可证。范围、版本边界与发布方式见 [许可说明](docs/licensing.md)。
 
 ## 🙏 致谢
 
