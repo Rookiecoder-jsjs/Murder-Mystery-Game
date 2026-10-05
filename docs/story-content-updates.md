@@ -274,4 +274,4 @@ python3 scripts/tests/test_story_publisher.py
 最终 APK 对应源码 `19f5d6a7f7fdebebd58b8b16a14d17d3e2dfdcf8`，SHA-256为 `561dc5e021198f9a204579b5bc3cb1faadc7173c9cbf578a71e052ebfa02dc42`。真机返场本重试完成；六本均已安装，取消与中断错误保留可读记录。最终版本递归凭据检查、同签名覆盖及源码归档检查通过。发布包与免费对应源码见 [preview.3](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.3)。
 
 
-内容r2已发布三个v2封面包，前三个基础包仍使用content-r1原字节与原URL。三个新包从公开下载地址核对长度和哈希通过，Android验签器对目录六个条目全部验签、解包通过。发布器复用旧包时报告也沿用旧签名清单，避免源码提交变化造成报告中的SOURCE.txt哈希偏差。对应测试通过。签名目录切换至revision2；手机图片更新验收随后补充。
+内容r2已发布三个v2封面包，前三个基础包仍使用content-r1原字节与原URL。三个新包从公开下载地址核对长度和哈希通过，Android验签器对目录六个条目全部验签、解包通过。发布器复用旧包时报告也沿用旧签名清单，避免源码提交变化造成报告中的SOURCE.txt哈希偏差。对应测试通过。签名目录切换至revision2；图片接入后的后端全套337项、手机Python6项、发布工具3项通过。手机在r2最后验收前自动锁屏；已请求解锁，当前尚未完成三张新图在真机上的下载和显示验证。APK下载、六本安装、取消、中断恢复、离线选择器与三次冷启动验收不受此限制。

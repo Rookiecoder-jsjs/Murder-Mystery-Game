@@ -44,4 +44,4 @@ Web 开发环境经 Vite 代理至 FastAPI 的 `/assets/story-library` 静态目
 
 三张原始1536×1024 PNG 经等比例编码为960×640 WebP，质量85，共374,878字节（约366KiB）；资源在各 story_id 的 `cover-v2.webp`，提示集、源文件名与哈希见 [生成记录](story-artwork-2026-10-05.json)。首次三本的18张图未修改；新增三本人物仍使用姓名头像。
 
-新增本内容版本1升为2，正文逐字不变，仅增加 artwork 和更新说明。通过 content-r2 包发布，手机无需重构或重装 APK。新图下载后由应用私有版本目录提供，旧局继续冻结v1正文与原图片引用。本节验收结果将在手机更新后补充。
+新增本内容版本1升为2，正文逐字不变，仅增加 artwork 和更新说明。通过 content-r2 包发布，手机无需重构或重装 APK。新图下载后由应用私有版本目录提供，旧局继续冻结v1正文与原图片引用。已发布 [content-r2](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/content-r2)，远端三个新包哈希与Android验证器验签/解包通过，最终后端337项、手机Python6项、发布工具3项通过。手机图片更新界面验收时设备自动锁屏，已请求再次解锁；尚未声称手机已显示这三张新封面。
