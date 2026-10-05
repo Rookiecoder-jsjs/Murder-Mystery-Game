@@ -1,5 +1,6 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { ClueBoard, GameStatus, ChatMessage } from './types';
+import type { LibrarySnapshot, LibraryTask } from './storyLibrary';
 
 export const isAndroid = Capacitor.getPlatform() === 'android';
 
@@ -28,6 +29,9 @@ interface NativeBridge {
   settings(): Promise<ModelSettings>;
   openSettings(): Promise<void>;
   draft(options: { gameId: string; value?: string }): Promise<{ value: string }>;
+  libraryRead(): Promise<LibrarySnapshot>;
+  libraryCommand(options: { kind: string; body?: Record<string, unknown>; id?: string; storyId?: string }): Promise<LibraryTask>;
+  libraryImport(): Promise<LibraryTask | { cancelled: true }>;
 }
 export const gameEngine = registerPlugin<NativeBridge>('GameEngine');
 

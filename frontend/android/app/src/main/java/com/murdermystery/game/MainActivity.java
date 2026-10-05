@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
     @Override public void onCreate(Bundle state) {
         registerPlugin(GameEnginePlugin.class);
         super.onCreate(state);
+        bridge.setWebViewClient(new StoryAssetHandler(bridge, getFilesDir()));
         if (BuildConfig.DEBUG) new Thread(() -> {
             try {
                 synchronized (Python.class) {

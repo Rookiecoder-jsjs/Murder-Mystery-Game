@@ -1,0 +1,31 @@
+{
+  "kind": "murder-mystery-catalog",
+  "catalog_format": 1,
+  "catalog_revision": 1,
+  "publisher": "Rookiecoder-jsjs/Murder-Mystery-Game",
+  "channel": "stable",
+  "issued_at": "2026-10-05T12:00:00+08:00",
+  "entries": [
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+      "content_version": 1,
+      "title": "玻璃花房的空白铭牌",
+      "summary": "花房将于明日改作展厅，四个人各自守着一份不肯交出的旧账。馆长倒在泥地上，一串脚印和一块空白铭牌，把所有人引向了同一个名字。",
+      "num_characters": 4,
+      "difficulty": "入门",
+      "estimated_minutes": 30,
+      "author": "本项目原创剧本组",
+      "license": "本项目原创内容，按仓库 AGPL-3.0-only 授权；未使用第三方小说的人物、正文或具体情节。",
+      "release_notes": "示例：首次内容包发布；此文件不是可安装的正式目录。",
+      "min_engine_version": 1,
+      "package_format": 1,
+      "bundle_format": 1,
+      "bytes": 18000,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "download_urls": [
+        "https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/content-r1/ad60c7e0-1f56-4fc3-bcaa-705910d03304-v1.mmstory"
+      ],
+      "status": "active"
+    }
+  ]
+}

@@ -3,10 +3,11 @@ import argparse
 import base64
 import hashlib
 import io
+import importlib.util
 import json
 import re
 from pathlib import Path
-from zipfile import ZipFile, is_zipfile
+from zipfile import BadZipFile, ZipFile, is_zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 KEY_PATTERN = re.compile(rb"(?:sk-[A-Za-z0-9_-]{20,}|gh[pousr]_[A-Za-z0-9]{30,}|AKIA[A-Z0-9]{16})")
@@ -47,7 +48,17 @@ def audit(apk: Path, secrets: set[bytes]) -> dict:
         if is_zipfile(stream):
             if depth >= 4:
                 raise ValueError("嵌套归档过深，无法完成检查")
-            with ZipFile(stream) as nested:
+            try:
+                nested = ZipFile(stream)
+            except BadZipFile:
+                # DEX code for the ZIP verifier contains an EOCD byte pattern.
+                # is_zipfile checks only that pattern, not central-dir offsets.
+                # Its raw bytes were still scanned above. Actual archive assets
+                # must open successfully before the APK can pass this audit.
+                if data.startswith(b'PK\x03\x04') or name.lower().endswith(('.zip', '.imy', '.apk', '.jar', '.mmstory')):
+                    raise ValueError(f'无法检查损坏的归档：{name}')
+                return
+            with nested:
                 for entry in nested.infolist():
                     if not entry.is_dir():
                         scan(nested.read(entry), f"{name}!/{entry.filename}", depth + 1)
@@ -60,7 +71,19 @@ def audit(apk: Path, secrets: set[bytes]) -> dict:
         if config.get("server", {}).get("url"):
             errors.append("APK 配置依赖远程页面")
         source = ROOT / "backend/app/content"
-        manifest = json.loads((source / "stories/manifest.json").read_text())
+        base = json.loads((source / "android-base.json").read_text())
+        spec = importlib.util.spec_from_file_location("content_protocol", ROOT / "backend/app/core/content_protocol.py")
+        protocol = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(protocol)
+        manifest = {"format_version": 1, "packages": base["packages"], "content_fingerprints": {}}
+        for filename in base["packages"]:
+            raw = (source / "stories" / filename).read_bytes()
+            package = json.loads(raw)
+            images = {name: (source / "images" / package["archive"]["id"] / name).read_bytes()
+                      for name in protocol.artwork_files(package)}
+            manifest["content_fingerprints"][package["archive"]["id"]] = protocol.content_fingerprint(raw, images)
+        if archive.read("assets/story-library-config.json") != (ROOT / "content/config.json").read_bytes():
+            errors.append("内容目录或受信公钥与源码不同")
         catalog_names = {"manifest.json", *manifest["packages"]}
         actual_names = {name.removeprefix("assets/stories/catalog/")
                         for name in archive.namelist() if name.startswith("assets/stories/catalog/")
@@ -69,7 +92,8 @@ def audit(apk: Path, secrets: set[bytes]) -> dict:
             errors.append("APK 剧本目录与发布清单不一致")
         image_count = 0
         for filename in sorted(catalog_names):
-            expected = (source / "stories" / filename).read_bytes()
+            expected = ((json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode()
+                        if filename == "manifest.json" else (source / "stories" / filename).read_bytes())
             if archive.read(f"assets/stories/catalog/{filename}") != expected:
                 errors.append(f"剧本包与源码不同：{filename}")
             if filename == "manifest.json":

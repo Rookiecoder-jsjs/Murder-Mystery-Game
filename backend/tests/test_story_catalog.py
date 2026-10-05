@@ -39,7 +39,7 @@ def test_catalog_lists_safe_metadata_and_never_calls_models(tmp_path, monkeypatc
     monkeypatch.setattr(stories, 'STORIES_DIR', str(tmp_path))
     monkeypatch.setattr(stories, 'create_deepseek_client', lambda: pytest.fail('opening catalog must stay offline'))
     items = stories.list_stories()
-    assert [item['num_characters'] for item in items] == [3, 5, 7]
+    assert [item['num_characters'] for item in items] == [3, 5, 7, 4, 6, 8]
     assert all(item['origin'] == 'builtin' and item['version'] >= 1 for item in items)
     assert not any(key in json.dumps(items) for key in ('true_killer', 'self_knowledge', 'solution', 'story_content'))
     service = stories.StoryService()
@@ -48,12 +48,18 @@ def test_catalog_lists_safe_metadata_and_never_calls_models(tmp_path, monkeypatc
         assert service.remove_story(item['id']) is False
 
 
-def test_bundled_artwork_is_complete_offline_and_imports_cannot_claim_it():
+def test_published_artwork_and_text_only_cases_stay_offline_and_frozen():
     from app.services.image_service import normalize_portraits
     for archive in catalog.builtin_stories():
         urls = [catalog.story_info(archive)['cover_url'],
                 *[c.portrait_url for c in archive.characters]]
+        # The first release retains its complete illustrations. New text-only
+        # packages use the client's case-file/initials fallback, without AI calls.
+        illustrated = archive.id.endswith(('3301', '3302', '3303'))
+        assert all(bool(url) == illustrated for url in urls)
         for url in urls:
+            if not url:
+                continue
             relative = url.removeprefix('/assets/story-library/')
             assert url.startswith('/assets/story-library/')
             assert (catalog.ARTWORK_DIR / relative).is_file()
@@ -61,7 +67,7 @@ def test_bundled_artwork_is_complete_offline_and_imports_cannot_claim_it():
         normalize_portraits(archive)
         assert [c.portrait_url for c in archive.characters] == urls[1:]
         frozen = StoryArchive.from_dict(archive.to_dict())
-        assert frozen.catalog['cover_url'] == urls[0]
+        assert frozen.catalog.get('cover_url', '') == urls[0]
         assert [c.portrait_url for c in frozen.characters] == urls[1:]
     data = package()
     data['metadata']['cover_url'] = 'https://untrusted.example/cover.webp'
@@ -154,10 +160,9 @@ def test_import_cannot_overwrite_builtin(tmp_path, monkeypatch):
     assert list(tmp_path.iterdir()) == []
 
 
-@pytest.mark.parametrize('index', [0, 1, 2])
+@pytest.mark.parametrize('original', catalog.builtin_stories(), ids=lambda a: a.title)
 @pytest.mark.parametrize('mode', ['quick', 'classic'])
-def test_original_case_all_player_roles_reach_reveal(index, mode):
-    original = catalog.builtin_stories()[index]
+def test_original_case_all_player_roles_reach_reveal(original, mode):
     async def play():
         for player in original.characters:
             if player.is_killer:
@@ -183,6 +188,9 @@ def test_original_case_all_player_roles_reach_reveal(index, mode):
             assert session.game.state.phase == 'reveal'
             result = session.get_reveal_info()
             assert [d['conclusion'] for d in result['deductions']] == [d['conclusion'] for d in original.solution]
+            snapshot = session.to_snapshot('catalog-playthrough')
+            restored = GameSession.from_snapshot(snapshot, StoryArchive.from_dict(snapshot['archive']), StubRoleplayClient())
+            assert restored.get_reveal_info() == result
     asyncio.run(play())
 
 

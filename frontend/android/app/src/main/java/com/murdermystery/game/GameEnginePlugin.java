@@ -1,6 +1,9 @@
 package com.murdermystery.game;
 
 import android.app.AlertDialog;
+import android.app.Activity;
+import android.content.Intent;
+import androidx.activity.result.ActivityResult;
 import android.text.InputType;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -13,6 +16,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.ActivityCallback;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.json.JSONObject;
@@ -20,10 +24,61 @@ import org.json.JSONObject;
 @CapacitorPlugin(name = "GameEngine")
 public class GameEnginePlugin extends Plugin {
     private static final ExecutorService bridgeWorker = Executors.newSingleThreadExecutor();
+    private static final ExecutorService libraryControl = Executors.newSingleThreadExecutor();
     private EngineHost host;
     @Override public void load() { host = EngineHost.get(getContext()); }
     @Override protected void handleOnPause() { host.transport.setActive(false); }
     @Override protected void handleOnResume() { host.transport.setActive(true); }
+
+    @PluginMethod public void libraryRead(PluginCall call) {
+        libraryControl.execute(() -> {
+            try { call.resolve(new JSObject(StoryLibraryHost.get(getContext()).read().toString())); }
+            catch (Exception error) { call.reject("剧本库读取失败，请重新打开应用"); }
+        });
+    }
+    @PluginMethod public void libraryCommand(PluginCall call) {
+        libraryControl.execute(() -> {
+            try {
+                StoryLibraryHost library = StoryLibraryHost.get(getContext());
+                String kind = call.getString("kind", "");
+                JSONObject result;
+                switch (kind) {
+                    case "check": result = library.check(); break;
+                    case "install": result = library.install(call.getObject("body", new JSObject())); break;
+                    case "cancel": result = library.cancel(call.getString("id", "")); break;
+                    case "remove": library.remove(call.getString("storyId", "")); result = new JSONObject(); break;
+                    default: throw new IllegalArgumentException("未知内容操作");
+                }
+                call.resolve(new JSObject(result.toString()));
+            } catch (Exception error) {
+                call.reject(error instanceof ContentVerifier.Failure ? error.getMessage() : "内容操作未完成，已有剧本已保留");
+            }
+        });
+    }
+    @PluginMethod public void libraryImport(PluginCall call) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+        intent.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"application/zip", "application/octet-stream"});
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivityForResult(call, intent, "contentSelected");
+    }
+    @ActivityCallback private void contentSelected(PluginCall call, ActivityResult result) {
+        if (call == null) return;
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null || result.getData().getData() == null) {
+            call.resolve(new JSObject().put("cancelled", true)); return;
+        }
+        var uri = result.getData().getData();
+        libraryControl.execute(() -> {
+            try {
+                if (!"content".equals(uri.getScheme())) throw new IllegalArgumentException();
+                var stream = getContext().getContentResolver().openInputStream(uri);
+                if (stream == null) throw new IllegalArgumentException();
+                try { call.resolve(new JSObject(StoryLibraryHost.get(getContext()).installFile(stream).toString())); }
+                catch (Exception error) { stream.close(); throw error; }
+            } catch (Exception error) { call.reject("无法读取内容包，请选择官方 .mmstory 文件"); }
+        });
+    }
 
     @PluginMethod public void command(PluginCall call) {
         JSObject command = call.getObject("command");

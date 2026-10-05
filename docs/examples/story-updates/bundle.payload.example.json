@@ -1,0 +1,27 @@
+{
+  "kind": "murder-mystery-story-bundle",
+  "bundle_format": 1,
+  "publisher": "Rookiecoder-jsjs/Murder-Mystery-Game",
+  "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+  "content_version": 1,
+  "min_engine_version": 1,
+  "package_format": 1,
+  "source_commit": "0000000000000000000000000000000000000000",
+  "files": [
+    {
+      "path": "package.json",
+      "bytes": 12000,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "path": "LICENSE",
+      "bytes": 35000,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "path": "SOURCE.txt",
+      "bytes": 300,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

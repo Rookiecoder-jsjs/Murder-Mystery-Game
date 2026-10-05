@@ -52,6 +52,7 @@ export interface ChatMessage {
 }
 
 export interface Story {
+  delivery?: 'bundled' | 'downloaded' | null;
   cover_url?: string;
   num_characters?: number;
   origin?: 'builtin' | 'generated' | 'imported' | 'legacy';

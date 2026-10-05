@@ -9,6 +9,7 @@ import { Button, Card, LoadingSpinner, useToast } from '../components/common';
 import './HomePage.css';
 import { isAndroid, type NativeTask } from '../api/native';
 import { NativeHome } from '../components/common/NativeHome';
+import { StoryLibrary } from '../components/story-library/StoryLibrary';
 
 const EXAMPLE_TOPICS = [
   '豪华邮轮谋杀案',
@@ -73,9 +74,16 @@ export function HomePage() {
         if (!cancelled) setIsLoadingStories(false);
       }
     })();
+    const onLibraryUpdate = () => {
+      void api.listStories().then(response => { if (!cancelled) setStories(response.stories); }).catch(() => {
+        if (!cancelled) setStoriesError(true);
+      });
+    };
+    window.addEventListener('mystery:library-updated', onLibraryUpdate);
     return () => {
       mounted.current = false;
       cancelled = true;
+      window.removeEventListener('mystery:library-updated', onLibraryUpdate);
     };
   }, []);
 
@@ -317,7 +325,8 @@ export function HomePage() {
 
           <p className="library-note">{libraryTab === 'builtin' ? '原创成品 · 无需等待生成或再次审稿。AI 对话仍需联网及 API key。' : '这里保留自行生成、导入与旧版剧本。导入包仅做本地结构检查，不代表通过精选内容验收。'}</p>
           {isLoadingGame && <LoadingSpinner size="sm" text="正在打开剧本…" />}
-          {isLoadingStories ? (
+          {isAndroid && libraryTab === 'builtin' ? <StoryLibrary disabled={isLoadingGame || isCreating || isImporting}
+            openingStory={openingStory} loadError={loadError} onOpen={id => { void handleLoadGame(id); }} /> : isLoadingStories ? (
             <div className="home-loading">
               <LoadingSpinner size="sm" text="加载中…" />
             </div>

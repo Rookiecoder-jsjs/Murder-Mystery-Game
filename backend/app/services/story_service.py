@@ -23,12 +23,13 @@ from app.core.llm_trace import trace_llm_chat
 from app.core.logging import get_logger
 from app.domain.models import StoryArchive, CaseData, ClueData, ScriptCharacter
 from app.domain.game_manager import GameManager
-from app.services.story_catalog import builtin_stories, parse_package, story_info, validate_character_count
+from app.services.story_catalog import parse_package, story_info, validate_character_count
+from app.services.story_content_service import CONTENT_LOCK, official_stories, owns_id
 from app.services.image_service import PortraitService, delete_story_portraits, normalize_portraits
 
 
 logger = get_logger(__name__)
-_STORY_WRITE_LOCK = threading.RLock()
+_STORY_WRITE_LOCK = CONTENT_LOCK
 
 
 # ============ Prompt Template (from original project) ============
@@ -693,6 +694,13 @@ def save_story(archive: StoryArchive) -> str:
     Returns:
         Path to the saved file.
     """
+    with _STORY_WRITE_LOCK:
+        if owns_id(archive.id):
+            raise ValueError('不能覆盖官方下载剧本')
+        return _save_personal_story(archive)
+
+
+def _save_personal_story(archive: StoryArchive) -> str:
     ensure_stories_dir()
     file_path = os.path.join(STORIES_DIR, f"{archive.id}.json")
 
@@ -718,7 +726,7 @@ def load_story(story_id: str) -> Optional[StoryArchive]:
     Returns:
         StoryArchive or None if not found.
     """
-    for archive in builtin_stories():
+    for archive in official_stories():
         if archive.id == story_id:
             return archive
     file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
@@ -746,7 +754,7 @@ def list_stories() -> List[Dict[str, Any]]:
         List of story info dictionaries.
     """
     ensure_stories_dir()
-    builtins = builtin_stories()
+    builtins = official_stories()
     builtin_ids = {a.id for a in builtins}
     stories = []
 
@@ -772,7 +780,7 @@ def delete_story(story_id: str) -> bool:
     Returns:
         True if deleted.
     """
-    if any(a.id == story_id for a in builtin_stories()):
+    if owns_id(story_id) or any(a.id == story_id for a in official_stories()):
         return False
     with _STORY_WRITE_LOCK:
         file_path = os.path.join(STORIES_DIR, f"{story_id}.json")
@@ -958,6 +966,8 @@ class StoryService:
         """Install a new or higher imported version without touching active games."""
         archive = parse_package(package)
         with _STORY_WRITE_LOCK:
+            if owns_id(archive.id):
+                raise ValueError('不能覆盖官方下载剧本，请使用独立剧本 ID')
             existing = self.get_story(archive.id)
             if existing:
                 if existing.catalog.get('origin') != 'imported':

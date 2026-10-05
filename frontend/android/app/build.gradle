@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.chaquo.python'
+def sourceCommit = 'git rev-parse HEAD'.execute(null, rootProject.projectDir.parentFile.parentFile).text.trim()
 
 android {
     buildFeatures { buildConfig true }
@@ -10,8 +11,9 @@ android {
         applicationId "com.murdermystery.game"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 15
-        versionName "1.0.0-preview.2"
+        versionCode 16
+        versionName "1.0.0-preview.3"
+        buildConfigField 'String', 'SOURCE_COMMIT', '"' + sourceCommit + '"'
         ndk { abiFilters 'arm64-v8a' }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -30,7 +32,10 @@ android {
 }
 
 chaquopy {
-    defaultConfig { version = '3.11' }
+    defaultConfig {
+        version = '3.11'
+        if (System.getenv('MMG_BUILD_PYTHON')) buildPython System.getenv('MMG_BUILD_PYTHON')
+    }
     sourceSets { main { srcDir 'build/generated/python' } }
 }
 
@@ -55,6 +60,8 @@ dependencies {
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
     testImplementation "junit:junit:$junitVersion"
+    // JVM tests exercise the signature/ZIP layer without Android JSON stubs.
+    testImplementation "org.json:json:20160810"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')

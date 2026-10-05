@@ -3,6 +3,12 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// Resolve a relocatable Python installation before Chaquopy creates its venv.
+// A home pointing at ~/.local/bin can lose the standalone interpreter's stdlib.
+if (!process.env.MMG_BUILD_PYTHON) {
+  const probe = spawnSync('python3.11', ['-c', 'import os, sys; print(os.path.realpath(sys.executable))'], { encoding: 'utf8' });
+  if (probe.status === 0) process.env.MMG_BUILD_PYTHON = probe.stdout.trim();
+}
 if (Number(process.versions.node.split('.')[0]) < 22) {
   console.error('Android 构建需要 Node.js 22 或更高版本。'); process.exit(1);
 }

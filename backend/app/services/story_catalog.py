@@ -122,6 +122,7 @@ def story_info(archive: StoryArchive) -> dict:
             'created_at': archive.created_at, 'num_characters': len(archive.characters),
             'origin': metadata.get('origin', 'generated' if archive.production.get('origin') == 'generated' else 'legacy'),
             'version': metadata.get('version', 1),
+            'delivery': metadata.get('delivery'),
             'cover_url': metadata.get('cover_url', ''),
             **{key: metadata.get(key, '') for key in ('summary', 'difficulty', 'author', 'license')},
             'estimated_minutes': metadata.get('estimated_minutes')}

@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => ({
     name: 'bundled-story-artwork',
     writeBundle(options) {
       const content = path.resolve(__dirname, '../backend/app/content');
-      const manifest = JSON.parse(fs.readFileSync(path.join(content, 'stories/manifest.json'), 'utf8'));
+      const manifest = JSON.parse(fs.readFileSync(path.join(content, mode === 'android' ? 'android-base.json' : 'stories/manifest.json'), 'utf8'));
       for (const name of manifest.packages) {
         if (typeof name !== 'string' || path.basename(name) !== name || !name.endsWith('.json')) throw new Error('Invalid story package filename');
         const story = JSON.parse(fs.readFileSync(path.join(content, 'stories', name), 'utf8'));

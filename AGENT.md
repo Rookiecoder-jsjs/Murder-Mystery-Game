@@ -49,6 +49,9 @@ codegraph status
 - `backend/app/core/`：配置、阶段枚举、日志、端口探测和 LLM 追踪等基础设施。
 - `backend/tests/`：后端单元测试和 API 测试；测试文件按被测模块命名。
 - `backend/app/content/stories/`：manifest 列出的原创内置数据包，来源和版本明确；不得扫描用户数据作为内置内容。包规范见 `docs/story-library.md`。
+- `backend/app/services/story_content_service.py`：官方安装索引、版本合并与内容引用；与个人保存共用短时命名空间锁，不下载、不调用模型。
+- `content/config.json` 与 `content/keys/`：Android 目录地址与受信公钥；只提交公钥。签名私钥必须位于仓库外，不进入 APK 或内容包。
+- `scripts/package-story-content.py`：无模型的内容发布工具，默认 dry-run；签名时必须固定源码提交、递增内容/目录版本并复用已发布产物字节。
 - `backend/app/content/images/`：原创内置配图，按剧本包 artwork 清单发布。Vite 构建复制到本地 Web/APK 资源，不携带生成密钥；升级图片使用新文件名并在 retained_files 保留历史 URL，见 `docs/story-artwork.md`。
 - `backend/stories/`：剧本 JSON 存档和测试/开发所需内容。修改存档结构时必须考虑已有存档的兼容读取。
 
@@ -72,7 +75,7 @@ codegraph status
 4. LLM 调用必须遵守现有异步边界，不能在 FastAPI 事件循环中直接执行阻塞调用；沿用已有的线程池/异步封装、超时和错误转换方式。
 5. 修改 API 时同时检查四处：后端路由/Schema、Web `frontend/src/api/`、小程序 `miniprogram/src/services/` 与类型、对应测试。
 6. 流式对话接口使用 SSE。修改事件名、数据结构、终止事件或超时行为时，必须同步更新 Web 端解析器和小程序端兼容逻辑，并覆盖失败/断流场景。
-7. 新快照 schema_version=4 必须嵌入完整 archive（包含剧本版本），恢复优先使用冻结正文；旧快照按 story_id 兼容读取后在下一次保存冻结，不得因内容包升级改变已开局案件。内置剧本只通过 manifest 发布，导入仅标为 imported、执行本地结构与可达性校验，不能冒充精选或覆盖内置 ID。新制作人数为自动或指定 3—8，旧成品不强制改人数。
+7. 新快照 schema_version=4 必须嵌入完整 archive（包含剧本版本），恢复优先使用冻结正文；旧快照按 story_id 兼容读取后在下一次保存冻结，不得因内容包升级改变已开局案件。基础剧本只通过 manifest 与 android-base.json 白名单发布；Android 官方下载由受信签名目录与不可变内容包激活注册表，和基础本合并选取兼容版本。个人导入仅标为 imported、执行本地结构与可达性校验，不能冒充精选或覆盖基础/下载官方 ID。新制作人数为自动或指定 3—8，旧成品不强制改人数。
    会话持久化是可插拔的：默认内存存储；设置 `SESSIONS_DIR` 后使用 JSON 文件存储。新增状态字段时必须提供缺省值或迁移兼容逻辑。
 8. 新开局玩家只分配非凶手角色。揭晓接口只允许终局访问，终局不可重新推进或指认；速推每轮需实际调查与发言（线索耗尽免调查），最后一轮允许补查。「返回搜证」只做本轮补查，下一轮必须经独立 next-investigation-round 动作推进。相关轮次字段须兼容旧快照缺省值。
 9. SSE 回复由会话后台任务记录和保存，断流不能取消本轮记忆/历史写入；AI 回应期间拒绝并发游戏动作。文件存档需原子写入。

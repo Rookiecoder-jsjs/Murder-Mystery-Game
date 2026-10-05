@@ -29,16 +29,42 @@ class Runtime:
         from app.services import story_catalog
         if (Path(bundled) / 'catalog' / 'manifest.json').exists():
             story_catalog.CONTENT_DIR = Path(bundled) / 'catalog'
+        from app.services import story_content_service
+        story_content_service.configure(Path(directory).parent / 'story-library')
+        from app.services import story_service
         from app.services.story_service import StoryService
         from app.services.session_service import SessionManager
         stories = Path(directory) / 'stories'
         stories.mkdir(exist_ok=True)
+        story_service.STORIES_DIR = str(stories)
         for source in Path(bundled).glob('*.json'):
             destination = stories / source.name
             if not destination.exists():
                 shutil.copyfile(source, destination)
         self.configure(json.loads(str(transport.settings())))
         self.stories = StoryService()
+        # EngineHost keeps the pre-upgrade catalog before replacing APK files.
+        # Freeze only legacy snapshots; complete snapshots are already isolated.
+        for snapshot in self.store.load_all():
+            if 'archive' in snapshot:
+                continue
+            story_id = snapshot.get('story_id', '')
+            if not isinstance(story_id, str) or not story_id:
+                continue
+            try:
+                if str(uuid.UUID(story_id)) != story_id:
+                    continue
+                old = Path(bundled) / 'legacy-catalog' / f'{story_id}.json'
+                if old.exists():
+                    package = json.loads(old.read_text())
+                    archive = story_catalog.parse_package(package, 'builtin')
+                    story_catalog._apply_builtin_artwork(archive, package.get('artwork', {}))
+                    snapshot['archive'] = archive.to_dict()
+                    # Preserve the old schema until from_snapshot migrates its
+                    # private memories; to_snapshot writes schema 4 afterwards.
+                    self.store.save(snapshot)
+            except (ValueError, OSError, KeyError):
+                pass  # Preserve the existing legacy fallback; never discard saves.
         self.manager = SessionManager(NativeModelClient(transport, self.store), self.stories, self.store)
         self.manager.load_all_persisted()
         for task in self.store.all('tasks'):

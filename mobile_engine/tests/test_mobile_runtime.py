@@ -67,6 +67,82 @@ class Transport:
 
 
 class MobileRuntimeTests(unittest.TestCase):
+    def test_downloaded_content_adds_dynamic_cast_without_model_or_game_revision_change(self):
+        from app.services import story_content_service as content
+        from app.core.content_protocol import content_fingerprint
+        async def check():
+            with tempfile.TemporaryDirectory() as temporary:
+                directory = Path(temporary) / 'game'
+                directory.mkdir()
+                transport = Transport()
+                runtime = Runtime(str(directory), BUNDLED, transport)
+                revision = runtime.revision
+                source = Path(__file__).resolve().parents[2] / 'backend/app/content/stories'
+                for suffix in ['3304', '3305', '3306']:
+                    sid = 'ad60c7e0-1f56-4fc3-bcaa-705910d0' + suffix
+                    raw = (source / f'{sid}.json').read_bytes()
+                    import hashlib
+                    digest = hashlib.sha256(raw).hexdigest()
+                    pack = Path(temporary) / 'story-library/packs' / sid / f'v1-{digest}'
+                    pack.mkdir(parents=True)
+                    (pack / 'package.json').write_bytes(raw)
+                    (pack / 'complete.json').write_text(json.dumps({'story_id': sid, 'version': 1, 'sha256': digest,
+                        'fingerprint': content_fingerprint(raw, {}), 'min_engine_version': 1}))
+                    content.activate(sid, 1, digest, str(directory / 'stories'))
+                self.assertEqual(runtime.revision, revision)
+                books = runtime.read('/stories')['stories']
+                self.assertEqual([book['num_characters'] for book in books if book['origin'] == 'builtin'], [3, 5, 7, 4, 6, 8])
+                for book in books:
+                    if book.get('delivery') != 'downloaded':
+                        continue
+                    task = await runtime.command({'kind': 'start', 'id': str(uuid.uuid4()),
+                        'endpoint': '/games/load', 'body': {'story_id': book['id'], 'mode': 'quick'}})
+                    for _ in range(500):
+                        result = runtime.store.get('tasks', task['id'])
+                        if result['state'] not in ('queued', 'running'):
+                            break
+                        await asyncio.sleep(.005)
+                    self.assertEqual(result['state'], 'done', result.get('error'))
+                    session = runtime.manager.get(result['game_id'])
+                    self.assertEqual(len(session.ai_characters), book['num_characters'] - 1)
+                self.assertEqual(transport.calls, [])
+                restarted = Runtime(str(directory), BUNDLED, transport)
+                self.assertEqual(len(restarted.manager.list_active()), 3)
+                self.assertTrue(all(s.archive.catalog['content_ref']['delivery'] == 'downloaded'
+                                    for s in restarted.manager._sessions.values()))
+        asyncio.run(check())
+
+    def test_legacy_backup_freezes_pre_upgrade_body_and_keeps_private_memories(self):
+        import shutil
+        async def check():
+            with tempfile.TemporaryDirectory() as temporary:
+                directory = Path(temporary) / 'game'; directory.mkdir()
+                bundle = Path(temporary) / 'bundled'
+                shutil.copytree(BUNDLED, bundle)
+                transport = Transport()
+                runtime = Runtime(str(directory), bundle, transport)
+                archive = runtime.stories.get_playable_story(runtime.read('/stories')['stories'][0]['id'])
+                gid, game = runtime.manager.create_session(archive=archive)
+                snapshot = game.to_snapshot(gid)
+                snapshot.pop('archive'); snapshot['schema_version'] = 1
+                npc = next(iter(game.ai_characters))
+                snapshot['ai_memories'] = {npc: [{'role': 'assistant', 'message': '旧版私密证言'}]}
+                runtime.store.save(snapshot)
+                old = json.loads((bundle / 'catalog' / f'{archive.id}.json').read_text())
+                old['archive']['title'] = '更新前的冻结正文'
+                old['metadata']['version'] = 1
+                legacy = bundle / 'legacy-catalog'; legacy.mkdir()
+                (legacy / f'{archive.id}.json').write_text(json.dumps(old))
+                runtime = Runtime(str(directory), bundle, transport)
+                restored = runtime.manager.get(gid)
+                self.assertEqual(restored.archive.title, '更新前的冻结正文')
+                self.assertEqual(restored.archive.catalog['version'], 1)
+                self.assertTrue(any(event.text == '旧版私密证言' and event.kind == 'legacy_memory'
+                                    for event in restored.game.state.discussion_events))
+                self.assertEqual(runtime.store.get('sessions', gid)['archive']['title'], '更新前的冻结正文')
+                self.assertEqual(transport.calls, [])
+        asyncio.run(check())
+
     def test_story_progress_is_durable_and_does_not_expose_private_task_fields(self):
         with tempfile.TemporaryDirectory() as directory:
             runtime = Runtime.__new__(Runtime)
@@ -256,6 +332,17 @@ class CatalogMobileTests(unittest.TestCase):
                             return result
                         await asyncio.sleep(.005)
                     self.fail('local task did not finish')
+                for item in items:
+                    if item['origin'] != 'builtin':
+                        continue
+                    opened = await perform('/games/load', {'story_id': item['id'], 'mode': 'quick'})
+                    self.assertEqual(opened['state'], 'done', opened.get('error'))
+                    game_id = opened['result']['game_id']
+                    session = runtime.manager.get(game_id)
+                    self.assertEqual(session.archive.id, item['id'])
+                    self.assertEqual(len(session.ai_characters), item['num_characters'] - 1)
+                    self.assertEqual(runtime.read('/games/' + game_id)['phase'], 'introduction')
+                self.assertEqual(len(transport.calls), 0)
                 package = json.loads(next((BUNDLED / 'catalog').glob('ad*.json')).read_text())
                 package['archive']['id'] = str(uuid.uuid4())
                 package['metadata']['version'] = 1
