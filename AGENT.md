@@ -34,6 +34,8 @@ codegraph status
 
 代码变更后如需更新索引，使用 `codegraph sync`；不要手工编辑 `.codegraph/` 内的索引文件。
 
+`.codegraph/` 是本机索引与缓存，整个目录由根 `.gitignore` 忽略，不提交索引数据库、元数据或该目录中的 `.gitignore`。
+
 新增或修订原创剧本及配图时，使用本项目的 [update-mystery-stories skill](skills/update-mystery-stories/SKILL.md)。源码只在仓库 `skills/` 中维护，项目 `.agents/skills/update-mystery-stories` 为相对链接；不要安装到全局技能目录。一般代码或 UI 修改不使用该 skill。
 
 ## 目录职责

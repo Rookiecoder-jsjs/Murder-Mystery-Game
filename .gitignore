@@ -48,6 +48,9 @@ logs/
 .pytest_cache/
 .eslintcache
 
+# CodeGraph index and metadata are local to each machine
+/.codegraph/
+
 # Backend specific
 backend/stories/*.json
 !backend/stories/*.json
