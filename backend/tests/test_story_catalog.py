@@ -48,16 +48,14 @@ def test_catalog_lists_safe_metadata_and_never_calls_models(tmp_path, monkeypatc
         assert service.remove_story(item['id']) is False
 
 
-def test_published_artwork_and_text_only_cases_stay_offline_and_frozen():
+def test_published_artwork_stays_offline_and_frozen():
     from app.services.image_service import normalize_portraits
     for archive in catalog.builtin_stories():
         urls = [catalog.story_info(archive)['cover_url'],
                 *[c.portrait_url for c in archive.characters]]
-        # All six cases have a published cover. The first three also retain
-        # portraits; new cases continue using initials without online generation.
-        assert urls[0]
-        portraits = archive.id.endswith(('3301', '3302', '3303'))
-        assert all(bool(url) == portraits for url in urls[1:])
+        # Every published role has offline artwork, including the new 4/6/8
+        # person cases. Loading or restoring must preserve these URLs.
+        assert all(urls)
         for url in urls:
             if not url:
                 continue

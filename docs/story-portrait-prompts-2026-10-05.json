@@ -1,0 +1,299 @@
+{
+  "generator": "Codex built-in imagegen",
+  "date": "2026-10-05",
+  "use_case": "historical-scene",
+  "common_prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. ",
+  "private_story_sent": false,
+  "portraits": [
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+      "story_title": "玻璃花房的空白铭牌",
+      "character_id": "char_1",
+      "name": "何青",
+      "subject": "A man about50, the botanical museum's longtime gardener. Weathered friendly face, short slightly graying hair, plain gray cotton work jacket. Soft blurred conservatory foliage behind him.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about50, the botanical museum's longtime gardener. Weathered friendly face, short slightly graying hair, plain gray cotton work jacket. Soft blurred conservatory foliage behind him.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03304/char_1-v3.webp",
+      "source_filename": "exec-f1bbf996-ae79-42ea-975d-f5fb3321ada5.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 77492,
+      "sha256": "4fe47dc06ad73171b78462466eb6758fdc0882e8ecc9726628811aa1154731b6"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+      "story_title": "玻璃花房的空白铭牌",
+      "character_id": "char_2",
+      "name": "梁若",
+      "subject": "A woman about30, a fundraising representative for the botanical museum. Dark navy-blue dress, fine silver-rimmed glasses, neatly pinned hair. Soft blurred botanical museum hallway behind her.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about30, a fundraising representative for the botanical museum. Dark navy-blue dress, fine silver-rimmed glasses, neatly pinned hair. Soft blurred botanical museum hallway behind her.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03304/char_2-v3.webp",
+      "source_filename": "exec-8343cab9-d16b-4739-b562-55fe812c6bd8.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 55078,
+      "sha256": "c939fe4968af3c50b5856bdc6a1c344288bed108137b88bbe1cc23aae4070937"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+      "story_title": "玻璃花房的空白铭牌",
+      "character_id": "char_3",
+      "name": "吕秋",
+      "subject": "A woman about28, an artist who paints the museum exhibition panels. Brown painter's apron over a plain blouse, hair comfortably tied back. Soft blurred art studio and botanical paintings behind her, with no readable marks. No visible cuff details or evidence objects.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about28, an artist who paints the museum exhibition panels. Brown painter's apron over a plain blouse, hair comfortably tied back. Soft blurred art studio and botanical paintings behind her, with no readable marks. No visible cuff details or evidence objects.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03304/char_3-v3.webp",
+      "source_filename": "exec-73d840cb-fb89-4db8-8dc5-6cb640cff49e.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 62600,
+      "sha256": "6123d7f0adf2a84c8444a9a5c78f8b7d1ea04be043cd6174a1682623886091ee"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03304",
+      "story_title": "玻璃花房的空白铭牌",
+      "character_id": "char_4",
+      "name": "徐宁",
+      "subject": "A man about22, the botanical museum's photography assistant. Light-gray shirt, neatly combed youthful short hair, a plain leather camera-case strap around his neck, case below the frame. Soft blurred conservatory doorway behind him.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about22, the botanical museum's photography assistant. Light-gray shirt, neatly combed youthful short hair, a plain leather camera-case strap around his neck, case below the frame. Soft blurred conservatory doorway behind him.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03304/char_4-v3.webp",
+      "source_filename": "exec-a0cc6056-0998-497f-91b3-93f3bac759c2.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 68522,
+      "sha256": "0a0e4b0f07e887ff40c8b36a257ce22de1004ba671bfb4a8018cd36074459ef3"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "story_title": "潮汐之前的晚宴",
+      "character_id": "char_1",
+      "name": "陶泊",
+      "subject": "A man about50, captain of a retired coastal ferry. Dark informal captain's jacket over a white collared shirt, short graying hair, composed weathered face. Soft blurred wood-paneled ship saloon behind him. No insignia or lettering.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about50, captain of a retired coastal ferry. Dark informal captain's jacket over a white collared shirt, short graying hair, composed weathered face. Soft blurred wood-paneled ship saloon behind him. No insignia or lettering.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/char_1-v3.webp",
+      "source_filename": "exec-5a98af68-c31a-4876-92ac-639646786a25.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 47088,
+      "sha256": "5326d4c441040b71aa635a29ff39b94dddec1a25b1e0bff52bd151ce1d19000e"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "story_title": "潮汐之前的晚宴",
+      "character_id": "char_2",
+      "name": "苏棠",
+      "subject": "A woman about35, the banquet pastry chef. White chef's jacket with a dark green apron, tidy pinned hair. Soft blurred period ferry galley behind her; no kitchen tools or food preparation clues.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about35, the banquet pastry chef. White chef's jacket with a dark green apron, tidy pinned hair. Soft blurred period ferry galley behind her; no kitchen tools or food preparation clues.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/char_2-v3.webp",
+      "source_filename": "exec-a94fd5e8-dd4c-4514-a132-daa45bbb8aca.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 47366,
+      "sha256": "16c645991118d16928b3eae75bad35c990005f9d19379a41b7b31b268044e850"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "story_title": "潮汐之前的晚宴",
+      "character_id": "char_3",
+      "name": "闻晋",
+      "subject": "A man about40, a lawyer handling the ferry's property transfer. Gray suit over a light shirt, black-framed glasses, neatly side-parted hair. Soft blurred ship lounge behind him; no documents.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about40, a lawyer handling the ferry's property transfer. Gray suit over a light shirt, black-framed glasses, neatly side-parted hair. Soft blurred ship lounge behind him; no documents.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/char_3-v3.webp",
+      "source_filename": "exec-d5b9bf66-93a1-4d0b-ad83-6e3919ae500c.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 81420,
+      "sha256": "90313729d455f486b542d43a3f044e51b3a2cb40b493402ff2b6f38063144d38"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "story_title": "潮汐之前的晚宴",
+      "character_id": "char_4",
+      "name": "黎音",
+      "subject": "A woman about27, an invited singer. Dark red shawl over a modest black long dress, softly waved dark hair. Soft blurred warm ship dining saloon behind her; no stage microphone.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about27, an invited singer. Dark red shawl over a modest black long dress, softly waved dark hair. Soft blurred warm ship dining saloon behind her; no stage microphone.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/char_4-v3.webp",
+      "source_filename": "exec-1c844573-c877-4ff7-934c-d590d5d32a8f.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 54516,
+      "sha256": "041d9409c8c8964a413f21a50853e43c8fd80a261f65bb2ce450ee6028c0e717"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "story_title": "潮汐之前的晚宴",
+      "character_id": "char_5",
+      "name": "顾沅",
+      "subject": "A woman about30, a secretary managing banquet accounts. Pale cream blouse, orderly dark hair pinned back. Soft blurred ferry office behind her; ledger box and hands outside the frame, no readable paper.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about30, a secretary managing banquet accounts. Pale cream blouse, orderly dark hair pinned back. Soft blurred ferry office behind her; ledger box and hands outside the frame, no readable paper.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/char_5-v3.webp",
+      "source_filename": "exec-c9576d66-bfd0-45ac-87a0-8d79124bdbbc.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 53384,
+      "sha256": "ec68958d0a0a1ae8081cf1d9574c8431c8a5b1c2ad7e0019eb0ef421f3a5e294"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03305",
+      "story_title": "潮汐之前的晚宴",
+      "character_id": "char_6",
+      "name": "温岚",
+      "subject": "A woman about24, a photographer documenting the retired ferry. Light-colored short period jacket, neat practical bob, plain leather camera-bag shoulder strap with bag outside the frame. Soft blurred ship corridor behind her.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about24, a photographer documenting the retired ferry. Light-colored short period jacket, neat practical bob, plain leather camera-bag shoulder strap with bag outside the frame. Soft blurred ship corridor behind her.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03305/char_6-v3.webp",
+      "source_filename": "exec-a4ae458c-6f67-4c02-a9dd-54e147fe5dde.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 65498,
+      "sha256": "f6a2117bad8542107b38ac3d4c6d73267e3e0c64509a67635d2994b1f846e60d"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_1",
+      "name": "沈梨",
+      "subject": "A woman about30, the leading actress in a charity performance. Dark emerald-green period stage costume, plain light shawl, neatly waved hair. Soft blurred burgundy theater curtain behind her, subdued theatrical elegance. Distinct natural facial design: Defined cheekbones, gently arched brows, dark hair styled away from her face.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about30, the leading actress in a charity performance. Dark emerald-green period stage costume, plain light shawl, neatly waved hair. Soft blurred burgundy theater curtain behind her, subdued theatrical elegance. Distinct natural facial design: Defined cheekbones, gently arched brows, dark hair styled away from her face.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_1-v3.webp",
+      "source_filename": "exec-3b32c928-8a26-4ddc-82b8-9450179d16af.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 69796,
+      "sha256": "428b5cb9c658107207f0fbf8c54d97274df19309e54f3c53c659dd5b6f6a8f71"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_2",
+      "name": "程越",
+      "subject": "A man about25, an understudy for the encore performance. Dark gray stage waistcoat over a clean light shirt, short neatly styled hair. Soft blurred theater dressing-room background; no mirror or readable poster. Distinct natural facial design: Long oval face, straight brows, youthful clean-shaven features.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about25, an understudy for the encore performance. Dark gray stage waistcoat over a clean light shirt, short neatly styled hair. Soft blurred theater dressing-room background; no mirror or readable poster. Distinct natural facial design: Long oval face, straight brows, youthful clean-shaven features.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_2-v3.webp",
+      "source_filename": "exec-815d15af-b873-4306-8df3-c54f3b3777eb.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 65882,
+      "sha256": "b72888cbdb56474278d959a2c0f12c5f0c866217dd7b55069249c56a7337ba5f"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_3",
+      "name": "顾照",
+      "subject": "A man about33, a theater lighting technician. Blue-gray work shirt, simple round glasses, short neat hair. Soft blurred backstage wall and warm light behind him; no equipment details or cables. Distinct natural facial design: Broad rounded face with straight eyebrows and close-cropped hair.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about33, a theater lighting technician. Blue-gray work shirt, simple round glasses, short neat hair. Soft blurred backstage wall and warm light behind him; no equipment details or cables. Distinct natural facial design: Broad rounded face with straight eyebrows and close-cropped hair.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_3-v3.webp",
+      "source_filename": "exec-9d52367b-b111-4995-966e-7868929b446b.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 48296,
+      "sha256": "33f863a9fa1ac9cb2276a520de6a28a927fda917868732794d025b1ca5fd08b1"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_4",
+      "name": "唐栩",
+      "subject": "A woman about40, the theater charity's bookkeeper. Dark brown dress, fine-rimmed glasses, dark hair neatly gathered. Soft blurred old theater office behind her; no account books or readable documents. Distinct natural facial design: Softly rounded mature face, gentle fine lines and thin lips.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about40, the theater charity's bookkeeper. Dark brown dress, fine-rimmed glasses, dark hair neatly gathered. Soft blurred old theater office behind her; no account books or readable documents. Distinct natural facial design: Softly rounded mature face, gentle fine lines and thin lips.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_4-v3.webp",
+      "source_filename": "exec-feeb483d-aab6-4d29-9a42-06acfe85170a.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 48608,
+      "sha256": "608050666124ec2365a08c4f0d8efff843ac40d018686395de4c1bcceaeca664"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_5",
+      "name": "陆澄",
+      "subject": "A man about38, a costume tailor. Light beige-gray tailor's work coat, neatly combed hair, a plain soft tailor's measuring tape around the neck with markings invisible. Soft blurred fabric shelves behind him; no scissors or tools. Distinct natural facial design: Square face, broad brows, neat short side-parted hair, clean-shaven.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about38, a costume tailor. Light beige-gray tailor's work coat, neatly combed hair, a plain soft tailor's measuring tape around the neck with markings invisible. Soft blurred fabric shelves behind him; no scissors or tools. Distinct natural facial design: Square face, broad brows, neat short side-parted hair, clean-shaven.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_5-v3.webp",
+      "source_filename": "exec-d049ff26-5e97-46e0-847c-217d7ec9b2c1.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 77206,
+      "sha256": "6ae917c03f477af95758b555fa01cf9d5b6123353d569cd53c81c6aa4cf5201f"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_6",
+      "name": "纪南",
+      "subject": "A woman about32, a theater mechanical maintenance worker. Deep indigo work jacket, practical short hair, calm professional bearing. Soft blurred old theater backstage wall, no machinery, rigging or moving platform. Distinct natural facial design: Rounded face, strong straight brows and a practical cropped haircut.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about32, a theater mechanical maintenance worker. Deep indigo work jacket, practical short hair, calm professional bearing. Soft blurred old theater backstage wall, no machinery, rigging or moving platform. Distinct natural facial design: Rounded face, strong straight brows and a practical cropped haircut.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_6-v3.webp",
+      "source_filename": "exec-58a7d5e9-d374-48d7-8192-02a756a2ed20.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 48818,
+      "sha256": "4ee11e703c9ff5e4c65977444f07fa5bffd293df0aefd762e1ce253314d6fa87"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_7",
+      "name": "温初",
+      "subject": "A woman about29, a theater scenery artist. Pale brown scenic-painter's apron over a plain shirt, hair tied up. Soft blurred painted scenic flats behind her; no lettering, paint marks used as clues or tools. Distinct natural facial design: Long oval face, fine eyebrows and hair tied in a compact high bun.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A woman about29, a theater scenery artist. Pale brown scenic-painter's apron over a plain shirt, hair tied up. Soft blurred painted scenic flats behind her; no lettering, paint marks used as clues or tools. Distinct natural facial design: Long oval face, fine eyebrows and hair tied in a compact high bun.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_7-v3.webp",
+      "source_filename": "exec-7df39d4e-bca3-42aa-bc1f-786966edbea4.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 60830,
+      "sha256": "ce0a5fc851c71be32920f9262f9b19216b7735aaf70c9a88bae2c9d6206ec52a"
+    },
+    {
+      "story_id": "ad60c7e0-1f56-4fc3-bcaa-705910d03306",
+      "story_title": "终场之前的返场",
+      "character_id": "char_8",
+      "name": "叶笙",
+      "subject": "A man about23, the charity performance's piano accompanist. Worn black formal jacket, small neat bow tie, tidy dark hair. Soft blurred backstage piano room behind him; piano as indistinct background, no sheet music. Distinct natural facial design: Narrow youthful face, softly curled short dark hair, clean-shaven.",
+      "prompt": "Use case: historical-scene. Asset type: one original character portrait for a Chinese mystery game, early twentieth century Chinese city setting. Painterly cinematic realism with Art Deco noir atmosphere, muted charcoal and warm sepia, fine ivory paper grain. Vertical 1024x1536, chest-up, a single Chinese adult. Face centered with full head visible and comfortable margins, shoulders in frame, hands out of frame, eyes clearly lit. Calm neutral dignified expression, equally credible and approachable as every other character. Subdued, softly blurred period setting. Clothing believable and lived-in; realistic anatomy. No text, letters, numbers, readable documents, logos, watermarks, modern technology, weapons, blood, villain coding, forensic marks, exaggerated suspicious expressions, collage, extra people or decorative border. Do not illustrate any mystery clue or guilt. Subject: A man about23, the charity performance's piano accompanist. Worn black formal jacket, small neat bow tie, tidy dark hair. Soft blurred backstage piano room behind him; piano as indistinct background, no sheet music. Distinct natural facial design: Narrow youthful face, softly curled short dark hair, clean-shaven.",
+      "asset": "backend/app/content/images/ad60c7e0-1f56-4fc3-bcaa-705910d03306/char_8-v3.webp",
+      "source_filename": "exec-371fe219-8b43-4337-bf15-f67f49ed10cb.png",
+      "size": [
+        640,
+        960
+      ],
+      "bytes": 30902,
+      "sha256": "26f5a29738ab95a61d57f58a7f64b1eed5c76b87adc9cbee5bb03634165d3a28"
+    }
+  ],
+  "encoding": "Original1024x1536 PNG converted to640x960 WebP quality85; no semantic edits.",
+  "total_bytes": 1063302
+}

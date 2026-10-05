@@ -2,8 +2,8 @@
   "format_version": 1,
   "metadata": {
     "schema_version": 1,
-    "version": 2,
-    "release_notes": "新增原创场景封面。正文不变；已通过本地结构与流程检查，真实模型及玩家体验评审尚未完成。",
+    "version": 3,
+    "release_notes": "新增全部角色画像，正文与场景封面不变。真实模型及玩家体验评审尚未完成。",
     "summary": "旧渡轮最后一次作为餐厅开门。所有人都拿宴会合照证明主人仍在房里举杯，可透过玻璃看见的人，真的是玻璃后面的人吗？",
     "author": "本项目原创剧本组",
     "license": "本项目原创内容，按仓库 AGPL-3.0-only 授权；未使用第三方小说的人物、正文或具体情节。",
@@ -432,9 +432,16 @@
     "catalog": {}
   },
   "artwork": {
-    "version": 2,
+    "version": 3,
     "cover": "cover-v2.webp",
-    "portraits": {},
+    "portraits": {
+      "char_1": "char_1-v3.webp",
+      "char_2": "char_2-v3.webp",
+      "char_3": "char_3-v3.webp",
+      "char_4": "char_4-v3.webp",
+      "char_5": "char_5-v3.webp",
+      "char_6": "char_6-v3.webp"
+    },
     "retained_files": []
   }
 }
