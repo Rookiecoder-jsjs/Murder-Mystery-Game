@@ -4,6 +4,15 @@ import type { LibrarySnapshot, LibraryTask } from './storyLibrary';
 
 export const isAndroid = Capacitor.getPlatform() === 'android';
 
+export interface SavedGame {
+  game_id: string;
+  title: string;
+  phase: string;
+  round?: number;
+  player?: string;
+  last_activity?: number;
+}
+
 export interface NativeTask {
   id: string;
   state: 'queued' | 'running' | 'done' | 'interrupted' | 'failed' | 'dismissed';

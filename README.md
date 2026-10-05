@@ -7,13 +7,13 @@
 <p align="center"><strong>一个人入戏，与 AI 角色对质，凭证据找出真凶。</strong></p>
 
 <p align="center">
-  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.3"><img src="https://img.shields.io/badge/Preview-1.0.0--preview.3-A93025?style=flat-square" alt="安卓预览版 1.0.0-preview.3" /></a>
+  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.4"><img src="https://img.shields.io/badge/Preview-1.0.0--preview.4-A93025?style=flat-square" alt="安卓预览版 1.0.0-preview.4" /></a>
   <a href="#安卓开始游玩"><img src="https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square" alt="Android 7.0 及以上" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0--only-blue?style=flat-square" alt="许可证 AGPL-3.0-only" /></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.3/Murder-Mystery-1.0.0-preview.3-arm64.apk">下载安卓 APK</a> ·
+  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.4/Murder-Mystery-1.0.0-preview.4-arm64.apk">下载安卓 APK</a> ·
   <a href="#怎么玩">游戏玩法</a> ·
   <a href="#电脑运行">电脑运行</a> ·
   <a href="#开发与扩展">开发文档</a>
@@ -40,11 +40,11 @@
 
 ## 安卓开始游玩
 
-[下载 1.0.0-preview.3 APK](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.3/Murder-Mystery-1.0.0-preview.3-arm64.apk) · [发布说明、校验值与对应源码](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.3)
+[下载 1.0.0-preview.4 APK](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.4/Murder-Mystery-1.0.0-preview.4-arm64.apk) · [发布说明、校验值与对应源码](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.4)
 
-1. 安装 APK，打开「模型设置」，填写 OpenAI 兼容的 HTTPS 服务地址、API key 与模型名称；可使用默认的 DeepSeek 配置。
-2. 在「精选剧本 → 已下载」选本，第一次建议选择三人本和速推模式。
-3. 想玩更多案件，在「发现新本」检查更新并下载；下载剧本不需要模型密钥。
+1. 安装 APK，在「我的 → 模型设置」，填写 OpenAI 兼容的 HTTPS 服务地址、API key 与模型名称；可使用默认的 DeepSeek 配置。
+2. 在「剧本库 → 可开局」选本，进入详情选择模式；第一次建议选择三人本和速推模式。
+3. 想玩更多案件，在「剧本库」检查更新并搜索故事，进入详情下载；下载剧本不需要模型密钥。
 4. 游戏自动保存，退出后可从首页继续，结案后可查看复盘。
 
 APK **不内置 API key**，由你在手机填写并加密保存。当前为开发签名预览版，仅提供 **arm64-v8a、Android 7.0 及以上**安装包；同签名覆盖升级保留配置与存档，卸载会删除本地数据。
@@ -82,7 +82,7 @@ APK **不内置 API key**，由你在手机填写并加密保存。当前为开�
 
 首次建议体验前三本。后三本已配齐封面和画像，目前仍为体验预览，完整真实模型与玩家评审尚未完成。
 
-想玩自己的主题？使用「自行生成」，由故事决定人数或指定 3—8 人。新稿需要生成、审稿和必要修补，耗时与质量受模型影响，**不保证达到精选本的完成度**。安卓版自行生成剧本的在线画像功能尚未接入。
+想玩自己的主题？使用「我的 → 生成新故事」，由故事决定人数或指定 3—8 人。新稿需要生成、审稿和必要修补，耗时与质量受模型影响，**不保证达到精选本的完成度**。安卓版自行生成剧本的在线画像功能尚未接入。
 
 ## 电脑运行
 
@@ -118,7 +118,7 @@ npm run dev
 | 制作与更新故事 | [剧本包格式](docs/story-library.md) · [内容更新链路](docs/story-content-updates.md) |
 | 按主题创作并生成配图 | [本项目的剧本更新 skill](skills/update-mystery-stories/SKILL.md) |
 | 理解角色知识与上下文 | [AI 上下文说明](docs/ai-context.md) |
-| 查看已完成的验证与已知问题 | [首批实玩记录](docs/builtin-story-playthrough.md) · [配图记录](docs/story-artwork.md) · [移动 UI 验收](docs/android-ui-audit.md) |
+| 查看已完成的验证与已知问题 | [首批实玩记录](docs/builtin-story-playthrough.md) · [配图记录](docs/story-artwork.md) · [移动 UI 验收](docs/android-ui-audit.md) · [新版首页与剧本库](docs/android-lobby.md) |
 
 欢迎通过 [Issues](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/issues) 反馈问题或提交 PR。反馈时附上平台、应用版本和复现步骤即可。
 

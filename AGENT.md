@@ -64,6 +64,7 @@ codegraph status
 - `frontend/src/api/`：Web API 客户端、SSE 解析和 TypeScript 数据类型。组件不得各自重复实现 API 请求。
 - `frontend/src/context/`：Web 游戏全局状态和动作。
 - `frontend/src/pages/`：页面级路由入口。
+- `frontend/src/pages/mobile/`：安卓首页／剧本库／我的及次级页面，共享本地目录与资料读取；详情操作固定在底部，官方列表保留当前进程内的搜索、筛选与位置。沿用 `libraryApi`、原生凭据与游戏状态动作，不能在 UI 中下载或校验内容包。实现见 `docs/android-lobby.md`。
 - `frontend/src/components/`：按游戏阶段和通用能力拆分的 React 组件；样式与组件就近维护。
 - Logo 原图为 `docs/brand/logo-casefile-source.png`，Web 派生资源在 `frontend/public/brand/`。替换图稿后运行 `python3 scripts/build-brand-assets.py`（需要 Pillow）更新网页、各密度 Android 图标和启动图；按中央安全区留白，不使用电脑或手机配置作为资源。说明见 `docs/logo-design.md`。
 - `miniprogram/src/services/`：小程序 HTTP/API 封装。

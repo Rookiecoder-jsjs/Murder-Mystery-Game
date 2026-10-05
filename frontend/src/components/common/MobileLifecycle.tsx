@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { App } from '@capacitor/app';
 import { isAndroid } from '../../api/native';
+import { mobileBackTarget } from '../../utils/mobileLibrary';
 
 export function MobileLifecycle() {
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
   useEffect(() => {
     if (!isAndroid) return;
     const viewport = window.visualViewport;
@@ -48,7 +49,7 @@ export function MobileLifecycle() {
         document.activeElement.blur();
       }
       if (hideKeyboard) return;
-      if (pathname !== '/') navigate('/');
+      if (pathname !== '/') navigate(mobileBackTarget(pathname, state), { replace: true });
       else void App.exitApp();
     });
     return () => {
@@ -60,6 +61,6 @@ export function MobileLifecycle() {
       document.removeEventListener('focusout', updateKeyboard);
       document.documentElement.classList.remove('native-keyboard-open');
     };
-  }, [navigate, pathname]);
+  }, [navigate, pathname, state]);
   return null;
 }

@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function mountLifecycle() {
+function mountLifecycle(pathname = '/game/saved', state) {
   const callbacks = new Map();
   const classes = new Set();
   const navigations = [];
@@ -30,7 +30,13 @@ function mountLifecycle() {
   const context = { exports: {}, Event, KeyboardEvent: class extends Event {}, HTMLElement: Element,
     document, window, require: name => {
       if (name === 'react') return { useEffect: effect => { cleanup = effect(); } };
-      if (name === 'react-router-dom') return { useLocation: () => ({ pathname: '/game/saved' }), useNavigate: () => value => navigations.push(value) };
+      if (name === 'react-router-dom') return { useLocation: () => ({ pathname, state }), useNavigate: () => value => navigations.push(value) };
+      if (name === '../../utils/mobileLibrary') {
+        const utility = { exports: {} };
+        const src = fs.readFileSync(path.join(__dirname, '../src/utils/mobileLibrary.ts'), 'utf8');
+        vm.runInNewContext(ts.transpileModule(src, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, utility);
+        return utility.exports;
+      }
       if (name === '@capacitor/app') return { App: { addListener: async (name, handler) => {
         callbacks.set(name, handler); return { remove: () => callbacks.delete(name) };
       }, exitApp: () => {} } };
@@ -61,6 +67,13 @@ test('Android IME closes without blurring: the next back navigates immediately',
   app.back();
   assert.deepEqual(app.navigations, ['/']);
   app.cleanup();
+});
+
+test('Android back returns from case details to the original library instead of skipping home', () => {
+  const app = mountLifecycle('/library/case', { from: '/library' });
+  app.back(); assert.deepEqual(app.navigations, ['/library']); app.cleanup();
+  const personal = mountLifecycle('/library/personal', { from: '/my/stories' });
+  personal.back(); assert.deepEqual(personal.navigations, ['/my/stories']); personal.cleanup();
 });
 
 test('visible keyboard and open overlays consume back before route navigation', () => {
