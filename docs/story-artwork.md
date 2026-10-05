@@ -55,4 +55,4 @@ Web 开发环境经 Vite 代理至 FastAPI 的 `/assets/story-library` 静态目
 
 18张原始1024×1536 PNG保留在生成工具目录，项目成品为640×960 WebP（质量85），合计1,063,302字节，约1.01MiB。文件为各story_id目录内的`char_N-v3.webp`；逐角色路径、原图文件名、精确提示词和SHA-256见 [画像清单](story-portrait-prompts-2026-10-05.json)。所有角色采用脸部清晰、中性表情与相近光照，避免视觉暗示有罪。
 
-三个故事内容版本2升为3，正文与cover-v2.webp逐字不变；artwork按现有角色ID映射。新开局采用完整画像，已开始的旧局仍保持冻结资料和原图引用。旧版本内容目录和图片不覆盖，手机通过preview.3精选库更新，无需重构或重装APK。内容r3发布和实际验收结果将在后续记录补充。
+三个故事内容版本2升为3，正文与cover-v2.webp逐字不变；artwork按现有角色ID映射。新开局采用完整画像，已开始的旧局仍保持冻结资料和原图引用。旧版本内容目录和图片不覆盖，手机通过preview.3精选库更新，无需重构或重装APK。[内容r3](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/content-r3)已发布；三个远端包长度与SHA-256核对通过，实际Android验签器对目录全部六个条目验签、解包通过。后端全套337项、手机Python6项、发布工具3项通过，包内凭据检查通过；真机画像显示验收随后记录。
