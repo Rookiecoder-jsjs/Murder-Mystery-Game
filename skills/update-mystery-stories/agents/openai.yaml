@@ -1,0 +1,4 @@
+interface:
+  display_name: "剧本创作与更新"
+  short_description: "根据主题创作原创剧本，生成封面与角色画像，检查并交付可下载更新包"
+  default_prompt: "使用 $update-mystery-stories，根据主题“雪山旅馆”创作原创剧本，人数自动，生成封面和全部角色画像，并完成本地检查。"
