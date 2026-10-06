@@ -21,7 +21,7 @@ import type {
   VoteResponse,
 } from '../api/types';
 import { GameContext } from './game-context';
-import { gameReducer, initialState } from './game-reducer';
+import { gameReducer, initialState, type GameAction } from './game-reducer';
 
 function errMsg(error: unknown): string {
   return error instanceof Error ? error.message : '操作失败，请重试';
@@ -32,15 +32,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const { notify } = useToast();
   const speakAbortRef = useRef<AbortController | null>(null);
   const activeGameIdRef = useRef<string | null>(null);
+  const viewRevisionRef = useRef(0);
+  const beginView = useCallback((gameId: string | null) => {
+    speakAbortRef.current?.abort();
+    speakAbortRef.current = null;
+    activeGameIdRef.current = gameId;
+    viewRevisionRef.current += 1;
+  }, []);
+  const captureView = useCallback((gameId?: string) => {
+    const revision = viewRevisionRef.current;
+    const current = () => viewRevisionRef.current === revision &&
+      (gameId === undefined || activeGameIdRef.current === gameId);
+    const update = (action: GameAction) => { if (current()) dispatch(action); };
+    return { current, update };
+  }, []);
 
   // 返回新建的 gameId，由页面负责导航到 /game/:gameId
   const createGame = useCallback(async (topic: string, playerName?: string, mode: GameMode = 'classic', characterCount?: number) => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    beginView(activeGameIdRef.current);
+    const { current, update } = captureView();
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const response = await api.createGame(topic, playerName, mode, characterCount);
+      if (!current()) return response.game_id;
       activeGameIdRef.current = response.game_id;
-      dispatch({
+      update({
         type: 'GAME_CREATED',
         payload: {
           gameId: response.game_id,
@@ -56,20 +73,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
       return response.game_id;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, []);
+  }, [beginView, captureView]);
 
   const loadGame = useCallback(async (storyId: string, mode: GameMode = 'classic') => {
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    beginView(activeGameIdRef.current);
+    const { current, update } = captureView();
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const response = await api.loadGame(storyId, mode);
+      if (!current()) return response.game_id;
       activeGameIdRef.current = response.game_id;
-      dispatch({
+      update({
         type: 'GAME_CREATED',
         payload: {
           gameId: response.game_id,
@@ -85,20 +105,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
       return response.game_id;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, []);
+  }, [beginView, captureView]);
 
   // 刷新/刷新页面后按 URL 中的 id 续局
   const resumeGame = useCallback(async (gameId: string) => {
-    speakAbortRef.current?.abort();
-    speakAbortRef.current = null;
-    activeGameIdRef.current = gameId;
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    beginView(gameId);
+    const { current, update } = captureView(gameId);
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const snapshot = isAndroid ? await nativeSnapshot(gameId) : null;
       const [status, clueBoard, historyResp] = snapshot
@@ -108,26 +127,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
         api.getClues(gameId),
         api.getDiscussionHistory(gameId),
       ]);
-      if (activeGameIdRef.current !== gameId) return;
-      dispatch({
+      if (!current()) return;
+      update({
         type: 'GAME_RESUMED',
         payload: { gameId, status, clueBoard, history: historyResp.history },
       });
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, []);
+  }, [beginView, captureView]);
 
   // 轮询友好的刷新：成功/失败用布尔值表达，不吞错也不弹错
   const refreshStatus = useCallback(async (): Promise<boolean> => {
     if (!state.gameId) return false;
+    const { current, update } = captureView(state.gameId);
     try {
       const status = await api.getGameStatus(state.gameId);
-      if (activeGameIdRef.current !== state.gameId) return false;
-      dispatch({
+      if (!current()) return false;
+      update({
         type: 'SET_GAME_STATUS',
         payload: {
           phase: status.phase,
@@ -150,22 +170,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
       if (status.phase === 'discussion' && !speakAbortRef.current) {
         const { history } = await api.getDiscussionHistory(state.gameId);
-        if (activeGameIdRef.current === state.gameId && !speakAbortRef.current) {
-          dispatch({ type: 'SET_DISCUSSION_HISTORY', payload: history });
+        if (current() && !speakAbortRef.current) {
+          update({ type: 'SET_DISCUSSION_HISTORY', payload: history });
         }
       }
       return true;
     } catch {
       return false;
     }
-  }, [state.gameId]);
+  }, [state.gameId, captureView]);
 
   const refreshClues = useCallback(async (): Promise<boolean> => {
     if (!state.gameId) return false;
+    const { current, update } = captureView(state.gameId);
     try {
       const clueBoard = await api.getClues(state.gameId);
-      if (activeGameIdRef.current !== state.gameId) return false;
-      dispatch({
+      if (!current()) return false;
+      update({
         type: 'SET_CLUES',
         payload: {
           clues: clueBoard.clues,
@@ -177,19 +198,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
     } catch {
       return false;
     }
-  }, [state.gameId]);
+  }, [state.gameId, captureView]);
 
   const refreshDiscussionHistory = useCallback(async (): Promise<boolean> => {
     if (!state.gameId) return false;
+    const { current, update } = captureView(state.gameId);
     try {
       const { history } = await api.getDiscussionHistory(state.gameId);
-      if (activeGameIdRef.current !== state.gameId) return false;
-      dispatch({ type: 'SET_DISCUSSION_HISTORY', payload: history });
+      if (!current()) return false;
+      update({ type: 'SET_DISCUSSION_HISTORY', payload: history });
       return true;
     } catch {
       return false;
     }
-  }, [state.gameId]);
+  }, [state.gameId, captureView]);
 
   const setConnectionLost = useCallback((lost: boolean) => {
     dispatch({ type: 'SET_CONNECTION_LOST', payload: lost });
@@ -197,11 +219,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const investigate = useCallback(async (leadId?: string): Promise<Clue[]> => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    const { update } = captureView(state.gameId);
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const result = await api.investigate(state.gameId, leadId);
-      dispatch({
+      update({
         type: 'SET_CLUES',
         payload: {
           clues: result.clue_board.clues,
@@ -209,7 +232,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
           scenePublicClues: result.clue_board.scene_public_clues,
         },
       });
-      dispatch({
+      update({
         type: 'SET_GAME_STATUS',
         payload: {
           investigationOptions: result.investigation_options,
@@ -219,18 +242,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
       });
       return result.found;
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.gameId]);
+  }, [captureView, state.gameId]);
 
   const introduce = useCallback(
     async (message?: string) => {
       if (!state.gameId) throw new ApiError('游戏尚未开始');
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'SET_ERROR', payload: null });
+      const { update } = captureView(state.gameId);
+      update({ type: 'SET_LOADING', payload: true });
+      update({ type: 'SET_ERROR', payload: null });
       try {
         const result = await api.introduce(state.gameId, message);
         const intros: ChatMessage[] = [
@@ -240,26 +264,27 @@ export function GameProvider({ children }: { children: ReactNode }) {
           },
           ...(result.ai_introductions ?? []),
         ];
-        dispatch({ type: 'SET_INTRODUCTIONS', payload: intros });
+        update({ type: 'SET_INTRODUCTIONS', payload: intros });
         // 阶段保持 introduction，由介绍页按钮手动进入搜证
       } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+        update({ type: 'SET_ERROR', payload: errMsg(error) });
         throw error;
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        update({ type: 'SET_LOADING', payload: false });
       }
     },
-    [state.gameId, state.player?.name],
+    [captureView, state.gameId, state.player?.name],
   );
 
   const nextPhase = useCallback(async () => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    const { current, update } = captureView(state.gameId);
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const result = await api.nextPhase(state.gameId);
-      dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
-      dispatch({
+      update({ type: 'SET_PHASE', payload: result.phase as GamePhase });
+      update({
         type: 'SET_GAME_STATUS',
         payload: {
           availableActions: result.available_actions,
@@ -269,45 +294,47 @@ export function GameProvider({ children }: { children: ReactNode }) {
         },
       });
       if (result.round !== undefined) {
-        dispatch({ type: 'SET_ROUND', payload: result.round });
+        update({ type: 'SET_ROUND', payload: result.round });
       }
-      await refreshClues();
+      if (current()) await refreshClues();
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.gameId, refreshClues]);
+  }, [captureView, state.gameId, refreshClues]);
 
   const startVoting = useCallback(async () => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    const { update } = captureView(state.gameId);
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const result = await api.startVoting(state.gameId);
-      dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
-      dispatch({ type: 'SET_GAME_STATUS', payload: { availableActions: result.available_actions, lastEvent: result.last_event ?? null } });
+      update({ type: 'SET_PHASE', payload: result.phase as GamePhase });
+      update({ type: 'SET_GAME_STATUS', payload: { availableActions: result.available_actions, lastEvent: result.last_event ?? null } });
       if (result.round !== undefined) {
-        dispatch({ type: 'SET_ROUND', payload: result.round });
+        update({ type: 'SET_ROUND', payload: result.round });
       }
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.gameId]);
+  }, [captureView, state.gameId]);
 
   const changeInvestigation = useCallback(async (nextRound = false) => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
-    dispatch({ type: 'SET_LOADING', payload: true });
-    dispatch({ type: 'SET_ERROR', payload: null });
+    const { current, update } = captureView(state.gameId);
+    update({ type: 'SET_LOADING', payload: true });
+    update({ type: 'SET_ERROR', payload: null });
     try {
       const result = await (nextRound ? api.nextInvestigationRound(state.gameId) : api.returnToInvestigation(state.gameId));
-      dispatch({ type: 'SET_PHASE', payload: result.phase as GamePhase });
-      dispatch({ type: 'SET_ROUND', payload: result.round ?? 1 });
-      dispatch({
+      update({ type: 'SET_PHASE', payload: result.phase as GamePhase });
+      update({ type: 'SET_ROUND', payload: result.round ?? 1 });
+      update({
         type: 'SET_GAME_STATUS',
         payload: {
           availableActions: result.available_actions,
@@ -316,30 +343,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
           roundProgress: result.round_progress,
         },
       });
-      await refreshClues();
-      await refreshDiscussionHistory();
+      if (current()) await refreshClues();
+      if (current()) await refreshDiscussionHistory();
     } catch (error) {
-      dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+      update({ type: 'SET_ERROR', payload: errMsg(error) });
       throw error;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      update({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.gameId, refreshClues, refreshDiscussionHistory]);
+  }, [captureView, state.gameId, refreshClues, refreshDiscussionHistory]);
 
   const returnToInvestigation = useCallback(() => changeInvestigation(), [changeInvestigation]);
   const startNextRound = useCallback(() => changeInvestigation(true), [changeInvestigation]);
 
   const collectBallotAdvice = useCallback(async () => {
     if (!state.gameId) throw new ApiError('游戏尚未开始');
+    const { update } = captureView(state.gameId);
     const reveal = await api.collectBallotAdvice(state.gameId);
-    if (activeGameIdRef.current === state.gameId) dispatch({ type: 'SET_REVEAL_INFO', payload: reveal });
-  }, [state.gameId]);
+    update({ type: 'SET_REVEAL_INFO', payload: reveal });
+  }, [state.gameId, captureView]);
 
   const speak = useCallback(
     async (message: string, options: DiscussionOptions = {}) => {
       const gameId = state.gameId;
       const playerName = state.player?.name ?? '你';
       if (!gameId || state.isSpeaking) return { recorded: false, completed: false };
+      const { current, update } = captureView(gameId);
       options = { ...options, action_id: options.action_id || crypto.randomUUID() };
       let recorded = false;
       let completed = false;
@@ -349,35 +378,37 @@ export function GameProvider({ children }: { children: ReactNode }) {
       speakAbortRef.current = controller;
 
       // Only recorded questions enter history; an unsent draft remains editable.
-      dispatch({ type: 'SET_SPEAKING', payload: true });
-      dispatch({ type: 'SET_ERROR', payload: null });
+      update({ type: 'SET_SPEAKING', payload: true });
+      update({ type: 'SET_ERROR', payload: null });
       try {
         for await (const msg of api.speakStream(gameId, message, controller.signal, options)) {
-          if (controller.signal.aborted || activeGameIdRef.current !== gameId) return { recorded, completed };
+          if (controller.signal.aborted || !current()) return { recorded, completed };
           if (msg.speaker === playerName) recorded = true;
-          dispatch({ type: 'ADD_DISCUSSION_MESSAGES', payload: [msg] });
+          update({ type: 'ADD_DISCUSSION_MESSAGES', payload: [msg] });
         }
         completed = recorded = true;
       } catch (error) {
-        if (controller.signal.aborted) return { recorded, completed };
+        if (controller.signal.aborted || !current()) return { recorded, completed };
         // 不做批量降级（会重复入库）。改用服务端历史重同步，保留已到达内容。
         try {
           const { history } = await api.getDiscussionHistory(gameId);
+          if (!current()) return { recorded, completed };
           recorded = history.some((m) => m.action_id === options.action_id && m.kind === 'question');
-          dispatch({
+          update({
             type: 'SET_DISCUSSION_HISTORY',
             payload: history,
           });
           notify(recorded ? `${errMsg(error)}，问题已保存，可继续原任务` : `${errMsg(error)}，草稿已保留`, 'error');
         } catch {
-          dispatch({ type: 'SET_CONNECTION_LOST', payload: true });
+          if (!current()) return { recorded, completed };
+          update({ type: 'SET_CONNECTION_LOST', payload: true });
           notify(errMsg(error), 'error');
         }
       } finally {
         if (speakAbortRef.current === controller) {
           speakAbortRef.current = null;
-          dispatch({ type: 'SET_SPEAKING', payload: false });
-          if (activeGameIdRef.current === gameId) {
+          update({ type: 'SET_SPEAKING', payload: false });
+          if (current()) {
             await refreshStatus();
             await refreshClues();
             await refreshDiscussionHistory();
@@ -386,14 +417,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
       }
       return { recorded, completed };
     },
-    [state.gameId, state.player?.name, state.isSpeaking, notify, refreshStatus, refreshClues, refreshDiscussionHistory],
+    [captureView, state.gameId, state.player?.name, state.isSpeaking, notify, refreshStatus, refreshClues, refreshDiscussionHistory],
   );
 
   const vote = useCallback(
     async (characterName: string): Promise<VoteResponse> => {
       if (!state.gameId) throw new ApiError('游戏尚未开始');
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'SET_ERROR', payload: null });
+      const { update } = captureView(state.gameId);
+      update({ type: 'SET_LOADING', payload: true });
+      update({ type: 'SET_ERROR', payload: null });
       try {
         const result = await api.vote(state.gameId, characterName);
         if (result.game_ended) {
@@ -405,31 +437,32 @@ export function GameProvider({ children }: { children: ReactNode }) {
               // RevealPhase 会自愈式补取
             }
           }
-          dispatch({
+          update({
             type: 'GAME_ENDED',
             payload: { winner: result.winner || 'unknown', revealInfo },
           });
         }
         return result;
       } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+        update({ type: 'SET_ERROR', payload: errMsg(error) });
         throw error;
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        update({ type: 'SET_LOADING', payload: false });
       }
     },
-    [state.gameId],
+    [captureView, state.gameId],
   );
 
   const accuse = useCallback(
     async (characterName: string): Promise<AccuseResponse> => {
       if (!state.gameId) throw new ApiError('游戏尚未开始');
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'SET_ERROR', payload: null });
+      const { update } = captureView(state.gameId);
+      update({ type: 'SET_LOADING', payload: true });
+      update({ type: 'SET_ERROR', payload: null });
       try {
         const result = await api.accuse(state.gameId, characterName);
         if (result.game_ended) {
-          dispatch({
+          update({
             type: 'GAME_ENDED',
             payload: {
               winner: result.winner || 'unknown',
@@ -439,33 +472,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
         }
         return result;
       } catch (error) {
-        dispatch({ type: 'SET_ERROR', payload: errMsg(error) });
+        update({ type: 'SET_ERROR', payload: errMsg(error) });
         throw error;
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        update({ type: 'SET_LOADING', payload: false });
       }
     },
-    [state.gameId],
+    [captureView, state.gameId],
   );
 
   // RevealPhase 自愈：揭晓信息缺失时补取
   const loadReveal = useCallback(async () => {
     if (!state.gameId) return;
+    const { update, current } = captureView(state.gameId);
     try {
       const reveal = await api.getReveal(state.gameId);
-      if (activeGameIdRef.current !== state.gameId) return;
-      dispatch({ type: 'SET_REVEAL_INFO', payload: reveal });
-    } catch {
-      // 保持加载提示，交由用户重试或轮询恢复
+      update({ type: 'SET_REVEAL_INFO', payload: reveal });
+    } catch (error) {
+      if (current()) throw error;
     }
-  }, [state.gameId]);
+  }, [state.gameId, captureView]);
 
   const resetGame = useCallback(() => {
-    speakAbortRef.current?.abort();
-    speakAbortRef.current = null;
-    activeGameIdRef.current = null;
+    beginView(null);
     dispatch({ type: 'RESET_GAME' });
-  }, []);
+  }, [beginView]);
 
   return (
     <GameContext.Provider

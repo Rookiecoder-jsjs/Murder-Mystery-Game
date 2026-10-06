@@ -11,6 +11,9 @@ export function RevealPhase() {
   const { state, resetGame, loadReveal, collectBallotAdvice } = useGame();
   const { notify } = useToast();
   const [adviceLoading, setAdviceLoading] = useState(false);
+  const [revealLoading, setRevealLoading] = useState(true);
+  const [revealError, setRevealError] = useState('');
+  const [retryTick, setRetryTick] = useState(0);
   const requestAdvice = async () => {
     setAdviceLoading(true);
     try { await collectBallotAdvice(); }
@@ -20,10 +23,20 @@ export function RevealPhase() {
 
   // 直接进入揭晓（如轮询带过来的）而 revealInfo 缺失时，主动补取
   useEffect(() => {
-    if (!state.revealInfo && state.gameId) {
-      loadReveal();
-    }
-  }, [state.revealInfo, state.gameId, loadReveal]);
+    if (state.revealInfo || !state.gameId) return;
+    let cancelled = false;
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setRevealLoading(true);
+      setRevealError('');
+      await loadReveal();
+    }).catch(error => {
+      if (!cancelled) setRevealError(error instanceof Error ? error.message : '复盘读取失败，请重试');
+    }).finally(() => { if (!cancelled) setRevealLoading(false); });
+    const resume = () => { setRetryTick(value => value + 1); };
+    window.addEventListener('mystery:resume', resume);
+    return () => { cancelled = true; window.removeEventListener('mystery:resume', resume); };
+  }, [state.revealInfo, state.gameId, loadReveal, retryTick]);
 
   const isWinner = state.winner === 'good';
   const isKillerWin = state.winner === 'killer';
@@ -37,9 +50,11 @@ export function RevealPhase() {
     return (
       <div className="reveal-phase">
         <div className="reveal-loading">
-          <LoadingSpinner size="lg" text="正在揭晓真相…" />
+          {revealLoading ? <LoadingSpinner size="lg" text="正在揭晓真相…" />
+            : <p role="alert">{revealError || '复盘尚未读取，请重试'}</p>}
         </div>
         <div className="reveal-actions">
+          {!revealLoading && <Button variant="primary" onClick={() => setRetryTick(value => value + 1)}>重试读取复盘</Button>}
           <Button variant="ghost" onClick={handleBackHome}>
             <Home size={16} />
             返回首页

@@ -6,10 +6,9 @@ import { useMobileLobby } from './lobbyContext';
 import { MobileStoryRow } from './MobileStoryRow';
 
 export function MobilePersonalPage() {
-  const { local } = useMobileLobby();
+  const { local, personalView, setPersonalView, scrollToTop } = useMobileLobby();
   const { notify } = useToast();
-  const [query, setQuery] = useState('');
-  const [limit, setLimit] = useState(20);
+  const { query, limit } = personalView;
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState('');
   const stories = local.stories.filter(story => `${story.title} ${story.summary ?? story.topic}`.includes(query.trim()));
@@ -30,12 +29,12 @@ export function MobilePersonalPage() {
           finally { setImporting(false); }
         }} />
       </label></div>
-    <input type="search" className="mobile-personal-search" aria-label="搜索我的剧本" placeholder="搜索我的剧本" value={query} onChange={event => { setQuery(event.target.value); setLimit(20); }} />
+    <input type="search" className="mobile-personal-search" aria-label="搜索我的剧本" placeholder="搜索我的剧本" value={query} onChange={event => { setPersonalView({ query: event.target.value, limit: 20 }); scrollToTop(); }} />
     {error && <p className="mobile-error" role="alert">{error}</p>}
     <div className="mobile-story-list">{stories.slice(0, limit).map(story => <MobileStoryRow key={story.id} story={story} status={story.origin === 'generated' ? '自行生成' : story.origin === 'imported' ? '个人导入' : '旧版故事'} />)}</div>
     {local.loading && <p className="mobile-note" role="status">正在读取个人故事…</p>}
     {!local.loading && !stories.length && <p className="mobile-empty">{query ? '没有找到符合条件的故事' : '暂无个人故事'}</p>}
     {local.error && <p className="mobile-error" role="alert">{local.error}</p>}
-    {stories.length > limit && <button type="button" className="btn btn-secondary mobile-wide-button" onClick={() => setLimit(value => value + 20)}>显示更多故事</button>}
+    {stories.length > limit && <button type="button" className="btn btn-secondary mobile-wide-button" onClick={() => setPersonalView(value => ({ ...value, limit: value.limit + 20 }))}>显示更多故事</button>}
   </section>;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { engineCommand, isAndroid, waitForTask, type NativeTask } from '../../api/native';
 import { useGame } from '../../context/useGame';
 import { Button } from './Button';
@@ -10,9 +10,12 @@ export function GameTaskPanel() {
   const { notify } = useToast();
   const [task, setTask] = useState<NativeTask | null>(null);
   const [busy, setBusy] = useState(false);
+  const readGeneration = useRef(0);
   const refresh = useCallback(async () => {
     if (!isAndroid || !state.gameId) return;
+    const generation = ++readGeneration.current;
     const result = await engineCommand<{ tasks: NativeTask[] }>({ kind: 'tasks' });
+    if (generation !== readGeneration.current) return;
     setTask(result.tasks.find(t => t.endpoint.startsWith(`/games/${state.gameId}/`) &&
       (t.state === 'interrupted' || (t.state === 'failed' && t.can_continue))) || null);
   }, [state.gameId]);
@@ -24,7 +27,7 @@ export function GameTaskPanel() {
     const timer = !state.gameEnded ? window.setInterval(read, 3000) : undefined;
     window.addEventListener('mystery:tasks', read);
     window.addEventListener('mystery:resume', read);
-    return () => { stopped = true; window.clearInterval(timer); window.removeEventListener('mystery:tasks', read); window.removeEventListener('mystery:resume', read); };
+    return () => { stopped = true; readGeneration.current += 1; window.clearInterval(timer); window.removeEventListener('mystery:tasks', read); window.removeEventListener('mystery:resume', read); };
   }, [refresh, state.gameEnded]);
   const resume = async () => {
     if (!task || busy) return;
@@ -39,7 +42,7 @@ export function GameTaskPanel() {
     } catch (error) { notify(error instanceof Error ? error.message : '任务未完成', 'error'); }
     finally { setBusy(false); void refresh().catch(() => undefined); }
   };
-  if (!task) return null;
+  if (!task || !task.endpoint.startsWith(`/games/${state.gameId}/`)) return null;
   return <div className="game-task-panel" role="status"><span>{task.label || '本次操作'}已中断，已完成内容保留。</span>
     <Button size="sm" onClick={resume} isLoading={busy}>继续原任务</Button></div>;
 }

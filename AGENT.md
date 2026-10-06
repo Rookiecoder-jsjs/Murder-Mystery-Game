@@ -64,7 +64,7 @@ codegraph status
 - `frontend/src/api/`：Web API 客户端、SSE 解析和 TypeScript 数据类型。组件不得各自重复实现 API 请求。
 - `frontend/src/context/`：Web 游戏全局状态和动作。
 - `frontend/src/pages/`：页面级路由入口。
-- `frontend/src/pages/mobile/`：安卓首页／剧本库／我的及次级页面，共享本地目录与资料读取；详情操作固定在底部，官方列表保留当前进程内的搜索、筛选与位置。沿用 `libraryApi`、原生凭据与游戏状态动作，不能在 UI 中下载或校验内容包。实现见 `docs/android-lobby.md`。
+- `frontend/src/pages/mobile/`：安卓首页／剧本库／我的及次级页面，共享本地目录与资料读取；详情操作固定在底部，官方与个人列表保留当前进程内的搜索、展开数量与位置，官方列表另保留筛选。沿用 `libraryApi`、原生凭据与游戏状态动作，不能在 UI 中下载或校验内容包。实现见 `docs/android-lobby.md`。
 - `frontend/src/components/`：按游戏阶段和通用能力拆分的 React 组件；样式与组件就近维护。
 - Logo 原图为 `docs/brand/logo-casefile-source.png`，Web 派生资源在 `frontend/public/brand/`。替换图稿后运行 `python3 scripts/build-brand-assets.py`（需要 Pillow）更新网页、各密度 Android 图标和启动图；按中央安全区留白，不使用电脑或手机配置作为资源。说明见 `docs/logo-design.md`。
 - `miniprogram/src/services/`：小程序 HTTP/API 封装。
@@ -163,6 +163,7 @@ cd miniprogram && pnpm run build:weapp
 ## 配置、数据与安全
 
 - 现有 Web/小程序部署的模型密钥只放在 `backend/.env`。安卓独立版按设计由用户在手机输入，由原生层使用 Android Keystore 管理的加密密钥保护 API key；不得复制电脑 `.env` 到 APK。不要提交 `.env`、API key、访问令牌或真实用户数据，不把密钥写入前端构建变量、游戏存档或日志。
+- 安卓任务运行时冻结模型配置；用户明确继续中断任务时读取最新设置，保留任务 ID、原问题、已完成的回复与角色上下文。调用缓存按服务地址和请求隔离；旧缓存只可迁移到原服务，原生层仍核对密钥与目标地址。客户端异步回写同时检查游戏 ID 和本次进入版本，切换或重置后旧结果、错误与加载状态不得覆盖新视图；复盘读取失败须提供重试入口。
 - `npm run android:apk` 构建后自动执行 `scripts/audit-android-apk.py`，递归检查 APK / Chaquopy 归档并比对内置剧本和配图。发布前须检查通过；仅输出路径、校验值和结果，不输出密钥。可安装 APK 与 SHA-256 通过 GitHub Release 附件交付，不加入源码 Git。当前为开发签名预览版，提升 versionCode 时保留相同签名以支持覆盖升级。
 - 启动时后端会校验必需的 LLM 配置；缺少密钥时的快速失败属于预期行为，不要通过硬编码默认密钥规避。
 - `backend/assets/portraits/`、`backend/sessions/`、`backend/.port.json` 和各端构建产物属于运行时/生成文件，除非任务明确要求，不要提交。

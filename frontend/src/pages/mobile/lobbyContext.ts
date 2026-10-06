@@ -10,6 +10,8 @@ export interface MobileLobbyData {
   local: ReturnType<typeof useLocalLobby>;
   view: LibraryView;
   setView: Dispatch<SetStateAction<LibraryView>>;
+  personalView: { query: string; limit: number };
+  setPersonalView: Dispatch<SetStateAction<MobileLobbyData['personalView']>>;
   mode: GameMode;
   setMode: Dispatch<SetStateAction<GameMode>>;
   scrollToTop: () => void;

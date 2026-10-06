@@ -7,13 +7,13 @@
 <p align="center"><strong>一个人入戏，与 AI 角色对质，凭证据找出真凶。</strong></p>
 
 <p align="center">
-  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.4"><img src="https://img.shields.io/badge/Preview-1.0.0--preview.4-A93025?style=flat-square" alt="安卓预览版 1.0.0-preview.4" /></a>
+  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.5"><img src="https://img.shields.io/badge/Preview-1.0.0--preview.5-A93025?style=flat-square" alt="安卓预览版 1.0.0-preview.5" /></a>
   <a href="#安卓开始游玩"><img src="https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square" alt="Android 7.0 及以上" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0--only-blue?style=flat-square" alt="许可证 AGPL-3.0-only" /></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.4/Murder-Mystery-1.0.0-preview.4-arm64.apk">下载安卓 APK</a> ·
+  <a href="https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.5/Murder-Mystery-1.0.0-preview.5-arm64.apk">下载安卓 APK</a> ·
   <a href="#怎么玩">游戏玩法</a> ·
   <a href="#电脑运行">电脑运行</a> ·
   <a href="#开发与扩展">开发文档</a>
@@ -40,7 +40,7 @@
 
 ## 安卓开始游玩
 
-[下载 1.0.0-preview.4 APK](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.4/Murder-Mystery-1.0.0-preview.4-arm64.apk) · [发布说明、校验值与对应源码](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.4)
+[下载 1.0.0-preview.5 APK](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/download/v1.0.0-android-preview.5/Murder-Mystery-1.0.0-preview.5-arm64.apk) · [发布说明、校验值与对应源码](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.5)
 
 1. 安装 APK，在「我的 → 模型设置」，填写 OpenAI 兼容的 HTTPS 服务地址、API key 与模型名称；可使用默认的 DeepSeek 配置。
 2. 在「剧本库 → 可开局」选本，进入详情选择模式；第一次建议选择三人本和速推模式。

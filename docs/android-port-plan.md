@@ -1,5 +1,9 @@
 # 安卓独立运行版设计与实施计划
 
+## 2026-10-06：任务恢复与存档切换修复（preview.5）
+
+应用版本为 `1.0.0-preview.5` / versionCode 18。修复旧局异步结果覆盖新局、继续任务仍使用旧模型配置、复盘读取失败一直转圈，以及个人剧本详情返回丢失列表状态。任务重试保留原问题、已完成发言与冻结上下文，缓存按服务地址隔离。回归测试、构建和 Redmi Android 16 真机验证通过；已有密钥、23 个存档和下载故事保留，未调用真实模型。完整验证见 [安卓首页与剧本库](android-lobby.md)，APK、校验值及对应源码见 [preview.5 发布说明](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.5)。
+
 ## 2026-10-05：安卓选本界面（preview.4）
 
 新版采用首页／剧本库／我的三个入口，官方故事改为可搜索、可筛选的紧凑列表，每次展开20本；封面、完整简介、版本说明和模式选择移到详情，开局／下载操作固定在底部。返回后保留当前进程中的筛选与位置，个人剧本、存档、制作任务和下载记录仍可访问。实现和验证见 [安卓首页与剧本库](android-lobby.md)。应用版本为 `1.0.0-preview.4` / versionCode 17；公开下载与对应源码见 [preview.4发布说明](https://github.com/Rookiecoder-jsjs/Murder-Mystery-Game/releases/tag/v1.0.0-android-preview.4)。

@@ -199,6 +199,102 @@ class MobileRuntimeTests(unittest.TestCase):
             finally:
                 operation.reset(token)
 
+    def test_service_cache_migration_never_reuses_a_response_for_another_destination(self):
+        import hashlib
+        with tempfile.TemporaryDirectory() as directory:
+            transport, store = Transport(), MobileStore(directory)
+            client = NativeModelClient(transport, store)
+            task = {'id': 'legacy-cache', 'attempt': 1, 'settings': json.loads(transport.settings())}
+            old_url = task['settings']['baseUrl']
+            arguments = dict(model='m', messages=[{'role': 'user', 'content': 'test'}])
+            encoded = json.dumps({**arguments, 'stream': False}, ensure_ascii=False, sort_keys=True)
+            legacy = task['id'] + ':' + hashlib.sha256(encoded.encode()).hexdigest()
+            store.put('calls', legacy, {'state': 'complete', 'response': {
+                'choices': [{'message': {'content': '原服务已完成响应'}}]}})
+            token = operation.set(task)
+            try:
+                self.assertEqual(client.create(**arguments).choices[0].message.content, '原服务已完成响应')
+                self.assertEqual(transport.calls, [])
+                task['legacy_cache_base_url'] = old_url
+                task['settings']['baseUrl'] = 'https://another.invalid/v1'
+                current = client.create(**arguments)
+                self.assertFalse(current.usage['local_reused'])
+                self.assertEqual(len(transport.calls), 1)
+                self.assertNotEqual(current.choices[0].message.content, '原服务已完成响应')
+                self.assertTrue(client.create(**arguments).usage['local_reused'])
+                self.assertEqual(len(transport.calls), 1)
+            finally:
+                operation.reset(token)
+
+    def test_continue_refreshes_settings_without_repeating_completed_roles(self):
+        from dataclasses import asdict
+        class EditableTransport(Transport):
+            def __init__(self):
+                super().__init__()
+                self.role = 'wrong-model'
+                self.old_statements = 0
+                self.requested_models = []
+
+            def settings(self):
+                return json.dumps(dict(baseUrl='https://example.invalid/v1', storyModel='story',
+                                       roleModel=self.role, reviewModel='review', thinking=False))
+
+            def complete(self, encoded, timeout, base):
+                payload = json.loads(encoded)
+                self.requested_models.append(payload['model'])
+                if payload['model'] == 'wrong-model':
+                    self.old_statements += 1
+                    if self.old_statements > 1:
+                        return json.dumps({'error': '模拟：模型不存在'})
+                return super().complete(encoded, timeout, base)
+
+        async def check():
+            with tempfile.TemporaryDirectory() as directory:
+                transport = EditableTransport()
+                runtime = Runtime(directory, BUNDLED, transport)
+
+                async def wait(task):
+                    for _ in range(1000):
+                        if not runtime.active:
+                            return runtime.store.get('tasks', task['id'])
+                        await asyncio.sleep(.005)
+                    self.fail('task did not finish')
+
+                async def start(endpoint, body=None):
+                    return await wait(await runtime.command({'kind': 'start', 'id': str(uuid.uuid4()),
+                        'endpoint': endpoint, 'body': body or {}}))
+
+                story = runtime.read('/stories')['stories'][0]
+                loaded = await start('/games/load', {'story_id': story['id'], 'mode': 'quick'})
+                prefix = '/games/' + loaded['game_id']
+                await start(prefix + '/introduce')
+                await start(prefix + '/next-phase')
+                await start(prefix + '/investigate', {'lead_id': runtime.read(prefix)['investigation_options'][0]['id']})
+                await start(prefix + '/next-phase')
+                task = await start(prefix + '/speak', {'message': '请说明你知道的情况。'})
+                self.assertEqual(task['state'], 'interrupted')
+                session = runtime.manager.get(loaded['game_id'])
+                frozen = json.dumps(session.pending_discussion['contexts'], sort_keys=True)
+                completed = dict(session.pending_discussion['completed'])
+                self.assertGreater(len(completed), 0)
+                events = [asdict(e) for e in session.game.state.discussion_events]
+                digest = task['digest']
+                transport.role = 'corrected-model'
+                runtime = Runtime(directory, BUNDLED, transport)
+                session = runtime.manager.get(loaded['game_id'])
+                self.assertEqual(json.dumps(session.pending_discussion['contexts'], sort_keys=True), frozen)
+                before_calls = len(transport.requested_models)
+                resumed = await wait(await runtime.command({'kind': 'continue', 'id': task['id']}))
+                self.assertEqual(resumed['state'], 'done', resumed.get('error'))
+                self.assertEqual(resumed['settings']['roleModel'], 'corrected-model')
+                self.assertEqual(resumed['digest'], digest)
+                self.assertNotIn('wrong-model', transport.requested_models[before_calls:])
+                self.assertEqual([asdict(e) for e in session.game.state.discussion_events][:len(events)], events)
+                self.assertIsNone(session.pending_discussion)
+                self.assertEqual(len([e for e in session.game.state.discussion_events
+                    if e.action_id == task['id'] and e.kind == 'question']), 1)
+        asyncio.run(check())
+
     def test_full_quick_game_with_restart_and_interrupted_discussion(self):
         async def play():
             with tempfile.TemporaryDirectory() as directory:

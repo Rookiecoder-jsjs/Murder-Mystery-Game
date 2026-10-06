@@ -10,6 +10,7 @@ import type { MobileLobbyData } from './lobbyContext';
 import './MobileLobby.css';
 
 let savedView: LibraryView = { query: '', filter: 'all', limit: LIBRARY_PAGE_SIZE, retainedIds: [] };
+let savedPersonalView: MobileLobbyData['personalView'] = { query: '', limit: LIBRARY_PAGE_SIZE };
 let savedMode: GameMode = 'quick';
 const scrollPositions = new Map<string, number>();
 const titles: Record<string, string> = {
@@ -22,6 +23,7 @@ export function MobileLobby() {
   const library = useStoryLibrary();
   const local = useLocalLobby();
   const [view, setView] = useState(savedView);
+  const [personalView, setPersonalView] = useState(savedPersonalView);
   const [mode, setMode] = useState<GameMode>(savedMode);
   const reading = useRef<HTMLDivElement>(null);
   const pathname = location.pathname;
@@ -30,6 +32,7 @@ export function MobileLobby() {
   const ready = pathname === '/library' ? !!library.snapshot : !local.loading;
   const checking = library.snapshot?.tasks.some(task => task.kind === 'check' && isLibraryTaskActive(task));
   useEffect(() => { savedView = view; }, [view]);
+  useEffect(() => { savedPersonalView = personalView; }, [personalView]);
   useEffect(() => { savedMode = mode; }, [mode]);
   useLayoutEffect(() => {
     if (reading.current && ready) reading.current.scrollTop = scrollPositions.get(pathname) ?? 0;
@@ -37,7 +40,7 @@ export function MobileLobby() {
   const scrollToTop = useCallback(() => {
     if (reading.current) reading.current.scrollTop = 0;
   }, []);
-  const context: MobileLobbyData = { library, local, view, setView, mode, setMode, scrollToTop };
+  const context: MobileLobbyData = { library, local, view, setView, personalView, setPersonalView, mode, setMode, scrollToTop };
   return <div className="mobile-lobby">
     <header className="mobile-lobby-header">
       {!topLevel && <Link className="mobile-icon-button" to={mobileBackTarget(pathname, location.state)} replace aria-label="返回上一页"><ArrowLeft size={21} /></Link>}

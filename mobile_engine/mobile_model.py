@@ -35,8 +35,16 @@ class NativeModelClient:
             payload.update(kwargs.get('extra_body') or {})
         payload['stream'] = False
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-        key = task['id'] + ':' + hashlib.sha256(encoded.encode()).hexdigest()
+        destination = task['settings']['baseUrl']
+        scoped = json.dumps({'base_url': destination, 'request': encoded}, sort_keys=True)
+        key = task['id'] + ':' + hashlib.sha256(scoped.encode()).hexdigest()
         cached = self.store.get('calls', key)
+        if cached is None and destination == task.get('legacy_cache_base_url', destination):
+            # Pre-upgrade records belong only to the task's original service.
+            legacy = task['id'] + ':' + hashlib.sha256(encoded.encode()).hexdigest()
+            cached = self.store.get('calls', legacy)
+            if cached is not None:
+                self.store.put('calls', key, cached)
         reused = bool(cached and cached.get('response'))
         if cached and cached.get('response'):
             raw = cached['response']

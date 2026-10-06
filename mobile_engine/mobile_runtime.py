@@ -167,6 +167,10 @@ class Runtime:
                 raise GameError(409, '任务不可继续')
             if self.active:
                 raise GameError(409, '上一项操作仍在执行')
+            # An explicit retry may use corrected model names or a new service.
+            # Keep the original request, saved replies and frozen role contexts.
+            task.setdefault('legacy_cache_base_url', task['settings']['baseUrl'])
+            task['settings'] = json.loads(str(self.transport.settings()))
         else:
             raise GameError(400, '未知引擎命令')
         task.update(state='queued', error='', attempt=task['attempt'] + 1)
